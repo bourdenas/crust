@@ -3,7 +3,12 @@ name = "trust"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]] 
+name = "demo"
+path = "src/demo.rs"
+
 [dependencies]
+prost = "0.10"
 tonic = "0.7"
 
 [dependencies.sdl2]
@@ -18,3 +23,6 @@ branch = "master"
 
 [package.metadata.vcpkg.target]
 x86_64-pc-windows-msvc = { triplet = "x64-windows-static-md" }
+
+[build-dependencies]
+tonic-build = "0.7"
