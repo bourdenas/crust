@@ -1,4 +1,4 @@
-use crate::sdl::Canvas;
+use crate::sdl::{Canvas, EventPump};
 use crate::Status;
 use sdl2::image::{self, InitFlag};
 
@@ -22,5 +22,9 @@ impl Sdl {
 
     pub fn create_canvas(&self, title: &str, width: u32, height: u32) -> Canvas {
         Canvas::new(&self.video_subsystem, title, width, height)
+    }
+
+    pub fn create_event_pump(&self) -> Result<EventPump, Status> {
+        EventPump::new(&self.sdl_context)
     }
 }
