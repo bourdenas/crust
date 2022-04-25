@@ -15,15 +15,42 @@ impl EventPump {
 
     pub fn poll(&mut self) -> InputEvent {
         match self.event_pump.poll_event() {
-            Some(event) => match event {
-                Event::Quit { .. } => InputEvent {
-                    event: Some(trust::input_event::Event::QuitEvent(trust::QuitEvent {})),
-                },
-                _ => InputEvent {
-                    event: Some(trust::input_event::Event::NoEvent(trust::NoEvent {})),
-                },
-            },
+            Some(event) => self.build_event(event),
             None => InputEvent {
+                event: Some(trust::input_event::Event::NoEvent(trust::NoEvent {})),
+            },
+        }
+    }
+
+    fn build_event(&self, event: Event) -> InputEvent {
+        match event {
+            Event::Quit { .. } => InputEvent {
+                event: Some(trust::input_event::Event::QuitEvent(trust::QuitEvent {})),
+            },
+            Event::KeyDown {
+                keycode: Some(key),
+                repeat,
+                ..
+            } => InputEvent {
+                event: Some(trust::input_event::Event::KeyEvent(trust::KeyEvent {
+                    key: key.to_string(),
+                    key_state: match repeat {
+                        false => trust::KeyState::Pressed as i32,
+                        true => trust::KeyState::None as i32,
+                    },
+                    ..Default::default()
+                })),
+            },
+            Event::KeyUp {
+                keycode: Some(key), ..
+            } => InputEvent {
+                event: Some(trust::input_event::Event::KeyEvent(trust::KeyEvent {
+                    key: key.to_string(),
+                    key_state: trust::KeyState::Released as i32,
+                    ..Default::default()
+                })),
+            },
+            _ => InputEvent {
                 event: Some(trust::input_event::Event::NoEvent(trust::NoEvent {})),
             },
         }
