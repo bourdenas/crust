@@ -1,4 +1,4 @@
-use crate::trust::{self, InputEvent};
+use crate::trust::{self, UserInput};
 use crate::Status;
 use sdl2::event::Event;
 use sdl2::mouse::MouseButton;
@@ -14,26 +14,26 @@ impl EventPump {
         })
     }
 
-    pub fn poll(&mut self) -> InputEvent {
+    pub fn poll(&mut self) -> UserInput {
         match self.event_pump.poll_event() {
             Some(event) => self.build_event(event),
-            None => InputEvent {
-                event: Some(trust::input_event::Event::NoEvent(trust::NoEvent {})),
+            None => UserInput {
+                event: Some(trust::user_input::Event::NoEvent(trust::NoEvent {})),
             },
         }
     }
 
-    fn build_event(&self, event: Event) -> InputEvent {
+    fn build_event(&self, event: Event) -> UserInput {
         match event {
-            Event::Quit { .. } => InputEvent {
-                event: Some(trust::input_event::Event::QuitEvent(trust::QuitEvent {})),
+            Event::Quit { .. } => UserInput {
+                event: Some(trust::user_input::Event::QuitEvent(trust::QuitEvent {})),
             },
             Event::KeyDown {
                 keycode: Some(key),
                 repeat,
                 ..
-            } => InputEvent {
-                event: Some(trust::input_event::Event::KeyEvent(trust::KeyEvent {
+            } => UserInput {
+                event: Some(trust::user_input::Event::KeyEvent(trust::KeyEvent {
                     key: key.to_string(),
                     key_state: match repeat {
                         false => trust::KeyState::Pressed as i32,
@@ -44,8 +44,8 @@ impl EventPump {
             },
             Event::KeyUp {
                 keycode: Some(key), ..
-            } => InputEvent {
-                event: Some(trust::input_event::Event::KeyEvent(trust::KeyEvent {
+            } => UserInput {
+                event: Some(trust::user_input::Event::KeyEvent(trust::KeyEvent {
                     key: key.to_string(),
                     key_state: trust::KeyState::Released as i32,
                     ..Default::default()
@@ -53,8 +53,8 @@ impl EventPump {
             },
             Event::MouseMotion {
                 x, y, xrel, yrel, ..
-            } => InputEvent {
-                event: Some(trust::input_event::Event::MouseEvent(trust::MouseEvent {
+            } => UserInput {
+                event: Some(trust::user_input::Event::MouseEvent(trust::MouseEvent {
                     absolute_position: Some(trust::Vector {
                         x: x as f64,
                         y: y as f64,
@@ -70,8 +70,8 @@ impl EventPump {
             },
             Event::MouseButtonDown {
                 mouse_btn, x, y, ..
-            } => InputEvent {
-                event: Some(trust::input_event::Event::MouseEvent(trust::MouseEvent {
+            } => UserInput {
+                event: Some(trust::user_input::Event::MouseEvent(trust::MouseEvent {
                     button: translate_mouse_button(mouse_btn),
                     key_state: trust::KeyState::Pressed as i32,
                     absolute_position: Some(trust::Vector {
@@ -84,8 +84,8 @@ impl EventPump {
             },
             Event::MouseButtonUp {
                 mouse_btn, x, y, ..
-            } => InputEvent {
-                event: Some(trust::input_event::Event::MouseEvent(trust::MouseEvent {
+            } => UserInput {
+                event: Some(trust::user_input::Event::MouseEvent(trust::MouseEvent {
                     button: translate_mouse_button(mouse_btn),
                     key_state: trust::KeyState::Released as i32,
                     absolute_position: Some(trust::Vector {
@@ -96,8 +96,8 @@ impl EventPump {
                     ..Default::default()
                 })),
             },
-            _ => InputEvent {
-                event: Some(trust::input_event::Event::NoEvent(trust::NoEvent {})),
+            _ => UserInput {
+                event: Some(trust::user_input::Event::NoEvent(trust::NoEvent {})),
             },
         }
     }

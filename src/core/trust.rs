@@ -1,6 +1,6 @@
 use crate::core::SceneManager;
 use crate::sdl;
-use crate::trust::input_event;
+use crate::trust::user_input;
 use crate::Status;
 use std::time::{Duration, SystemTime};
 
@@ -27,17 +27,17 @@ impl Trust {
         let mut prev_time = SystemTime::now();
 
         'game: loop {
-            // Handle events
+            // Input event handling
             'events: loop {
                 match self.event_pump.poll().event {
-                    Some(input_event::Event::NoEvent(..)) => {
+                    Some(user_input::Event::NoEvent(..)) => {
                         break 'events;
                     }
-                    Some(input_event::Event::QuitEvent(..)) => {
+                    Some(user_input::Event::QuitEvent(..)) => {
                         break 'game;
                     }
-                    Some(input_event::Event::KeyEvent(event)) if event.key == "Q" => break 'game,
-                    Some(input_event::Event::KeyEvent(event)) => println!("key: {:#?}", event),
+                    Some(user_input::Event::KeyEvent(event)) if event.key == "Q" => break 'game,
+                    Some(user_input::Event::KeyEvent(event)) => println!("key: {:#?}", event),
                     Some(event) => println!("{:#?}", event),
                     _ => {}
                 }
