@@ -3,6 +3,7 @@ pub mod trust {
     tonic::include_proto!("trust");
 }
 
+pub mod core;
 pub mod sdl;
 
 mod status;
