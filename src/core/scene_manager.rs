@@ -1,13 +1,12 @@
-use crate::sdl::Canvas;
 use crate::Status;
+use sdl2::render::Texture;
+use sdl2::render::WindowCanvas;
 
-pub struct SceneManager {
-    canvas: Canvas,
-}
+pub struct SceneManager;
 
 impl SceneManager {
-    pub fn new(canvas: Canvas) -> Self {
-        SceneManager { canvas }
+    pub fn new() -> Self {
+        SceneManager {}
     }
 
     pub fn setup(&mut self) -> Result<(), Status> {
@@ -15,14 +14,15 @@ impl SceneManager {
     }
 
     /// Renders the scene update since last frame.
-    pub fn render(&mut self) {
+    pub fn render(&mut self, canvas: &mut WindowCanvas, texture: &Texture) {
         // TODO: get all dirty nodes and blit them
-        self.canvas.flip();
+        canvas.copy(&texture, None, None).unwrap();
+        canvas.present();
     }
 
     /// Renders the whole scene from scratch.
-    pub fn render_all(&mut self) {
-        self.canvas.clear();
-        self.canvas.flip();
+    pub fn render_all(&mut self, canvas: &mut WindowCanvas) {
+        canvas.clear();
+        canvas.present();
     }
 }

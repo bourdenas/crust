@@ -1,20 +1,15 @@
+use crate::core::{ResourceLoader, ResourceManager};
 use crate::Status;
-use sdl2;
 use sdl2::image::LoadTexture;
-use sdl2::render::{Texture, WindowCanvas};
+use sdl2::render::{Texture, TextureCreator};
 
-pub struct TextureLoader {
-    texture_creator: sdl2::render::TextureCreator<sdl2::video::WindowContext>,
-}
+pub type TextureManager<'l, T> = ResourceManager<'l, String, Texture<'l>, TextureCreator<T>>;
 
-impl TextureLoader {
-    pub fn new(canvas: &WindowCanvas) -> Self {
-        TextureLoader {
-            texture_creator: canvas.texture_creator(),
-        }
-    }
+impl<'l, T> ResourceLoader<'l, Texture<'l>> for TextureCreator<T> {
+    type Args = str;
 
-    pub fn load_texture(&self, path: &str) -> Result<Texture, Status> {
-        Ok(self.texture_creator.load_texture(path)?)
+    fn load(&'l self, path: &str) -> Result<Texture, Status> {
+        println!("Loading '{}'", path);
+        Ok(self.load_texture(path)?)
     }
 }
