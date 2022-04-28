@@ -1,11 +1,11 @@
-use crate::core::SceneManager;
-use crate::sdl;
-use crate::sdl::EventPump;
-use crate::sdl::TextureManager;
+use crate::components::{Position, Sprite};
+use crate::sdl::{self, EventPump, TextureManager};
 use crate::trust::user_input;
 use crate::Status;
 use sdl2::image::{self, InitFlag};
+use sdl2::rect::{Point, Rect};
 use sdl2::render::{Texture, WindowCanvas};
+use specs::prelude::*;
 use std::time::{Duration, SystemTime};
 
 pub struct Core {
@@ -14,7 +14,6 @@ pub struct Core {
     _image_context: sdl2::image::Sdl2ImageContext,
     event_pump: sdl::EventPump,
     canvas: WindowCanvas,
-    scene_manager: SceneManager,
 }
 
 impl Core {
@@ -40,16 +39,28 @@ impl Core {
             _image_context: image::init(InitFlag::PNG | InitFlag::JPG)?,
             event_pump,
             canvas,
-            scene_manager: SceneManager::new(),
         })
     }
 
     pub fn run(&mut self) {
         let texture_creator = self.canvas.texture_creator();
         let mut texture_manager = TextureManager::new(&texture_creator);
-        let texture = texture_manager
-            .load("assets/bardo.png")
-            .expect("Failed to load 'assets/reaper.png'");
+
+        let mut world = World::new();
+        world.register::<Position>();
+        world.register::<Sprite>();
+
+        let mut dispatcher = DispatcherBuilder::new().build();
+        dispatcher.setup(&mut world);
+
+        world
+            .create_entity()
+            .with(Position(Point::new(400, 300)))
+            .with(Sprite {
+                resource: String::from("assets/reaper.png"),
+                bounding_box: Rect::new(6, 7, 24, 28),
+            })
+            .build();
 
         let mut prev_time = SystemTime::now();
 
@@ -73,10 +84,16 @@ impl Core {
             let curr_time = SystemTime::now();
             let time_since_last_frame = curr_time.duration_since(prev_time).unwrap();
 
-            self.start_frame(&time_since_last_frame);
-            self.render(&texture);
-            self.end_frame(&time_since_last_frame);
+            // self.start_frame(&time_since_last_frame);
+            dispatcher.dispatch(&mut world);
+            world.maintain();
 
+            // self.render(&texture);
+            if let Err(e) = render(&mut self.canvas, &mut texture_manager, world.system_data()) {
+                println!("{}", e);
+            }
+
+            // self.end_frame(&time_since_last_frame);
             prev_time = curr_time;
 
             // Try to cap 60fps.
@@ -90,7 +107,34 @@ impl Core {
 
     fn end_frame(&self, _time_since_last_frame: &Duration) {}
 
-    fn render(&mut self, texture: &Texture) {
-        self.scene_manager.render(&mut self.canvas, texture);
+    fn render(&mut self, texture: &Texture) {}
+}
+
+type SystemData<'a> = (ReadStorage<'a, Position>, ReadStorage<'a, Sprite>);
+
+pub fn render(
+    canvas: &mut WindowCanvas,
+    texture_manager: &mut TextureManager<sdl2::video::WindowContext>,
+    (pos, sprite): SystemData,
+) -> Result<(), Status> {
+    // canvas.set_draw_color(background);
+    canvas.clear();
+
+    for (pos, sprite) in (&pos, &sprite).join() {
+        let texture = texture_manager.load(&sprite.resource)?;
+        canvas.copy(
+            &texture,
+            sprite.bounding_box,
+            Rect::new(
+                pos.0.x(),
+                pos.0.y(),
+                2 * sprite.bounding_box.width(),
+                2 * sprite.bounding_box.height(),
+            ),
+        )?;
     }
+
+    canvas.present();
+
+    Ok(())
 }
