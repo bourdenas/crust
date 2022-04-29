@@ -1,6 +1,8 @@
 use crate::components::{Position, Sprite};
 use crate::core::{renderer, EventPump, Status, TextureManager};
+use crate::systems::Keyboard;
 use crate::trust::user_input;
+use crate::trust::KeyEvent;
 use sdl2::image::{self, InitFlag};
 use sdl2::rect::{Point, Rect};
 use sdl2::render::WindowCanvas;
@@ -49,8 +51,13 @@ impl Core {
         world.register::<Position>();
         world.register::<Sprite>();
 
-        let mut dispatcher = DispatcherBuilder::new().build();
+        let mut dispatcher = DispatcherBuilder::new()
+            .with(Keyboard, "Keyboard", &[])
+            .build();
         dispatcher.setup(&mut world);
+
+        let key_events: Vec<KeyEvent> = vec![];
+        world.insert(key_events);
 
         world
             .create_entity()
@@ -62,9 +69,11 @@ impl Core {
             .build();
 
         let mut prev_time = SystemTime::now();
+        world.insert(Duration::ZERO);
 
         'game: loop {
-            // Input event handling
+            // Input event handling.
+            let mut key_events = vec![];
             'events: loop {
                 match self.event_pump.poll().event {
                     Some(user_input::Event::NoEvent(..)) => {
@@ -74,14 +83,17 @@ impl Core {
                         break 'game;
                     }
                     Some(user_input::Event::KeyEvent(event)) if event.key == "Q" => break 'game,
-                    Some(user_input::Event::KeyEvent(event)) => println!("key: {:#?}", event),
-                    Some(event) => println!("{:#?}", event),
+                    Some(user_input::Event::KeyEvent(event)) => key_events.push(event),
+                    // Some(event) => println!("{:#?}", event),
                     _ => {}
                 }
             }
+            *world.write_resource::<Vec<KeyEvent>>() = key_events;
 
+            // Update time.
             let curr_time = SystemTime::now();
             let time_since_last_frame = curr_time.duration_since(prev_time).unwrap();
+            *world.write_resource::<Duration>() = time_since_last_frame;
 
             // self.start_frame(&time_since_last_frame);
             dispatcher.dispatch(&mut world);
