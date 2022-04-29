@@ -5,4 +5,5 @@ pub mod trust {
 
 pub mod components;
 pub mod core;
+pub mod resources;
 pub mod systems;
