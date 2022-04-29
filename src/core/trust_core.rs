@@ -1,11 +1,9 @@
 use crate::components::{Position, Sprite};
-use crate::core::renderer;
-use crate::sdl::{self, EventPump, TextureManager};
+use crate::core::{renderer, EventPump, Status, TextureManager};
 use crate::trust::user_input;
-use crate::Status;
 use sdl2::image::{self, InitFlag};
 use sdl2::rect::{Point, Rect};
-use sdl2::render::{Texture, WindowCanvas};
+use sdl2::render::WindowCanvas;
 use specs::prelude::*;
 use std::time::{Duration, SystemTime};
 
@@ -13,7 +11,7 @@ pub struct Core {
     _sdl_context: sdl2::Sdl,
     _video_subsystem: sdl2::VideoSubsystem,
     _image_context: sdl2::image::Sdl2ImageContext,
-    event_pump: sdl::EventPump,
+    event_pump: EventPump,
     canvas: WindowCanvas,
 }
 

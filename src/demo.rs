@@ -1,5 +1,4 @@
-use trust::core::Core;
-use trust::Status;
+use trust::core::{Core, Status};
 
 fn main() -> Result<(), Status> {
     let mut core = Core::init()?;

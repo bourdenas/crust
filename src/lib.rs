@@ -5,7 +5,3 @@ pub mod trust {
 
 pub mod components;
 pub mod core;
-pub mod sdl;
-
-mod status;
-pub use status::Status;

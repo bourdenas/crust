@@ -1,5 +1,5 @@
+use crate::core::Status;
 use crate::trust::{self, UserInput};
-use crate::Status;
 use sdl2::event::Event;
 use sdl2::mouse::MouseButton;
 

@@ -1,5 +1,4 @@
-use crate::core::{ResourceLoader, ResourceManager};
-use crate::Status;
+use crate::core::{ResourceLoader, ResourceManager, Status};
 use sdl2::image::LoadTexture;
 use sdl2::render::{Texture, TextureCreator};
 
