@@ -9,6 +9,6 @@ impl<'l, T> ResourceLoader<'l, Texture<'l>> for TextureCreator<T> {
 
     fn load(&'l self, path: &str) -> Result<Texture, Status> {
         println!("Loading '{}'", path);
-        Ok(self.load_texture(path)?)
+        Ok(self.load_texture(format!("assets/{}.png", path))?)
     }
 }

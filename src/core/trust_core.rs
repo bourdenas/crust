@@ -1,10 +1,11 @@
 use crate::components::{Position, Sprite};
 use crate::core::{renderer, EventPump, Status, TextureManager};
+use crate::resources::SpriteSheetsManager;
 use crate::systems::Keyboard;
 use crate::trust::user_input;
 use crate::trust::KeyEvent;
 use sdl2::image::{self, InitFlag};
-use sdl2::rect::{Point, Rect};
+use sdl2::rect::Point;
 use sdl2::render::WindowCanvas;
 use specs::prelude::*;
 use std::time::{Duration, SystemTime};
@@ -59,12 +60,15 @@ impl Core {
         let key_events: Vec<KeyEvent> = vec![];
         world.insert(key_events);
 
+        let sheets_manager = SpriteSheetsManager::new();
+        world.insert(sheets_manager);
+
         world
             .create_entity()
             .with(Position(Point::new(400, 300)))
             .with(Sprite {
-                resource: String::from("assets/reaper.png"),
-                bounding_box: Rect::new(6, 7, 24, 28),
+                resource: "reaper".to_owned(),
+                frame_index: 3,
             })
             .build();
 
@@ -111,9 +115,9 @@ impl Core {
 
     pub fn halt(&self) {}
 
-    fn start_frame(&self, _time_since_last_frame: &Duration) {}
+    // fn start_frame(&self, _time_since_last_frame: &Duration) {}
 
-    fn end_frame(&self, _time_since_last_frame: &Duration) {}
+    // fn end_frame(&self, _time_since_last_frame: &Duration) {}
 
     fn render(
         &mut self,

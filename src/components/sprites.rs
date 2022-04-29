@@ -1,4 +1,4 @@
-use sdl2::rect::{Point, Rect};
+use sdl2::rect::Point;
 use specs::prelude::*;
 use specs_derive::Component;
 
@@ -10,5 +10,5 @@ pub struct Position(pub Point);
 #[storage(VecStorage)]
 pub struct Sprite {
     pub resource: String,
-    pub bounding_box: Rect,
+    pub frame_index: usize,
 }
