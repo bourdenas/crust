@@ -1,4 +1,5 @@
 use crate::components::{Position, Sprite};
+use crate::core::renderer;
 use crate::sdl::{self, EventPump, TextureManager};
 use crate::trust::user_input;
 use crate::Status;
@@ -88,10 +89,7 @@ impl Core {
             dispatcher.dispatch(&mut world);
             world.maintain();
 
-            // self.render(&texture);
-            if let Err(e) = render(&mut self.canvas, &mut texture_manager, world.system_data()) {
-                println!("{}", e);
-            }
+            self.render(&mut texture_manager, &world);
 
             // self.end_frame(&time_since_last_frame);
             prev_time = curr_time;
@@ -107,34 +105,13 @@ impl Core {
 
     fn end_frame(&self, _time_since_last_frame: &Duration) {}
 
-    fn render(&mut self, texture: &Texture) {}
-}
-
-type SystemData<'a> = (ReadStorage<'a, Position>, ReadStorage<'a, Sprite>);
-
-pub fn render(
-    canvas: &mut WindowCanvas,
-    texture_manager: &mut TextureManager<sdl2::video::WindowContext>,
-    (pos, sprite): SystemData,
-) -> Result<(), Status> {
-    // canvas.set_draw_color(background);
-    canvas.clear();
-
-    for (pos, sprite) in (&pos, &sprite).join() {
-        let texture = texture_manager.load(&sprite.resource)?;
-        canvas.copy(
-            &texture,
-            sprite.bounding_box,
-            Rect::new(
-                pos.0.x(),
-                pos.0.y(),
-                2 * sprite.bounding_box.width(),
-                2 * sprite.bounding_box.height(),
-            ),
-        )?;
+    fn render(
+        &mut self,
+        texture_manager: &mut TextureManager<sdl2::video::WindowContext>,
+        world: &World,
+    ) {
+        if let Err(e) = renderer::render(&mut self.canvas, texture_manager, world.system_data()) {
+            println!("{}", e);
+        }
     }
-
-    canvas.present();
-
-    Ok(())
 }

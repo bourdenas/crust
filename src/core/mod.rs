@@ -1,3 +1,4 @@
+mod renderer;
 mod resources;
 mod trust_core;
 
