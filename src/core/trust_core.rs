@@ -1,9 +1,8 @@
-use crate::components::{Position, Sprite};
+use crate::components::{Animated, Position, Sprite};
 use crate::core::{renderer, EventPump, Status, TextureManager};
 use crate::resources::SpriteSheetsManager;
 use crate::systems::Keyboard;
-use crate::trust::user_input;
-use crate::trust::KeyEvent;
+use crate::trust::{user_input, Animation, AnimationScript, FrameRangeAnimation, KeyEvent};
 use sdl2::image::{self, InitFlag};
 use sdl2::rect::Point;
 use sdl2::render::WindowCanvas;
@@ -51,6 +50,7 @@ impl Core {
         let mut world = World::new();
         world.register::<Position>();
         world.register::<Sprite>();
+        world.register::<Animated>();
 
         let mut dispatcher = DispatcherBuilder::new()
             .with(Keyboard, "Keyboard", &[])
@@ -69,6 +69,24 @@ impl Core {
             .with(Sprite {
                 resource: "reaper".to_owned(),
                 frame_index: 3,
+            })
+            .with(Animated {
+                script: AnimationScript {
+                    id: "walk_down".to_owned(),
+                    animation: vec![Animation {
+                        id: "walk".to_owned(),
+                        wait_all: false,
+                        frame_range: Some(FrameRangeAnimation {
+                            start_frame: 0,
+                            end_frame: 3,
+                            delay: 200,
+                            repeat: 0,
+                            ..Default::default()
+                        }),
+                        ..Default::default()
+                    }],
+                    repeat: 0,
+                },
             })
             .build();
 
