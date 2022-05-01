@@ -1,8 +1,8 @@
-use crate::components::{Animated, Position, Sprite};
+use crate::components::{FrameRange, Position, Sprite};
 use crate::core::{renderer, EventPump, Status, TextureManager};
 use crate::resources::SpriteSheetsManager;
-use crate::systems::Keyboard;
-use crate::trust::{user_input, Animation, AnimationScript, FrameRangeAnimation, KeyEvent};
+use crate::systems::{FrameRangePerformer, Keyboard};
+use crate::trust::{user_input, FrameRangeAnimation, KeyEvent};
 use sdl2::image::{self, InitFlag};
 use sdl2::rect::Point;
 use sdl2::render::WindowCanvas;
@@ -50,10 +50,11 @@ impl Core {
         let mut world = World::new();
         world.register::<Position>();
         world.register::<Sprite>();
-        world.register::<Animated>();
+        world.register::<FrameRange>();
 
         let mut dispatcher = DispatcherBuilder::new()
             .with(Keyboard, "Keyboard", &[])
+            .with(FrameRangePerformer, "Animators", &[])
             .build();
         dispatcher.setup(&mut world);
 
@@ -70,24 +71,14 @@ impl Core {
                 resource: "reaper".to_owned(),
                 frame_index: 3,
             })
-            .with(Animated {
-                script: AnimationScript {
-                    id: "walk_down".to_owned(),
-                    animation: vec![Animation {
-                        id: "walk".to_owned(),
-                        wait_all: false,
-                        frame_range: Some(FrameRangeAnimation {
-                            start_frame: 0,
-                            end_frame: 3,
-                            delay: 200,
-                            repeat: 0,
-                            ..Default::default()
-                        }),
-                        ..Default::default()
-                    }],
-                    repeat: 0,
-                },
-            })
+            .with(FrameRange::new(FrameRangeAnimation {
+                start_frame: 0,
+                end_frame: 3,
+                delay: 200,
+                repeat: 0,
+                // horizontal_align: HorizontalAlign::Right as i32,
+                ..Default::default()
+            }))
             .build();
 
         let mut prev_time = SystemTime::now();
@@ -125,9 +116,6 @@ impl Core {
 
             // self.end_frame(&time_since_last_frame);
             prev_time = curr_time;
-
-            // Try to cap 60fps.
-            std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
         }
     }
 

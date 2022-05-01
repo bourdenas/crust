@@ -2,6 +2,10 @@ use sdl2::rect::Point;
 use specs::prelude::*;
 use specs_derive::Component;
 
+#[derive(Component, Default, Debug)]
+#[storage(NullStorage)]
+pub struct Dirty;
+
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
 pub struct Position(pub Point);
