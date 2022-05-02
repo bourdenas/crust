@@ -9,19 +9,29 @@ pub struct FrameRangePerformer;
 
 impl<'a> System<'a> for FrameRangePerformer {
     type SystemData = (
-        // Entities<'a>,
+        Entities<'a>,
         ReadExpect<'a, Duration>,
         ReadExpect<'a, SpriteSheetsManager>,
         WriteStorage<'a, FrameRange>,
         WriteStorage<'a, Sprite>,
         WriteStorage<'a, Position>,
+        Read<'a, LazyUpdate>,
     );
 
     fn run(
         &mut self,
-        (time_since_last_frame, sheets_manager, mut frame_range, mut sprite, mut position): Self::SystemData,
+        (
+            entities,
+            time_since_last_frame,
+            sheets_manager,
+            mut frame_range,
+            mut sprite,
+            mut position,
+            updater,
+        ): Self::SystemData,
     ) {
-        for (frame_range, sprite, position) in (&mut frame_range, &mut sprite, &mut position).join()
+        for (entity, frame_range, sprite, position) in
+            (&entities, &mut frame_range, &mut sprite, &mut position).join()
         {
             // println!("time since last frame {:?}", &*time_since_last_frame);
             let sprite_sheet = &sheets_manager.load(&sprite.resource).unwrap();
@@ -29,47 +39,23 @@ impl<'a> System<'a> for FrameRangePerformer {
             if frame_range.state == AnimationState::Init {
                 self.start(sprite, position, frame_range, sprite_sheet)
             }
-            self.progress(
-                &*time_since_last_frame,
-                sprite,
-                position,
-                sprite_sheet,
-                frame_range,
-            );
+            if frame_range.state == AnimationState::Running {
+                self.progress(
+                    &*time_since_last_frame,
+                    sprite,
+                    position,
+                    sprite_sheet,
+                    frame_range,
+                );
+            }
+            if frame_range.state == AnimationState::Finished {
+                updater.remove::<FrameRange>(entity);
+            }
         }
     }
 }
 
 impl FrameRangePerformer {
-    fn progress(
-        &mut self,
-        time_since_last_frame: &Duration,
-        sprite: &mut Sprite,
-        position: &mut Position,
-        sprite_sheet: &SpriteSheet,
-        frame_range: &mut FrameRange,
-    ) -> Duration {
-        if frame_range.animation.delay == 0 {
-            self.execute(sprite, position, frame_range, sprite_sheet);
-            frame_range.state = AnimationState::Finished;
-            return Duration::ZERO;
-        }
-
-        frame_range.wait_time += *time_since_last_frame;
-        let animation_delay = Duration::from_millis(frame_range.animation.delay as u64);
-        while animation_delay < frame_range.wait_time {
-            frame_range.wait_time -= animation_delay;
-            if let AnimationState::Finished =
-                self.execute(sprite, position, frame_range, sprite_sheet)
-            {
-                frame_range.state = AnimationState::Finished;
-                return *time_since_last_frame - frame_range.wait_time;
-            }
-        }
-
-        *time_since_last_frame
-    }
-
     fn start(
         &self,
         sprite: &mut Sprite,
@@ -97,6 +83,35 @@ impl FrameRangePerformer {
             true => AnimationState::Finished,
             false => AnimationState::Running,
         }
+    }
+
+    fn progress(
+        &mut self,
+        time_since_last_frame: &Duration,
+        sprite: &mut Sprite,
+        position: &mut Position,
+        sprite_sheet: &SpriteSheet,
+        frame_range: &mut FrameRange,
+    ) -> Duration {
+        if frame_range.animation.delay == 0 {
+            self.execute(sprite, position, frame_range, sprite_sheet);
+            frame_range.state = AnimationState::Finished;
+            return Duration::ZERO;
+        }
+
+        frame_range.wait_time += *time_since_last_frame;
+        let animation_delay = Duration::from_millis(frame_range.animation.delay as u64);
+        while animation_delay < frame_range.wait_time {
+            frame_range.wait_time -= animation_delay;
+            if let AnimationState::Finished =
+                self.execute(sprite, position, frame_range, sprite_sheet)
+            {
+                frame_range.state = AnimationState::Finished;
+                return *time_since_last_frame - frame_range.wait_time;
+            }
+        }
+
+        *time_since_last_frame
     }
 
     fn execute(

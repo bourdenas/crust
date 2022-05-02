@@ -75,7 +75,7 @@ impl Core {
                 start_frame: 0,
                 end_frame: 3,
                 delay: 200,
-                repeat: 0,
+                repeat: 3,
                 // horizontal_align: HorizontalAlign::Right as i32,
                 ..Default::default()
             }))
