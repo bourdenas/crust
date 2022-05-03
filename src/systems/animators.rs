@@ -1,12 +1,38 @@
 use crate::animation;
-use crate::components::{AnimationState, FrameRange, Position, Sprite};
+use crate::components::{AnimationState, FrameRange, Position, Sprite, Translation};
 use crate::resources::SpriteSheetsManager;
 use specs::prelude::*;
 use std::time::Duration;
 
-pub struct FrameRangePerformer;
+pub struct TranslationSystem;
 
-impl<'a> System<'a> for FrameRangePerformer {
+impl<'a> System<'a> for TranslationSystem {
+    type SystemData = (
+        Entities<'a>,
+        ReadExpect<'a, Duration>,
+        WriteStorage<'a, Translation>,
+        WriteStorage<'a, Position>,
+        Read<'a, LazyUpdate>,
+    );
+
+    fn run(
+        &mut self,
+        (entities, time_since_last_frame, mut translation, mut position, updater): Self::SystemData,
+    ) {
+        for (entity, translation, position) in (&entities, &mut translation, &mut position).join() {
+            let mut perfomer = animation::TranslationPerformer::new(translation, position);
+            perfomer.run(&*time_since_last_frame);
+
+            if translation.state == AnimationState::Finished {
+                updater.remove::<Translation>(entity);
+            }
+        }
+    }
+}
+
+pub struct FrameRangeSystem;
+
+impl<'a> System<'a> for FrameRangeSystem {
     type SystemData = (
         Entities<'a>,
         ReadExpect<'a, Duration>,

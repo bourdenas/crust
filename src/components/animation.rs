@@ -1,7 +1,35 @@
-use crate::trust::FrameRangeAnimation;
+use crate::trust::{FrameRangeAnimation, VectorAnimation};
 use specs::prelude::*;
 use specs_derive::Component;
 use std::time::Duration;
+
+#[derive(Component, Default, Debug)]
+#[storage(VecStorage)]
+pub struct Translation {
+    pub animation: VectorAnimation,
+    pub speed: f64,
+    pub run_number: i32,
+    pub wait_time: Duration,
+    pub state: AnimationState,
+}
+
+impl Translation {
+    pub fn new(animation: VectorAnimation) -> Self {
+        let speed = 1.0;
+        let run_number = match speed < 0.0 {
+            true => animation.repeat - 1,
+            false => 0,
+        };
+
+        Translation {
+            animation,
+            speed,
+            run_number,
+            wait_time: Duration::ZERO,
+            state: AnimationState::Init,
+        }
+    }
+}
 
 #[derive(Component, Default, Debug)]
 #[storage(VecStorage)]

@@ -1,8 +1,8 @@
-use crate::components::{FrameRange, Position, Sprite};
+use crate::components::{FrameRange, Position, Sprite, Translation};
 use crate::core::{renderer, EventPump, Status, TextureManager};
 use crate::resources::SpriteSheetsManager;
-use crate::systems::{FrameRangePerformer, Keyboard};
-use crate::trust::{user_input, FrameRangeAnimation, KeyEvent};
+use crate::systems::{FrameRangeSystem, Keyboard, TranslationSystem};
+use crate::trust::{user_input, FrameRangeAnimation, KeyEvent, Vector, VectorAnimation};
 use sdl2::image::{self, InitFlag};
 use sdl2::rect::Point;
 use sdl2::render::WindowCanvas;
@@ -51,10 +51,12 @@ impl Core {
         world.register::<Position>();
         world.register::<Sprite>();
         world.register::<FrameRange>();
+        world.register::<Translation>();
 
         let mut dispatcher = DispatcherBuilder::new()
             .with(Keyboard, "Keyboard", &[])
-            .with(FrameRangePerformer, "Animators", &[])
+            .with(TranslationSystem, "Translation", &[])
+            .with(FrameRangeSystem, "FrameRange", &[])
             .build();
         dispatcher.setup(&mut world);
 
@@ -75,8 +77,17 @@ impl Core {
                 start_frame: 0,
                 end_frame: 3,
                 delay: 200,
-                repeat: 3,
+                // repeat: 3,
                 // horizontal_align: HorizontalAlign::Right as i32,
+                ..Default::default()
+            }))
+            .with(Translation::new(VectorAnimation {
+                vec: Some(Vector {
+                    x: 0.0,
+                    y: 1.0,
+                    z: 0.0,
+                }),
+                delay: 16,
                 ..Default::default()
             }))
             .build();
