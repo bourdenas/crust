@@ -10,6 +10,8 @@ path = "src/demo.rs"
 [dependencies]
 prost = "0.10"
 tonic = "0.7"
+specs = "0.17"
+specs-derive = "0.4"
 
 [dependencies.sdl2]
 version = "0.35"

@@ -1,8 +1,13 @@
+mod events;
+mod renderer;
 mod resources;
-mod scene_manager;
+mod status;
+mod texture;
 mod trust_core;
 
+pub use events::EventPump;
 pub use resources::ResourceLoader;
 pub use resources::ResourceManager;
-pub use scene_manager::SceneManager;
+pub use status::Status;
+pub use texture::TextureManager;
 pub use trust_core::Core;

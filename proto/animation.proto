@@ -1,0 +1,134 @@
+syntax = "proto3";
+
+// import "audio.proto";
+import "primitives.proto";
+
+package trust;
+
+// Animation scripts for a sprite.
+message SpriteScripts {
+  repeated AnimationScript script = 1;
+}
+
+// A composition of animations that make a logical sequence.
+message AnimationScript {
+  string id = 1;
+
+  // Animations parts of the script. Animations are performed
+  // sequentially, one after the other.
+  repeated Animation animation = 2;
+
+  // Number of times the script will be performed.
+  int32 repeat = 3;
+}
+
+// All animations that are instantiated in this proto are performed on parallel.
+message Animation {
+  // If an animation is named with an id, an event will be emitted when this
+  // part terminates. The event format is
+  // "<scene_node_id>.<script_id>.<animation_id>.done".
+  string id = 1;
+
+  // If false then a composite animation finishes if any of its parts finishes.
+  // If true, then all animations run to completion. In the latter case,
+  // animations that finish do not continue execution while the unfinished are
+  // still running.
+  bool wait_all = 2;
+
+  // Repeatable animations.
+  VectorAnimation translation = 3;
+  VectorAnimation rotation = 4;
+  VectorAnimation scaling = 5;
+  FrameRangeAnimation frame_range = 6;
+  FrameListAnimation frame_list = 7;
+  FlashAnimation flash = 8;
+
+  // Non-repeatable animations.
+  GotoAnimation go_to = 9;
+  TimerAnimation timer = 10;
+
+  // Instant execution animations.
+  RunScriptAnimation run_script = 11;
+//   SfxAnimation sfx = 12;
+}
+
+// A vector based transformation (e.g. translation) that is applied on a node
+// after the specified delay (msec).
+message VectorAnimation {
+  Vector vec = 1;
+  int32 delay = 2;
+  int32 repeat = 3;
+}
+
+enum VerticalAlign {
+  TOP = 0;
+  BOTTOM = 1;
+  VCENTRE = 2;
+}
+
+enum HorizontalAlign {
+  LEFT = 0;
+  RIGHT = 1;
+  HCENTRE = 2;
+}
+
+// Animation of frames in the [start, end) range. The |start_frame| is applied
+// immediately to the scene node. The consequent frames are applied after the
+// specified delay. The animation finishes on the |end_frame| - 1.
+// 
+// TODO: Consider whether finishing on |start_frame| (wrapping) makes more
+// sense.
+message FrameRangeAnimation {
+  int32 start_frame = 1;
+  int32 end_frame = 2;
+  int32 delay = 3;
+  int32 repeat = 4;
+
+  VerticalAlign vertical_align = 5;
+  HorizontalAlign horizontal_align = 6;
+}
+
+// Animation of frames in the order specified. The start frame is applied
+// immediately to the scene node. The consequent frames are applied after the
+// specified delay.
+message FrameListAnimation {
+  repeated int32 frame = 1;
+  int32 delay = 2;
+  int32 repeat = 3;
+
+  VerticalAlign vertical_align = 4;
+  HorizontalAlign horizontal_align = 5;
+}
+
+// Animation that makes a scene node to disappear/appear with a frequency.
+message FlashAnimation {
+  int32 delay = 1;
+  int32 repeat = 2;
+}
+
+// Animation that will move a scene node to the destination with a specified
+// step size. The animation is not repeatable. When scene node reaches the
+// destination, the animation finishes.
+message GotoAnimation {
+  Vector destination = 1;
+  double step = 2;
+  int32 delay = 3;
+}
+
+// Non-visual animation that can be used as a time-buffer between other actions
+// in the game.
+message TimerAnimation {
+  int32 delay = 1;
+}
+
+// Executes a script referenced by its id. This can be used for composing more
+// complex animations from simpler ones.
+message RunScriptAnimation {
+  string script_id = 1;
+}
+
+// // Play audio in sync with other animations.
+// message SfxAnimation {
+//   Audio audio = 1;
+//   int32 repeat = 2;
+// }

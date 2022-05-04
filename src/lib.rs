@@ -3,8 +3,8 @@ pub mod trust {
     tonic::include_proto!("trust");
 }
 
+pub mod animation;
+pub mod components;
 pub mod core;
-pub mod sdl;
-
-mod status;
-pub use status::Status;
+pub mod resources;
+pub mod systems;

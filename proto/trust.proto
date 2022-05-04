@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+import "animation.proto";
+import "user_input.proto";
+
+package trust;
+
+message Empty {}

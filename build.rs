@@ -5,6 +5,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //
     // A workaround is to use a root proto file that imports all other and
     // produce one big rs file.
-    tonic_build::compile_protos("proto/user_input.proto")?;
+    tonic_build::compile_protos("proto/trust.proto")?;
     Ok(())
 }
