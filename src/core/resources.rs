@@ -9,6 +9,7 @@ where
     Key: Hash + Eq,
     Loader: 'l + ResourceLoader<'l, Resource>,
 {
+    resource_path: String,
     loader: &'l Loader,
     cache: HashMap<Key, Rc<Resource>>,
 }
@@ -18,10 +19,11 @@ where
     Key: Hash + Eq,
     Loader: ResourceLoader<'l, Resource>,
 {
-    pub fn new(loader: &'l Loader) -> Self {
+    pub fn new(resource_path: &str, loader: &'l Loader) -> Self {
         ResourceManager {
-            cache: HashMap::new(),
+            resource_path: resource_path.to_owned(),
             loader,
+            cache: HashMap::new(),
         }
     }
 
@@ -35,7 +37,7 @@ where
     {
         self.cache.get(details).cloned().map_or_else(
             || {
-                let resource = Rc::new(self.loader.load(details)?);
+                let resource = Rc::new(self.loader.load(&self.resource_path, details)?);
                 self.cache.insert(details.into(), resource.clone());
                 Ok(resource)
             },
@@ -48,5 +50,5 @@ where
 pub trait ResourceLoader<'l, Resource> {
     type Args: ?Sized;
 
-    fn load(&'l self, data: &Self::Args) -> Result<Resource, Status>;
+    fn load(&'l self, path: &str, resource: &Self::Args) -> Result<Resource, Status>;
 }

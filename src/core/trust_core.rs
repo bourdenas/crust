@@ -7,9 +7,46 @@ use sdl2::image::{self, InitFlag};
 use sdl2::rect::Point;
 use sdl2::render::WindowCanvas;
 use specs::prelude::*;
+use std::cell::RefCell;
+use std::ffi::CStr;
+use std::os::raw::c_char;
 use std::time::{Duration, SystemTime};
 
+thread_local!(static CORE: RefCell<Option<Core>> = RefCell::new(None));
+
+#[no_mangle]
+pub extern "C" fn init(resource: *const c_char) {
+    let resource = unsafe { CStr::from_ptr(resource) };
+    match resource.to_str() {
+        Ok(resource) => {
+            println!("🦀 says: {}", resource);
+            CORE.with(|core| {
+                *core.borrow_mut() = Some(Core::init(resource).expect("Failed to init Core"));
+            });
+        }
+        Err(e) => println!("init() failed to convert c_str: {}", e),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn run() {
+    CORE.with(|core| {
+        if let Some(core) = &mut *core.borrow_mut() {
+            core.run();
+        }
+    });
+}
+
+#[no_mangle]
+pub extern "C" fn halt() {
+    CORE.with(|core| {
+        *core.borrow_mut() = None;
+    });
+}
+
 pub struct Core {
+    resource_path: String,
+
     _sdl_context: sdl2::Sdl,
     _video_subsystem: sdl2::VideoSubsystem,
     _image_context: sdl2::image::Sdl2ImageContext,
@@ -18,7 +55,7 @@ pub struct Core {
 }
 
 impl Core {
-    pub fn init() -> Result<Self, Status> {
+    pub fn init(resource_path: &str) -> Result<Self, Status> {
         let sdl_context = sdl2::init()?;
         let video_subsystem = sdl_context.video()?;
 
@@ -35,6 +72,7 @@ impl Core {
             .expect("could not make a canvas");
 
         Ok(Core {
+            resource_path: resource_path.to_owned(),
             _sdl_context: sdl_context,
             _video_subsystem: video_subsystem,
             _image_context: image::init(InitFlag::PNG | InitFlag::JPG)?,
@@ -45,7 +83,7 @@ impl Core {
 
     pub fn run(&mut self) {
         let texture_creator = self.canvas.texture_creator();
-        let mut texture_manager = TextureManager::new(&texture_creator);
+        let mut texture_manager = TextureManager::new(&self.resource_path, &texture_creator);
 
         let mut world = World::new();
         world.register::<Position>();

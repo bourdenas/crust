@@ -3,9 +3,9 @@ name = "trust"
 version = "0.1.0"
 edition = "2021"
 
-[[bin]] 
-name = "demo"
-path = "src/demo.rs"
+[lib]
+name = "trust_lib"
+crate-type = ["cdylib"]
 
 [dependencies]
 prost = "0.10"

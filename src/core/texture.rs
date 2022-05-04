@@ -7,8 +7,8 @@ pub type TextureManager<'l, T> = ResourceManager<'l, String, Texture<'l>, Textur
 impl<'l, T> ResourceLoader<'l, Texture<'l>> for TextureCreator<T> {
     type Args = str;
 
-    fn load(&'l self, path: &str) -> Result<Texture, Status> {
+    fn load(&'l self, path: &str, resource: &str) -> Result<Texture, Status> {
         println!("Loading '{}'", path);
-        Ok(self.load_texture(format!("assets/{}.png", path))?)
+        Ok(self.load_texture(format!("{}/{}.png", path, resource))?)
     }
 }
