@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "action.proto";
 import "animation.proto";
 import "user_input.proto";
 

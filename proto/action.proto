@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+import "animation.proto";
+import "scene_node.proto";
+
+package trust;
+
+message Action {
+  oneof Action {
+    NoopAction noop = 1;
+    QuitAction quit = 2;
+    ChangeSceneAction change_scene = 3;
+    
+    SceneNodeAction create_scene_node = 4;
+    SceneNodeAction destroy_scene_node = 5;
+
+    AnimationScriptAction play_animation = 6;
+    ScriptIdAction stop_animation = 7;
+    ScriptIdAction pause_animation = 8;
+    ScriptIdAction resume_animation = 9;
+
+  }
+}
+
+message NoopAction {}
+
+message QuitAction {}
+
+message ChangeSceneAction {}
+
+message SceneNodeAction {
+  SceneNode scene_node = 1;
+}
+
+message AnimationScriptAction {
+  AnimationScript script = 1;
+
+  // Scene node where the script will be applied to.
+  string scene_node_id = 2;
+
+  // Speed to be applied on original sciprt.
+  // * If value is greater than 1, it speeds up the animation.
+  // * If value is between (0, 1), it is a slow motion animation.
+  // * If the value is negative, the animation script is applied in reverse.
+  // * If value is 0 the script will make no progress.
+  double speed = 3;
+}
+
+message ScriptIdAction {
+    string script_id = 1;
+}
