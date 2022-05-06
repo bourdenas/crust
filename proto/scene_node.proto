@@ -7,7 +7,7 @@ package trust;
 // A SceneNode is an instance of an entity in the world. It represents a
 // tangible element of the game that has dimensions defined by a bounding box.
 message SceneNode {
-  string id = 1;
+  uint32 id = 1;
 
   string sprite_id = 2;
 

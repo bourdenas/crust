@@ -1,3 +1,4 @@
+use crate::action::ActionExecutor;
 use crate::components::{FrameRange, Position, Sprite, Translation};
 use crate::core::{renderer, EventPump, Status, TextureManager};
 use crate::resources::SpriteSheetsManager;
@@ -11,6 +12,9 @@ use std::time::{Duration, SystemTime};
 
 pub struct Core {
     resource_path: String,
+
+    pub world: World,
+    pub executor: ActionExecutor,
 
     _sdl_context: sdl2::Sdl,
     _video_subsystem: sdl2::VideoSubsystem,
@@ -36,8 +40,16 @@ impl Core {
             .build()
             .expect("could not make a canvas");
 
+        let mut world = World::new();
+        world.register::<Position>();
+        world.register::<Sprite>();
+        world.register::<FrameRange>();
+        world.register::<Translation>();
+
         Ok(Core {
             resource_path: resource_path.to_owned(),
+            world,
+            executor: ActionExecutor::new(),
             _sdl_context: sdl_context,
             _video_subsystem: video_subsystem,
             _image_context: image::init(InitFlag::PNG | InitFlag::JPG)?,
@@ -50,26 +62,20 @@ impl Core {
         let texture_creator = self.canvas.texture_creator();
         let mut texture_manager = TextureManager::new(&self.resource_path, &texture_creator);
 
-        let mut world = World::new();
-        world.register::<Position>();
-        world.register::<Sprite>();
-        world.register::<FrameRange>();
-        world.register::<Translation>();
-
         let mut dispatcher = DispatcherBuilder::new()
             .with(Keyboard, "Keyboard", &[])
             .with(TranslationSystem, "Translation", &[])
             .with(FrameRangeSystem, "FrameRange", &[])
             .build();
-        dispatcher.setup(&mut world);
+        dispatcher.setup(&mut self.world);
 
         let key_events: Vec<KeyEvent> = vec![];
-        world.insert(key_events);
+        self.world.insert(key_events);
 
         let sheets_manager = SpriteSheetsManager::new();
-        world.insert(sheets_manager);
+        self.world.insert(sheets_manager);
 
-        world
+        self.world
             .create_entity()
             .with(Position(Point::new(400, 300)))
             .with(Sprite {
@@ -96,7 +102,7 @@ impl Core {
             .build();
 
         let mut prev_time = SystemTime::now();
-        world.insert(Duration::ZERO);
+        self.world.insert(Duration::ZERO);
 
         'game: loop {
             // Input event handling.
@@ -115,18 +121,18 @@ impl Core {
                     _ => {}
                 }
             }
-            *world.write_resource::<Vec<KeyEvent>>() = key_events;
+            *self.world.write_resource::<Vec<KeyEvent>>() = key_events;
 
             // Update time.
             let curr_time = SystemTime::now();
             let time_since_last_frame = curr_time.duration_since(prev_time).unwrap();
-            *world.write_resource::<Duration>() = time_since_last_frame;
+            *self.world.write_resource::<Duration>() = time_since_last_frame;
 
             // self.start_frame(&time_since_last_frame);
-            dispatcher.dispatch(&mut world);
-            world.maintain();
+            dispatcher.dispatch(&mut self.world);
+            self.world.maintain();
 
-            self.render(&mut texture_manager, &world);
+            self.render(&mut texture_manager);
 
             // self.end_frame(&time_since_last_frame);
             prev_time = curr_time;
@@ -139,12 +145,10 @@ impl Core {
 
     // fn end_frame(&self, _time_since_last_frame: &Duration) {}
 
-    fn render(
-        &mut self,
-        texture_manager: &mut TextureManager<sdl2::video::WindowContext>,
-        world: &World,
-    ) {
-        if let Err(e) = renderer::render(&mut self.canvas, texture_manager, world.system_data()) {
+    fn render(&mut self, texture_manager: &mut TextureManager<sdl2::video::WindowContext>) {
+        if let Err(e) =
+            renderer::render(&mut self.canvas, texture_manager, self.world.system_data())
+        {
             println!("{}", e);
         }
     }

@@ -19,6 +19,21 @@ message Action {
     ScriptIdAction pause_animation = 8;
     ScriptIdAction resume_animation = 9;
 
+    // SceneNodeVectorAction position_scene_node = 6;
+    // SceneNodeVectorAction move_scene_node = 7;
+
+    // CollisionAction on_collision = 12;
+    // CollisionAction on_overlap = 13;
+    // CollisionAction on_detaching = 14;
+
+    // EmitAction emit = 15;
+
+    // SfxAction play_audio = 16;
+    // SfxAction stop_audio = 17;
+    // SfxAction pause_audio = 18;
+    // SfxAction resume_audio = 19;
+
+    // DisplayTextAction display_text = 20;
   }
 }
 
@@ -28,15 +43,32 @@ message QuitAction {}
 
 message ChangeSceneAction {}
 
+
+// message EmitAction {
+//   Event event = 1;
+//   string scene_node_pattern = 2;
+// }
+
 message SceneNodeAction {
   SceneNode scene_node = 1;
 }
+
+// message SceneNodeVectorAction {
+//   string scene_node_id = 1;
+//   Vector vec = 2;
+// }
+
+// message CollisionAction {
+//   repeated string sprite_id = 1;
+//   repeated string scene_node_id = 2;
+//   repeated Action action = 3;
+// }
 
 message AnimationScriptAction {
   AnimationScript script = 1;
 
   // Scene node where the script will be applied to.
-  string scene_node_id = 2;
+  uint32 scene_node_id = 2;
 
   // Speed to be applied on original sciprt.
   // * If value is greater than 1, it speeds up the animation.
@@ -47,5 +79,25 @@ message AnimationScriptAction {
 }
 
 message ScriptIdAction {
-    string script_id = 1;
+  string script_id = 1;
 }
+
+// message SfxAction {
+//   string track_id = 1;
+//   string sfx_id = 2;
+//   int32 repeat = 3;
+// }
+
+// message DisplayTextAction {
+//   string text = 1;
+//   Vector position = 2;
+//   int32 display_duration = 3;
+
+//   int32 size = 4;
+//   bool bold = 5;
+//   bool italics = 6;
+
+//   RGBa colour = 7;
+//   RGBa background_colour = 8;
+//   string font = 9;
+// }

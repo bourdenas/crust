@@ -8,7 +8,7 @@ impl<'l, T> ResourceLoader<'l, Texture<'l>> for TextureCreator<T> {
     type Args = str;
 
     fn load(&'l self, path: &str, resource: &str) -> Result<Texture, Status> {
-        println!("Loading '{}'", path);
+        println!("Loading '{}/{}.png'", path, resource);
         Ok(self.load_texture(format!("{}/{}.png", path, resource))?)
     }
 }
