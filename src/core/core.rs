@@ -69,6 +69,8 @@ impl Core {
             .build();
         dispatcher.setup(&mut self.world);
 
+        self.world.insert(Duration::ZERO);
+
         let key_events: Vec<KeyEvent> = vec![];
         self.world.insert(key_events);
 
@@ -102,7 +104,6 @@ impl Core {
             .build();
 
         let mut prev_time = SystemTime::now();
-        self.world.insert(Duration::ZERO);
 
         'game: loop {
             // Input event handling.
