@@ -6,11 +6,21 @@ use specs_derive::Component;
 #[storage(NullStorage)]
 pub struct Dirty;
 
+#[derive(Component, Default, Debug)]
+#[storage(VecStorage)]
+pub struct Id(pub String);
+
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
 pub struct Position(pub Point);
 
-#[derive(Component, Debug)]
+impl Default for Position {
+    fn default() -> Self {
+        Position(Point::new(0, 0))
+    }
+}
+
+#[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
 pub struct Sprite {
     pub resource: String,
