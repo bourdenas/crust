@@ -1,5 +1,5 @@
 use crate::action::ActionExecutor;
-use crate::components::{FrameRange, Position, Sprite, Translation};
+use crate::components::{FrameRangeState, Position, ScriptState, Sprite, TranslationState};
 use crate::core::{renderer, EventPump, Status, TextureManager};
 use crate::resources::SpriteSheetsManager;
 use crate::systems::{FrameRangeSystem, Keyboard, ScriptSystem, TranslationSystem};
@@ -43,8 +43,9 @@ impl Core {
         let mut world = World::new();
         world.register::<Position>();
         world.register::<Sprite>();
-        world.register::<FrameRange>();
-        world.register::<Translation>();
+        world.register::<FrameRangeState>();
+        world.register::<TranslationState>();
+        world.register::<ScriptState>();
 
         Ok(Core {
             resource_path: resource_path.to_owned(),
@@ -85,7 +86,7 @@ impl Core {
                 resource: "reaper".to_owned(),
                 frame_index: 3,
             })
-            .with(FrameRange::new(FrameRangeAnimation {
+            .with(FrameRangeState::new(FrameRangeAnimation {
                 start_frame: 0,
                 end_frame: 3,
                 delay: 200,
@@ -93,7 +94,7 @@ impl Core {
                 // horizontal_align: HorizontalAlign::Right as i32,
                 ..Default::default()
             }))
-            .with(Translation::new(VectorAnimation {
+            .with(TranslationState::new(VectorAnimation {
                 vec: Some(Vector {
                     x: 0.0,
                     y: 1.0,

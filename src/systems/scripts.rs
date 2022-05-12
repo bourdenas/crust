@@ -1,4 +1,4 @@
-use crate::components::{AnimationState, FrameRange, Position, Script, Sprite, Translation};
+use crate::components::{AnimationRunningState, FrameRangeState, ScriptState, TranslationState};
 use specs::prelude::*;
 use specs::shred::Fetch;
 use specs::storage::MaskedStorage;
@@ -15,44 +15,51 @@ impl<'a> System<'a> for ScriptSystem {
     type SystemData = (
         Entities<'a>,
         ReadExpect<'a, Duration>,
-        WriteStorage<'a, Script>,
-        ReadStorage<'a, Translation>,
-        ReadStorage<'a, FrameRange>,
+        WriteStorage<'a, ScriptState>,
+        ReadStorage<'a, TranslationState>,
+        ReadStorage<'a, FrameRangeState>,
         Read<'a, LazyUpdate>,
     );
 
     fn run(
         &mut self,
-        (entities, time_since_last_frame, mut script, translation, frame_range, updater): Self::SystemData,
+        (entities, _time_since_last_frame, mut script, translation, frame_range, updater): Self::SystemData,
     ) {
         self.collect_finished(translation, frame_range);
 
-        for (entity, _) in (&entities, &self.finished).join() {
-            updater.remove::<Translation>(entity);
-            updater.remove::<FrameRange>(entity);
-            // let mut perfomer = animation::TranslationPerformer::new(translation, position);
-            // perfomer.run(&*time_since_last_frame);
+        for (entity, script) in (&entities, &mut script).join() {
+            if script.state == AnimationRunningState::Init {
+                let animation = &script.script.animation[script.index];
+                if let Some(animation) = &animation.translation {
+                    updater.insert(entity, TranslationState::new(animation.clone()));
+                }
+                if let Some(animation) = &animation.frame_range {
+                    updater.insert(entity, FrameRangeState::new(animation.clone()));
+                }
+                script.state = AnimationRunningState::Running;
+            }
+        }
 
-            // if translation.state == AnimationState::Finished {
-            //     updater.remove::<Translation>(entity);
-            // }
+        for (entity, _) in (&entities, &self.finished).join() {
+            updater.remove::<TranslationState>(entity);
+            updater.remove::<FrameRangeState>(entity);
         }
     }
 
     fn setup(&mut self, world: &mut World) {
         Self::SystemData::setup(world);
         self.translation_reader_id =
-            Some(WriteStorage::<Translation>::fetch(world).register_reader());
+            Some(WriteStorage::<TranslationState>::fetch(world).register_reader());
         self.frame_range_reader_id =
-            Some(WriteStorage::<FrameRange>::fetch(world).register_reader());
+            Some(WriteStorage::<FrameRangeState>::fetch(world).register_reader());
     }
 }
 
 impl ScriptSystem {
     fn collect_finished(
         &mut self,
-        translation: Storage<Translation, Fetch<MaskedStorage<Translation>>>,
-        frame_range: Storage<FrameRange, Fetch<MaskedStorage<FrameRange>>>,
+        translation: Storage<TranslationState, Fetch<MaskedStorage<TranslationState>>>,
+        frame_range: Storage<FrameRangeState, Fetch<MaskedStorage<FrameRangeState>>>,
     ) {
         self.finished.clear();
 

@@ -1,4 +1,4 @@
-use crate::components::{AnimationState, FrameRange, Position, Sprite};
+use crate::components::{AnimationRunningState, FrameRangeState, Position, Sprite};
 use crate::resources::SpriteSheet;
 use crate::trust::{HorizontalAlign, VerticalAlign};
 use core::time::Duration;
@@ -7,7 +7,7 @@ use sdl2::rect::Point;
 pub struct FrameRangePerformer<'a> {
     sprite: &'a mut Sprite,
     position: &'a mut Position,
-    frame_range: &'a mut FrameRange,
+    frame_range: &'a mut FrameRangeState,
     sprite_sheet: &'a SpriteSheet,
 }
 
@@ -15,7 +15,7 @@ impl<'a> FrameRangePerformer<'a> {
     pub fn new(
         sprite: &'a mut Sprite,
         position: &'a mut Position,
-        frame_range: &'a mut FrameRange,
+        frame_range: &'a mut FrameRangeState,
         sprite_sheet: &'a SpriteSheet,
     ) -> Self {
         FrameRangePerformer {
@@ -27,10 +27,10 @@ impl<'a> FrameRangePerformer<'a> {
     }
 
     pub fn run(&mut self, time_since_last_frame: &Duration) {
-        if self.frame_range.state == AnimationState::Init {
+        if self.frame_range.state == AnimationRunningState::Init {
             self.start();
         }
-        if self.frame_range.state == AnimationState::Running {
+        if self.frame_range.state == AnimationRunningState::Running {
             self.progress(&*time_since_last_frame);
         }
     }
@@ -54,15 +54,15 @@ impl<'a> FrameRangePerformer<'a> {
             && (self.frame_range.animation.start_frame - self.frame_range.animation.end_frame).abs()
                 == 1
         {
-            true => AnimationState::Finished,
-            false => AnimationState::Running,
+            true => AnimationRunningState::Finished,
+            false => AnimationRunningState::Running,
         }
     }
 
     fn progress(&mut self, time_since_last_frame: &Duration) -> Duration {
         if self.frame_range.animation.delay == 0 {
             self.execute();
-            self.frame_range.state = AnimationState::Finished;
+            self.frame_range.state = AnimationRunningState::Finished;
             return Duration::ZERO;
         }
 
@@ -70,8 +70,8 @@ impl<'a> FrameRangePerformer<'a> {
         let animation_delay = Duration::from_millis(self.frame_range.animation.delay as u64);
         while animation_delay < self.frame_range.wait_time {
             self.frame_range.wait_time -= animation_delay;
-            if let AnimationState::Finished = self.execute() {
-                self.frame_range.state = AnimationState::Finished;
+            if let AnimationRunningState::Finished = self.execute() {
+                self.frame_range.state = AnimationRunningState::Finished;
                 return *time_since_last_frame - self.frame_range.wait_time;
             }
         }
@@ -79,7 +79,7 @@ impl<'a> FrameRangePerformer<'a> {
         *time_since_last_frame
     }
 
-    fn execute(&mut self) -> AnimationState {
+    fn execute(&mut self) -> AnimationRunningState {
         let next_frame = self.sprite.frame_index as i32 + self.frame_range.step;
         let next_frame = self.frame_range.animation.start_frame
             + next_frame
@@ -101,10 +101,10 @@ impl<'a> FrameRangePerformer<'a> {
         {
             self.frame_range.run_number += 1;
             if self.frame_range.run_number == self.frame_range.animation.repeat {
-                return AnimationState::Finished;
+                return AnimationRunningState::Finished;
             }
         }
-        AnimationState::Running
+        AnimationRunningState::Running
     }
 }
 

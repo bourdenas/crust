@@ -1,5 +1,7 @@
 use crate::animation;
-use crate::components::{AnimationState, FrameRange, Position, Sprite, Translation};
+use crate::components::{
+    AnimationRunningState, FrameRangeState, Position, Sprite, TranslationState,
+};
 use crate::resources::SpriteSheetsManager;
 use specs::prelude::*;
 use std::time::Duration;
@@ -10,7 +12,7 @@ impl<'a> System<'a> for TranslationSystem {
     type SystemData = (
         Entities<'a>,
         ReadExpect<'a, Duration>,
-        WriteStorage<'a, Translation>,
+        WriteStorage<'a, TranslationState>,
         WriteStorage<'a, Position>,
         Read<'a, LazyUpdate>,
     );
@@ -23,8 +25,8 @@ impl<'a> System<'a> for TranslationSystem {
             let mut perfomer = animation::TranslationPerformer::new(translation, position);
             perfomer.run(&*time_since_last_frame);
 
-            if translation.state == AnimationState::Finished {
-                updater.remove::<Translation>(entity);
+            if translation.state == AnimationRunningState::Finished {
+                updater.remove::<TranslationState>(entity);
             }
         }
     }
@@ -37,7 +39,7 @@ impl<'a> System<'a> for FrameRangeSystem {
         Entities<'a>,
         ReadExpect<'a, Duration>,
         ReadExpect<'a, SpriteSheetsManager>,
-        WriteStorage<'a, FrameRange>,
+        WriteStorage<'a, FrameRangeState>,
         WriteStorage<'a, Sprite>,
         WriteStorage<'a, Position>,
         Read<'a, LazyUpdate>,
@@ -58,14 +60,14 @@ impl<'a> System<'a> for FrameRangeSystem {
         for (entity, frame_range, sprite, position) in
             (&entities, &mut frame_range, &mut sprite, &mut position).join()
         {
-            // println!("time since last frame {:?}", &*time_since_last_frame);
+            println!("time since last frame {:?}", &*time_since_last_frame);
             let sprite_sheet = &sheets_manager.load(&sprite.resource).unwrap();
             let mut perfomer =
                 animation::FrameRangePerformer::new(sprite, position, frame_range, sprite_sheet);
             perfomer.run(&*time_since_last_frame);
 
-            if frame_range.state == AnimationState::Finished {
-                updater.remove::<FrameRange>(entity);
+            if frame_range.state == AnimationRunningState::Finished {
+                updater.remove::<FrameRangeState>(entity);
             }
         }
     }

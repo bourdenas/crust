@@ -1,21 +1,20 @@
-use crate::trust::{Animation, AnimationScript, FrameRangeAnimation, VectorAnimation};
+use crate::trust::{AnimationScript, FrameRangeAnimation, VectorAnimation};
 use specs::prelude::*;
 use specs_derive::Component;
 use std::time::Duration;
 
 #[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
-pub struct Script {
-    pub parts: Vec<Animation>,
-    pub index: usize,
-    pub repeat: u32,
+pub struct ScriptState {
+    pub script: AnimationScript,
 
+    pub index: usize,
     pub speed: f64,
     pub iteration: u32,
-    pub state: AnimationState,
+    pub state: AnimationRunningState,
 }
 
-impl Script {
+impl ScriptState {
     pub fn new(script: AnimationScript) -> Self {
         let speed = 1.0;
         let index = match speed < 0.0 {
@@ -23,31 +22,31 @@ impl Script {
             false => 0,
         };
 
-        Script {
-            parts: script.animation,
+        ScriptState {
+            script,
             index,
-            repeat: script.repeat as u32,
             speed,
             iteration: 0,
-            state: AnimationState::Init,
+            state: AnimationRunningState::Init,
         }
     }
 }
 
 #[derive(Default, Debug)]
-pub struct Translation {
+pub struct TranslationState {
     pub animation: VectorAnimation,
+
     pub speed: f64,
     pub run_number: i32,
     pub wait_time: Duration,
-    pub state: AnimationState,
+    pub state: AnimationRunningState,
 }
 
-impl Component for Translation {
+impl Component for TranslationState {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
-impl Translation {
+impl TranslationState {
     pub fn new(animation: VectorAnimation) -> Self {
         let speed = 1.0;
         let run_number = match speed < 0.0 {
@@ -55,31 +54,32 @@ impl Translation {
             false => 0,
         };
 
-        Translation {
+        TranslationState {
             animation,
             speed,
             run_number,
             wait_time: Duration::ZERO,
-            state: AnimationState::Init,
+            state: AnimationRunningState::Init,
         }
     }
 }
 
 #[derive(Default, Debug)]
-pub struct FrameRange {
+pub struct FrameRangeState {
     pub animation: FrameRangeAnimation,
+
     pub speed: f64,
     pub step: i32,
     pub run_number: i32,
     pub wait_time: Duration,
-    pub state: AnimationState,
+    pub state: AnimationRunningState,
 }
 
-impl Component for FrameRange {
+impl Component for FrameRangeState {
     type Storage = FlaggedStorage<Self, VecStorage<Self>>;
 }
 
-impl FrameRange {
+impl FrameRangeState {
     pub fn new(animation: FrameRangeAnimation) -> Self {
         let speed = 1.0;
         let run_number = match speed < 0.0 {
@@ -91,26 +91,26 @@ impl FrameRange {
             false => 0,
         };
 
-        FrameRange {
+        FrameRangeState {
             animation,
             speed,
             step,
             run_number,
             wait_time: Duration::ZERO,
-            state: AnimationState::Init,
+            state: AnimationRunningState::Init,
         }
     }
 }
 
 #[derive(PartialEq, Debug)]
-pub enum AnimationState {
+pub enum AnimationRunningState {
     Init,
     Running,
     Finished,
 }
 
-impl Default for AnimationState {
+impl Default for AnimationRunningState {
     fn default() -> Self {
-        AnimationState::Init
+        AnimationRunningState::Init
     }
 }

@@ -1,14 +1,14 @@
-use crate::components::{AnimationState, Position, Translation};
+use crate::components::{AnimationRunningState, Position, TranslationState};
 use core::time::Duration;
 use sdl2::rect::Point;
 
 pub struct TranslationPerformer<'a> {
-    translation: &'a mut Translation,
+    translation: &'a mut TranslationState,
     position: &'a mut Position,
 }
 
 impl<'a> TranslationPerformer<'a> {
-    pub fn new(translation: &'a mut Translation, position: &'a mut Position) -> Self {
+    pub fn new(translation: &'a mut TranslationState, position: &'a mut Position) -> Self {
         TranslationPerformer {
             translation,
             position,
@@ -16,10 +16,10 @@ impl<'a> TranslationPerformer<'a> {
     }
 
     pub fn run(&mut self, time_since_last_frame: &Duration) {
-        if self.translation.state == AnimationState::Init {
-            self.translation.state = AnimationState::Running;
+        if self.translation.state == AnimationRunningState::Init {
+            self.translation.state = AnimationRunningState::Running;
         }
-        if self.translation.state == AnimationState::Running {
+        if self.translation.state == AnimationRunningState::Running {
             self.progress(&*time_since_last_frame);
         }
     }
@@ -27,7 +27,7 @@ impl<'a> TranslationPerformer<'a> {
     fn progress(&mut self, time_since_last_frame: &Duration) -> Duration {
         if self.translation.animation.delay == 0 {
             self.execute();
-            self.translation.state = AnimationState::Finished;
+            self.translation.state = AnimationRunningState::Finished;
             return Duration::ZERO;
         }
 
@@ -35,8 +35,8 @@ impl<'a> TranslationPerformer<'a> {
         let animation_delay = Duration::from_millis(self.translation.animation.delay as u64);
         while animation_delay < self.translation.wait_time {
             self.translation.wait_time -= animation_delay;
-            if let AnimationState::Finished = self.execute() {
-                self.translation.state = AnimationState::Finished;
+            if let AnimationRunningState::Finished = self.execute() {
+                self.translation.state = AnimationRunningState::Finished;
                 return *time_since_last_frame - self.translation.wait_time;
             }
         }
@@ -44,7 +44,7 @@ impl<'a> TranslationPerformer<'a> {
         *time_since_last_frame
     }
 
-    fn execute(&mut self) -> AnimationState {
+    fn execute(&mut self) -> AnimationRunningState {
         if let Some(vec) = &self.translation.animation.vec {
             self.position.0 += Point::new(vec.x as i32, vec.y as i32);
         }
@@ -53,8 +53,8 @@ impl<'a> TranslationPerformer<'a> {
         match self.translation.animation.repeat > 0
             && self.translation.run_number == self.translation.animation.repeat
         {
-            true => AnimationState::Finished,
-            false => AnimationState::Running,
+            true => AnimationRunningState::Finished,
+            false => AnimationRunningState::Running,
         }
     }
 }
