@@ -20,27 +20,26 @@ impl<'a> System<'a> for ScriptSystem {
         Read<'a, LazyUpdate>,
     );
 
-    fn run(
-        &mut self,
-        (entities, _time_since_last_frame, mut script, translation, frame_range, updater): Self::SystemData,
-    ) {
-        self.collect_finished(translation, frame_range);
-
-        for (entity, script) in (&entities, &mut script).join() {
-            if script.state == AnimationRunningState::Init {
-                self.play_next(entity, script, &updater);
-            }
-        }
-
-        self.progress(&entities, &mut script, &updater);
-    }
-
     fn setup(&mut self, world: &mut World) {
         Self::SystemData::setup(world);
         self.translation_reader_id =
             Some(WriteStorage::<TranslationState>::fetch(world).register_reader());
         self.frame_range_reader_id =
             Some(WriteStorage::<FrameRangeState>::fetch(world).register_reader());
+    }
+
+    fn run(
+        &mut self,
+        (entities, _time_since_last_frame, mut script, translation, frame_range, updater): Self::SystemData,
+    ) {
+        for (entity, script) in (&entities, &mut script).join() {
+            if script.state == AnimationRunningState::Init {
+                self.play_next(entity, script, &updater);
+            }
+        }
+
+        self.collect_finished(&translation, &frame_range);
+        self.progress(&entities, &mut script, &translation, &frame_range, &updater);
     }
 }
 
@@ -49,9 +48,31 @@ impl ScriptSystem {
         &mut self,
         entities: &Read<EntitiesRes>,
         script: &mut WriteStorage<ScriptState>,
+        translation: &ReadStorage<TranslationState>,
+        frame_range: &ReadStorage<FrameRangeState>,
         updater: &Read<LazyUpdate>,
     ) {
-        for (entity, script, _) in (entities, script, &self.finished).join() {
+        for (entity, script, translation, frame_range, _) in (
+            entities,
+            script,
+            (&translation).maybe(),
+            (&frame_range).maybe(),
+            &self.finished,
+        )
+            .join()
+        {
+            let animation = &script.script.animation[script.index - 1];
+            let animations = (translation, frame_range);
+            let finished = match animations {
+                (None, None) => true,
+                _ if !animation.wait_all => true,
+                _ => false,
+            };
+
+            if !finished {
+                continue;
+            }
+
             if script.index < script.script.animation.len() {
                 self.play_next(entity, script, updater);
             } else if script.script.repeat == 0
@@ -92,8 +113,8 @@ impl ScriptSystem {
 
     fn collect_finished(
         &mut self,
-        translation: ReadStorage<TranslationState>,
-        frame_range: ReadStorage<FrameRangeState>,
+        translation: &ReadStorage<TranslationState>,
+        frame_range: &ReadStorage<FrameRangeState>,
     ) {
         self.finished.clear();
 
