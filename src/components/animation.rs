@@ -1,4 +1,4 @@
-use crate::trust::{AnimationScript, FrameRangeAnimation, VectorAnimation};
+use crate::trust::{AnimationScript, FrameRangeAnimation, TimerAnimation, VectorAnimation};
 use specs::prelude::*;
 use specs_derive::Component;
 use std::time::Duration;
@@ -96,6 +96,32 @@ impl FrameRangeState {
             speed,
             step,
             run_number,
+            wait_time: Duration::ZERO,
+            state: AnimationRunningState::Init,
+        }
+    }
+}
+
+#[derive(Default, Debug)]
+pub struct TimerState {
+    pub animation: TimerAnimation,
+
+    pub speed: f64,
+    pub wait_time: Duration,
+    pub state: AnimationRunningState,
+}
+
+impl Component for TimerState {
+    type Storage = FlaggedStorage<Self, VecStorage<Self>>;
+}
+
+impl TimerState {
+    pub fn new(animation: TimerAnimation) -> Self {
+        let speed = 1.0;
+
+        TimerState {
+            animation,
+            speed,
             wait_time: Duration::ZERO,
             state: AnimationRunningState::Init,
         }

@@ -1,6 +1,6 @@
 use crate::animation;
 use crate::components::{
-    AnimationRunningState, FrameRangeState, Position, Sprite, TranslationState,
+    AnimationRunningState, FrameRangeState, Position, Sprite, TimerState, TranslationState,
 };
 use crate::resources::SpriteSheetsManager;
 use specs::prelude::*;
@@ -68,6 +68,28 @@ impl<'a> System<'a> for FrameRangeSystem {
 
             if frame_range.state == AnimationRunningState::Finished {
                 updater.remove::<FrameRangeState>(entity);
+            }
+        }
+    }
+}
+
+pub struct TimerSystem;
+
+impl<'a> System<'a> for TimerSystem {
+    type SystemData = (
+        Entities<'a>,
+        ReadExpect<'a, Duration>,
+        WriteStorage<'a, TimerState>,
+        Read<'a, LazyUpdate>,
+    );
+
+    fn run(&mut self, (entities, time_since_last_frame, mut timer, updater): Self::SystemData) {
+        for (entity, timer) in (&entities, &mut timer).join() {
+            let mut perfomer = animation::TimerPerformer::new(timer);
+            perfomer.run(&*time_since_last_frame);
+
+            if timer.state == AnimationRunningState::Finished {
+                updater.remove::<TimerState>(entity);
             }
         }
     }
