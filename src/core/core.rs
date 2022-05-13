@@ -2,7 +2,7 @@ use crate::action::ActionExecutor;
 use crate::components::{FrameRangeState, Position, ScriptState, Sprite, TranslationState};
 use crate::core::{renderer, EventPump, Status, TextureManager};
 use crate::resources::SpriteSheetsManager;
-use crate::systems::{FrameRangeSystem, Keyboard, ScriptSystem, TranslationSystem};
+use crate::systems::{FrameRangeSystem, Keyboard, ScriptSystem, TimerSystem, TranslationSystem};
 use crate::trust::{user_input, FrameRangeAnimation, KeyEvent, Vector, VectorAnimation};
 use sdl2::image::{self, InitFlag};
 use sdl2::rect::Point;
@@ -66,8 +66,9 @@ impl Core {
         let mut dispatcher = DispatcherBuilder::new()
             .with(Keyboard, "Keyboard", &[])
             .with(ScriptSystem::default(), "Scripts", &[])
-            .with(TranslationSystem, "Translation", &[])
-            .with(FrameRangeSystem, "FrameRange", &[])
+            .with(TranslationSystem, "Translations", &["Scripts"])
+            .with(FrameRangeSystem, "FrameRanges", &["Scripts"])
+            .with(TimerSystem, "Timers", &["Scripts"])
             .build();
         dispatcher.setup(&mut self.world);
 

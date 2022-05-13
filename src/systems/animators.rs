@@ -89,6 +89,7 @@ impl<'a> System<'a> for TimerSystem {
             perfomer.run(&*time_since_last_frame);
 
             if timer.state == AnimationRunningState::Finished {
+                println!("timer finished");
                 updater.remove::<TimerState>(entity);
             }
         }
