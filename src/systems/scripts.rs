@@ -1,7 +1,7 @@
 use crate::components::{AnimationRunningState, FrameRangeState, ScriptState, TranslationState};
+use crate::trust::Animation;
 use specs::prelude::*;
-use specs::shred::Fetch;
-use specs::storage::MaskedStorage;
+use specs::world::EntitiesRes;
 use std::time::Duration;
 
 #[derive(Default)]
@@ -29,21 +29,13 @@ impl<'a> System<'a> for ScriptSystem {
 
         for (entity, script) in (&entities, &mut script).join() {
             if script.state == AnimationRunningState::Init {
-                let animation = &script.script.animation[script.index];
-                if let Some(animation) = &animation.translation {
-                    updater.insert(entity, TranslationState::new(animation.clone()));
-                }
-                if let Some(animation) = &animation.frame_range {
-                    updater.insert(entity, FrameRangeState::new(animation.clone()));
-                }
+                self.start_animation(entity, &script.script.animation[script.index], &updater);
                 script.state = AnimationRunningState::Running;
+                script.index += 1;
             }
         }
 
-        for (entity, _) in (&entities, &self.finished).join() {
-            updater.remove::<TranslationState>(entity);
-            updater.remove::<FrameRangeState>(entity);
-        }
+        self.progress(&entities, &mut script, &updater);
     }
 
     fn setup(&mut self, world: &mut World) {
@@ -56,10 +48,44 @@ impl<'a> System<'a> for ScriptSystem {
 }
 
 impl ScriptSystem {
+    fn progress(
+        &mut self,
+        entities: &Read<EntitiesRes>,
+        script: &mut WriteStorage<ScriptState>,
+        updater: &Read<LazyUpdate>,
+    ) {
+        for (entity, script, _) in (entities, script, &self.finished).join() {
+            if script.index < script.script.animation.len() {
+                self.start_animation(entity, &script.script.animation[script.index], updater);
+                script.index += 1;
+            } else {
+                self.stop_animation(entity, updater);
+            }
+        }
+    }
+
+    fn start_animation(&self, entity: Entity, animation: &Animation, updater: &Read<LazyUpdate>) {
+        if let Some(animation) = &animation.translation {
+            updater.insert(entity, TranslationState::new(animation.clone()));
+        } else {
+            updater.remove::<TranslationState>(entity);
+        }
+        if let Some(animation) = &animation.frame_range {
+            updater.insert(entity, FrameRangeState::new(animation.clone()));
+        } else {
+            updater.remove::<FrameRangeState>(entity);
+        }
+    }
+
+    fn stop_animation(&self, entity: Entity, updater: &Read<LazyUpdate>) {
+        updater.remove::<TranslationState>(entity);
+        updater.remove::<FrameRangeState>(entity);
+    }
+
     fn collect_finished(
         &mut self,
-        translation: Storage<TranslationState, Fetch<MaskedStorage<TranslationState>>>,
-        frame_range: Storage<FrameRangeState, Fetch<MaskedStorage<FrameRangeState>>>,
+        translation: ReadStorage<TranslationState>,
+        frame_range: ReadStorage<FrameRangeState>,
     ) {
         self.finished.clear();
 

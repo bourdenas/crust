@@ -60,7 +60,7 @@ impl<'a> System<'a> for FrameRangeSystem {
         for (entity, frame_range, sprite, position) in
             (&entities, &mut frame_range, &mut sprite, &mut position).join()
         {
-            println!("time since last frame {:?}", &*time_since_last_frame);
+            // println!("time since last frame {:?}", &*time_since_last_frame);
             let sprite_sheet = &sheets_manager.load(&sprite.resource).unwrap();
             let mut perfomer =
                 animation::FrameRangePerformer::new(sprite, position, frame_range, sprite_sheet);
