@@ -1,5 +1,4 @@
 use crate::components::{AnimationRunningState, FrameRangeState, ScriptState, TranslationState};
-use crate::trust::Animation;
 use specs::prelude::*;
 use specs::world::EntitiesRes;
 use std::time::Duration;
@@ -29,9 +28,7 @@ impl<'a> System<'a> for ScriptSystem {
 
         for (entity, script) in (&entities, &mut script).join() {
             if script.state == AnimationRunningState::Init {
-                self.start_animation(entity, &script.script.animation[script.index], &updater);
-                script.state = AnimationRunningState::Running;
-                script.index += 1;
+                self.play_next(entity, script, &updater);
             }
         }
 
@@ -56,15 +53,22 @@ impl ScriptSystem {
     ) {
         for (entity, script, _) in (entities, script, &self.finished).join() {
             if script.index < script.script.animation.len() {
-                self.start_animation(entity, &script.script.animation[script.index], updater);
-                script.index += 1;
+                self.play_next(entity, script, updater);
+            } else if script.script.repeat == 0
+                || script.iteration + 1 < script.script.repeat as u32
+            {
+                script.iteration += 1;
+                script.index = 0;
+                self.play_next(entity, script, updater);
             } else {
-                self.stop_animation(entity, updater);
+                self.stop(entity, script, updater);
             }
         }
     }
 
-    fn start_animation(&self, entity: Entity, animation: &Animation, updater: &Read<LazyUpdate>) {
+    fn play_next(&self, entity: Entity, script: &mut ScriptState, updater: &Read<LazyUpdate>) {
+        let animation = &script.script.animation[script.index];
+
         if let Some(animation) = &animation.translation {
             updater.insert(entity, TranslationState::new(animation.clone()));
         } else {
@@ -75,11 +79,15 @@ impl ScriptSystem {
         } else {
             updater.remove::<FrameRangeState>(entity);
         }
+
+        script.state = AnimationRunningState::Running;
+        script.index += 1;
     }
 
-    fn stop_animation(&self, entity: Entity, updater: &Read<LazyUpdate>) {
+    fn stop(&self, entity: Entity, script: &mut ScriptState, updater: &Read<LazyUpdate>) {
         updater.remove::<TranslationState>(entity);
         updater.remove::<FrameRangeState>(entity);
+        script.state = AnimationRunningState::Finished;
     }
 
     fn collect_finished(
@@ -94,12 +102,9 @@ impl ScriptSystem {
             .read(self.translation_reader_id.as_mut().unwrap());
         for event in events {
             match event {
-                ComponentEvent::Removed(id) => {
-                    println!("Removed translation with id={}", id);
-                    self.finished.add(*id);
-                }
-                _ => (),
-            }
+                ComponentEvent::Removed(id) => self.finished.add(*id),
+                _ => false,
+            };
         }
 
         let events = frame_range
@@ -107,12 +112,9 @@ impl ScriptSystem {
             .read(self.frame_range_reader_id.as_mut().unwrap());
         for event in events {
             match event {
-                ComponentEvent::Removed(id) => {
-                    println!("Removed frame_range with id={}", id);
-                    self.finished.add(*id);
-                }
-                _ => (),
-            }
+                ComponentEvent::Removed(id) => self.finished.add(*id),
+                _ => false,
+            };
         }
     }
 }
