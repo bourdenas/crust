@@ -68,7 +68,7 @@ impl<'a> FrameRangePerformer<'a> {
 
         self.frame_range.wait_time += *time_since_last_frame;
         let animation_delay = Duration::from_millis(self.frame_range.animation.delay as u64);
-        while animation_delay < self.frame_range.wait_time {
+        while animation_delay <= self.frame_range.wait_time {
             self.frame_range.wait_time -= animation_delay;
             if let AnimationRunningState::Finished = self.execute() {
                 self.frame_range.state = AnimationRunningState::Finished;

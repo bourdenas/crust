@@ -28,7 +28,7 @@ impl<'a> TimerPerformer<'a> {
 
         self.timer.wait_time += *time_since_last_frame;
         let animation_delay = Duration::from_millis(self.timer.animation.delay as u64);
-        while animation_delay < self.timer.wait_time {
+        while animation_delay <= self.timer.wait_time {
             self.timer.wait_time -= animation_delay;
             if let AnimationRunningState::Finished = self.execute() {
                 self.timer.state = AnimationRunningState::Finished;
@@ -41,5 +41,40 @@ impl<'a> TimerPerformer<'a> {
 
     fn execute(&mut self) -> AnimationRunningState {
         AnimationRunningState::Finished
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::trust::TimerAnimation;
+
+    #[test]
+    fn timer_incomplete() {
+        let mut timer = TimerState::new(TimerAnimation { delay: 2000 });
+        let mut perfomer = TimerPerformer::new(&mut timer);
+
+        perfomer.run(&Duration::from_millis(500));
+        assert_eq!(timer.state, AnimationRunningState::Running);
+    }
+
+    #[test]
+    fn timer_finished() {
+        let mut timer = TimerState::new(TimerAnimation { delay: 2000 });
+        let mut perfomer = TimerPerformer::new(&mut timer);
+
+        perfomer.run(&Duration::from_millis(2000));
+        assert_eq!(timer.state, AnimationRunningState::Finished);
+    }
+
+    #[test]
+    fn timer_finished_in_multiple_steps() {
+        let mut timer = TimerState::new(TimerAnimation { delay: 2000 });
+        let mut perfomer = TimerPerformer::new(&mut timer);
+
+        perfomer.run(&Duration::from_millis(500));
+        perfomer.run(&Duration::from_millis(500));
+        perfomer.run(&Duration::from_millis(1000));
+        assert_eq!(timer.state, AnimationRunningState::Finished);
     }
 }

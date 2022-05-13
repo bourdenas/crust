@@ -33,7 +33,7 @@ impl<'a> TranslationPerformer<'a> {
 
         self.translation.wait_time += *time_since_last_frame;
         let animation_delay = Duration::from_millis(self.translation.animation.delay as u64);
-        while animation_delay < self.translation.wait_time {
+        while animation_delay <= self.translation.wait_time {
             self.translation.wait_time -= animation_delay;
             if let AnimationRunningState::Finished = self.execute() {
                 self.translation.state = AnimationRunningState::Finished;
