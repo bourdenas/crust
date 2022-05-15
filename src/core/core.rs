@@ -1,9 +1,9 @@
 use crate::action::ActionExecutor;
-use crate::components::{FrameRangeState, Position, ScriptState, Sprite, TranslationState};
+use crate::components::{Position, ScriptState, Sprite};
 use crate::core::{renderer, EventPump, Status, TextureManager};
 use crate::resources::SpriteSheetsManager;
-use crate::systems::{FrameRangeSystem, Keyboard, ScriptSystem, TimerSystem, TranslationSystem};
-use crate::trust::{user_input, FrameRangeAnimation, KeyEvent, Vector, VectorAnimation};
+use crate::systems::{Keyboard, ScriptSystem};
+use crate::trust::{user_input, KeyEvent};
 use sdl2::image::{self, InitFlag};
 use sdl2::rect::Point;
 use sdl2::render::WindowCanvas;
@@ -43,8 +43,6 @@ impl Core {
         let mut world = World::new();
         world.register::<Position>();
         world.register::<Sprite>();
-        world.register::<FrameRangeState>();
-        world.register::<TranslationState>();
         world.register::<ScriptState>();
 
         Ok(Core {
@@ -66,9 +64,6 @@ impl Core {
         let mut dispatcher = DispatcherBuilder::new()
             .with(Keyboard, "Keyboard", &[])
             .with(ScriptSystem::default(), "Scripts", &[])
-            .with(TranslationSystem, "Translations", &["Scripts"])
-            .with(FrameRangeSystem, "FrameRanges", &["Scripts"])
-            .with(TimerSystem, "Timers", &["Scripts"])
             .build();
         dispatcher.setup(&mut self.world);
 
@@ -87,23 +82,23 @@ impl Core {
                 resource: "reaper".to_owned(),
                 frame_index: 3,
             })
-            .with(FrameRangeState::new(FrameRangeAnimation {
-                start_frame: 0,
-                end_frame: 3,
-                delay: 200,
-                // repeat: 3,
-                // horizontal_align: HorizontalAlign::Right as i32,
-                ..Default::default()
-            }))
-            .with(TranslationState::new(VectorAnimation {
-                vec: Some(Vector {
-                    x: 0.0,
-                    y: 1.0,
-                    z: 0.0,
-                }),
-                delay: 16,
-                ..Default::default()
-            }))
+            // .with(FrameRangeState::new(FrameRangeAnimation {
+            //     start_frame: 0,
+            //     end_frame: 3,
+            //     delay: 200,
+            //     // repeat: 3,
+            //     // horizontal_align: HorizontalAlign::Right as i32,
+            //     ..Default::default()
+            // }))
+            // .with(TranslationState::new(VectorAnimation {
+            //     vec: Some(Vector {
+            //         x: 0.0,
+            //         y: 1.0,
+            //         z: 0.0,
+            //     }),
+            //     delay: 16,
+            //     ..Default::default()
+            // }))
             .build();
 
         let mut prev_time = SystemTime::now();
