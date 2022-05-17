@@ -32,6 +32,7 @@ impl ScriptRunner {
 
         if self.index < 0 || self.index as usize >= script.animation.len() {
             self.stop(animated);
+            return;
         }
 
         self.animator = Animator::new();
@@ -462,6 +463,22 @@ mod tests {
         runner.progress(Duration::from_millis(300), &mut animated, &script);
         assert_eq!(fixture.position.0, Point::new(14, 10));
         assert_eq!(fixture.sprite.frame_index, 5);
+        assert_eq!(runner.finished(), true);
+    }
+
+    #[test]
+    fn empty_script() {
+        let mut fixture = Fixture::new();
+
+        let script = AnimationScript {
+            id: "move_right".to_owned(),
+            animation: vec![],
+            repeat: 0,
+        };
+
+        let mut runner = ScriptRunner::new(1.0);
+        let mut animated = fixture.animated();
+        runner.start(&mut animated, &script);
         assert_eq!(runner.finished(), true);
     }
 }
