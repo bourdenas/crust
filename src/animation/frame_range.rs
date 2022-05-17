@@ -44,9 +44,10 @@ impl Performer for FrameRangePerformer {
 
     fn execute(&mut self, animated: &mut Animated, animation: &Animation) -> AnimationRunningState {
         let frame_range = animation.frame_range.as_ref().unwrap();
-        let next_frame = animated.sprite.frame_index as i32 + self.step;
-        let next_frame = frame_range.start_frame
-            + next_frame % (frame_range.start_frame - frame_range.end_frame).abs();
+        let mut next_frame = animated.sprite.frame_index as i32 + self.step;
+        if next_frame == frame_range.end_frame {
+            next_frame = frame_range.start_frame;
+        }
 
         set_frame(
             next_frame,

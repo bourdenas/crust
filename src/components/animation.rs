@@ -6,26 +6,19 @@ use specs_derive::Component;
 #[storage(VecStorage)]
 pub struct ScriptState {
     pub script: AnimationScript,
-
-    pub speed: f64,
-    pub iteration: u32,
     pub runner: ScriptRunner,
-    pub state: AnimationRunningState,
 }
 
 impl ScriptState {
     pub fn new(script: AnimationScript) -> Self {
         ScriptState {
             script,
-            speed: 1.0,
-            iteration: 0,
-            runner: ScriptRunner::new(),
-            state: AnimationRunningState::Init,
+            runner: ScriptRunner::new(1.0),
         }
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum AnimationRunningState {
     Init,
     Running,
