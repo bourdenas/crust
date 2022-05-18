@@ -36,11 +36,12 @@ impl TranslationPerformer {
 #[cfg(test)]
 mod tests {
     use crate::{
-        animation::{testing::Fixture, Performer, TranslationPerformer},
+        animation::{performer::PerformerBase, testing::Fixture, Performer, TranslationPerformer},
         components::AnimationRunningState,
         trust::{Animation, Vector, VectorAnimation},
     };
     use sdl2::rect::Point;
+    use std::time::Duration;
 
     #[test]
     fn single_execution() {
@@ -69,6 +70,27 @@ mod tests {
             AnimationRunningState::Finished
         );
         assert_eq!(fixture.position.0, Point::new(1, 0));
+
+        // Test Performer using PerformerBase.
+        let mut fixture = Fixture::new();
+        let mut performer = PerformerBase::new(TranslationPerformer::new());
+        let mut animated = fixture.animated();
+        performer.start(&mut animated, &animation, 1.0);
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(performer.finished(), false);
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.progress(
+                Duration::from_millis(50),
+                &mut animated,
+                &animation,
+                Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64)
+            ),
+            Duration::from_millis(20)
+        );
+        assert_eq!(fixture.position.0, Point::new(1, 0));
+        assert_eq!(performer.finished(), true);
     }
 
     #[test]
@@ -113,6 +135,40 @@ mod tests {
             AnimationRunningState::Finished
         );
         assert_eq!(fixture.position.0, Point::new(3, 3));
+
+        // Test Performer using PerformerBase.
+        let mut fixture = Fixture::new();
+        let mut performer = PerformerBase::new(TranslationPerformer::new());
+        let mut animated = fixture.animated();
+        performer.start(&mut animated, &animation, 1.0);
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(performer.finished(), false);
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.progress(
+                Duration::from_millis(50),
+                &mut animated,
+                &animation,
+                Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64)
+            ),
+            Duration::from_millis(50)
+        );
+        assert_eq!(fixture.position.0, Point::new(2, 2));
+        assert_eq!(performer.finished(), false);
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.progress(
+                Duration::from_millis(10),
+                &mut animated,
+                &animation,
+                Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64)
+            ),
+            Duration::from_millis(10)
+        );
+        assert_eq!(fixture.position.0, Point::new(3, 3));
+        assert_eq!(performer.finished(), true);
     }
 
     #[test]
@@ -144,5 +200,89 @@ mod tests {
             );
             assert_eq!(fixture.position.0, Point::new(0, i * 2));
         }
+
+        // Test Performer using PerformerBase.
+        let mut fixture = Fixture::new();
+        let mut performer = PerformerBase::new(TranslationPerformer::new());
+        let mut animated = fixture.animated();
+        performer.start(&mut animated, &animation, 1.0);
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(performer.finished(), false);
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.progress(
+                Duration::from_millis(200),
+                &mut animated,
+                &animation,
+                Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64)
+            ),
+            Duration::from_millis(200)
+        );
+        assert_eq!(fixture.position.0, Point::new(0, 20));
+        assert_eq!(performer.finished(), false);
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.progress(
+                Duration::from_millis(2000),
+                &mut animated,
+                &animation,
+                Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64)
+            ),
+            Duration::from_millis(2000)
+        );
+        assert_eq!(fixture.position.0, Point::new(0, 220));
+        assert_eq!(performer.finished(), false);
+    }
+
+    #[test]
+    fn zero_delay() {
+        let mut fixture = Fixture::new();
+
+        let animation = Animation {
+            translation: Some(VectorAnimation {
+                vec: Some(Vector {
+                    x: 5.0,
+                    ..Default::default()
+                }),
+                delay: 0,
+                repeat: 0,
+            }),
+            ..Default::default()
+        };
+
+        let mut performer = TranslationPerformer::new();
+        let mut animated = fixture.animated();
+        performer.start(&mut animated, &animation, 1.0);
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.execute(&mut animated, &animation),
+            AnimationRunningState::Running
+        );
+        assert_eq!(fixture.position.0, Point::new(5, 0));
+
+        // Test Performer using PerformerBase.
+        let mut fixture = Fixture::new();
+        let mut performer = PerformerBase::new(TranslationPerformer::new());
+        let mut animated = fixture.animated();
+        performer.start(&mut animated, &animation, 1.0);
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(performer.finished(), false);
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.progress(
+                Duration::from_millis(50),
+                &mut animated,
+                &animation,
+                Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64)
+            ),
+            Duration::ZERO
+        );
+        assert_eq!(fixture.position.0, Point::new(5, 0));
+        assert_eq!(performer.finished(), true);
     }
 }
