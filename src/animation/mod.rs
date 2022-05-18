@@ -3,6 +3,7 @@ mod animator;
 mod frame_range;
 mod performer;
 mod script_runner;
+mod testing;
 mod timer;
 mod translation;
 
