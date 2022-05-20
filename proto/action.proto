@@ -15,9 +15,9 @@ message Action {
     SceneNodeAction destroy_scene_node = 5;
 
     AnimationScriptAction play_animation = 6;
-    ScriptIdAction stop_animation = 7;
-    ScriptIdAction pause_animation = 8;
-    ScriptIdAction resume_animation = 9;
+    SceneNodeAction stop_animation = 7;
+    SceneNodeAction pause_animation = 8;
+    SceneNodeAction resume_animation = 9;
 
     // SceneNodeVectorAction position_scene_node = 6;
     // SceneNodeVectorAction move_scene_node = 7;
@@ -76,10 +76,6 @@ message AnimationScriptAction {
   // * If the value is negative, the animation script is applied in reverse.
   // * If value is 0 the script will make no progress.
   double speed = 3;
-}
-
-message ScriptIdAction {
-  string script_id = 1;
 }
 
 // message SfxAction {

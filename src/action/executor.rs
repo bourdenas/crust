@@ -15,6 +15,7 @@ impl ActionExecutor {
             Some(action::Action::Quit(..)) => None,
             Some(action::Action::CreateSceneNode(action)) => self.create_scene_node(action, world),
             Some(action::Action::PlayAnimation(action)) => self.play_animation(action, world),
+            Some(action::Action::StopAnimation(action)) => self.stop_animation(action, world),
             _ => None,
         }
     }
@@ -52,6 +53,16 @@ impl ActionExecutor {
             if let Err(e) = scripts.insert(entity, ScriptState::new(script)) {
                 println!("play_animation: {}", e);
             }
+        }
+        None
+    }
+
+    fn stop_animation(&self, scene_node_action: SceneNodeAction, world: &mut World) -> Option<u32> {
+        if let Some(node) = scene_node_action.scene_node {
+            let entity = world.entities().entity(node.id);
+
+            let mut scripts = world.write_storage::<ScriptState>();
+            scripts.remove(entity);
         }
         None
     }
