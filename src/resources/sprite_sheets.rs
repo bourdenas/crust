@@ -27,6 +27,12 @@ impl SpriteSheetsManager {
                     Rect::new(5, 43, 24, 28),
                     Rect::new(37, 42, 24, 29),
                     Rect::new(68, 43, 25, 28),
+                    Rect::new(1, 79, 24, 28),
+                    Rect::new(33, 78, 24, 29),
+                    Rect::new(65, 79, 24, 28),
+                    Rect::new(1, 115, 24, 28),
+                    Rect::new(33, 114, 24, 29),
+                    Rect::new(65, 114, 24, 28),
                 ],
             })),
             _ => Err(Status::not_found(&format!(

@@ -1,5 +1,5 @@
 use crate::core::Core;
-use crate::trust::Action;
+use crate::trust::{Action, UserInput};
 use prost::Message;
 use std::cell::RefCell;
 use std::ffi::CStr;
@@ -62,4 +62,35 @@ pub extern "C" fn execute(len: i64, encoded_action: *const u8) -> u32 {
     }
 
     retval
+}
+
+#[no_mangle]
+pub extern "C" fn register_handler(handler: extern "C" fn(usize, *const u8)) -> u64 {
+    let mut handler_id = 0;
+    CORE.with(|core| {
+        if let Some(core) = &mut *core.borrow_mut() {
+            handler_id = core.input_manager.register(wrap_handler(handler));
+        }
+    });
+
+    handler_id as u64
+}
+
+#[no_mangle]
+pub extern "C" fn unregister_handler(handler_id: u64) {
+    CORE.with(|core| {
+        if let Some(core) = &mut *core.borrow_mut() {
+            core.input_manager.unregister(handler_id as usize);
+        }
+    });
+}
+
+fn wrap_handler(handler: extern "C" fn(usize, *const u8)) -> Box<dyn Fn(&UserInput)> {
+    Box::new(move |event: &UserInput| {
+        let mut bytes = vec![];
+        event
+            .encode(&mut bytes)
+            .expect("Failed to encode UserInput message");
+        handler(bytes.len(), bytes.as_mut_ptr());
+    })
 }

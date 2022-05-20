@@ -1,4 +1,4 @@
-use crate::components::{FrameRange, Position, Sprite, Translation};
+use crate::components::{Position, ScriptState, Sprite};
 use crate::trust::{action, Action, AnimationScriptAction, SceneNodeAction, Vector};
 use sdl2::rect::Point;
 use specs::prelude::*;
@@ -48,22 +48,9 @@ impl ActionExecutor {
         if let Some(script) = script_action.script {
             let entity = world.entities().entity(script_action.scene_node_id);
 
-            if let Some(translation_animation) = &script.animation[0].translation {
-                let mut translation = world.write_storage::<Translation>();
-                if let Err(e) =
-                    translation.insert(entity, Translation::new(translation_animation.clone()))
-                {
-                    println!("play_animation(): {}", e);
-                }
-            }
-
-            if let Some(frame_range_animation) = &script.animation[0].frame_range {
-                let mut frame_range = world.write_storage::<FrameRange>();
-                if let Err(e) =
-                    frame_range.insert(entity, FrameRange::new(frame_range_animation.clone()))
-                {
-                    println!("play_animation(): {}", e);
-                }
+            let mut scripts = world.write_storage::<ScriptState>();
+            if let Err(e) = scripts.insert(entity, ScriptState::new(script)) {
+                println!("play_animation: {}", e);
             }
         }
         None

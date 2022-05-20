@@ -1,5 +1,5 @@
 mod animation;
 mod sprites;
 
-pub use animation::{AnimationState, FrameRange, Translation};
-pub use sprites::{Position, Sprite};
+pub use animation::{AnimationRunningState, ScriptState};
+pub use sprites::{Id, Position, Sprite};
