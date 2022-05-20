@@ -10,13 +10,8 @@ impl InputManager {
         InputManager::default()
     }
 
-    pub fn register(&mut self, handler: Box<dyn Fn(&UserInput)>) -> usize {
+    pub fn register(&mut self, handler: Box<dyn Fn(&UserInput)>) {
         self.handlers.push(handler);
-        self.handlers.len() - 1
-    }
-
-    pub fn unregister(&mut self, id: usize) {
-        drop(self.handlers.remove(id));
     }
 
     pub fn handle(&self, event: UserInput) {

@@ -49,7 +49,6 @@ pub extern "C" fn execute(len: i64, encoded_action: *const u8) -> u32 {
     let action = Action::decode(buffer);
     match action {
         Ok(action) => {
-            println!("🦀 execute: {:?}", action);
             CORE.with(|core| {
                 if let Some(core) = &mut *core.borrow_mut() {
                     if let Some(id) = core.executor.execute(action, &mut core.world) {
@@ -65,22 +64,10 @@ pub extern "C" fn execute(len: i64, encoded_action: *const u8) -> u32 {
 }
 
 #[no_mangle]
-pub extern "C" fn register_handler(handler: extern "C" fn(usize, *const u8)) -> u64 {
-    let mut handler_id = 0;
+pub extern "C" fn register_handler(handler: extern "C" fn(usize, *const u8)) {
     CORE.with(|core| {
         if let Some(core) = &mut *core.borrow_mut() {
-            handler_id = core.input_manager.register(wrap_handler(handler));
-        }
-    });
-
-    handler_id as u64
-}
-
-#[no_mangle]
-pub extern "C" fn unregister_handler(handler_id: u64) {
-    CORE.with(|core| {
-        if let Some(core) = &mut *core.borrow_mut() {
-            core.input_manager.unregister(handler_id as usize);
+            core.input_manager.register(wrap_handler(handler));
         }
     });
 }
