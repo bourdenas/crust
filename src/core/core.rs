@@ -1,9 +1,10 @@
 use crate::action::ActionExecutor;
 use crate::components::{Position, ScriptState, Sprite};
 use crate::core::{renderer, EventPump, Status, TextureManager};
+use crate::input::InputManager;
 use crate::resources::SpriteSheetsManager;
-use crate::systems::{Keyboard, ScriptSystem};
-use crate::trust::{user_input, KeyEvent};
+use crate::systems::ScriptSystem;
+use crate::trust::{user_input, UserInput};
 use sdl2::image::{self, InitFlag};
 use sdl2::rect::Point;
 use sdl2::render::WindowCanvas;
@@ -15,6 +16,7 @@ pub struct Core {
 
     pub world: World,
     pub executor: ActionExecutor,
+    pub input_manager: InputManager,
 
     _sdl_context: sdl2::Sdl,
     _video_subsystem: sdl2::VideoSubsystem,
@@ -49,6 +51,7 @@ impl Core {
             resource_path: resource_path.to_owned(),
             world,
             executor: ActionExecutor::new(),
+            input_manager: InputManager::new(),
             _sdl_context: sdl_context,
             _video_subsystem: video_subsystem,
             _image_context: image::init(InitFlag::PNG | InitFlag::JPG)?,
@@ -62,15 +65,11 @@ impl Core {
         let mut texture_manager = TextureManager::new(&self.resource_path, &texture_creator);
 
         let mut dispatcher = DispatcherBuilder::new()
-            .with(Keyboard, "Keyboard", &[])
             .with(ScriptSystem::default(), "Scripts", &[])
             .build();
         dispatcher.setup(&mut self.world);
 
         self.world.insert(Duration::ZERO);
-
-        let key_events: Vec<KeyEvent> = vec![];
-        self.world.insert(key_events);
 
         let sheets_manager = SpriteSheetsManager::new();
         self.world.insert(sheets_manager);
@@ -105,7 +104,6 @@ impl Core {
 
         'game: loop {
             // Input event handling.
-            let mut key_events = vec![];
             'events: loop {
                 match self.event_pump.poll().event {
                     Some(user_input::Event::NoEvent(..)) => {
@@ -115,12 +113,16 @@ impl Core {
                         break 'game;
                     }
                     Some(user_input::Event::KeyEvent(event)) if event.key == "Q" => break 'game,
-                    Some(user_input::Event::KeyEvent(event)) => key_events.push(event),
+                    // Some(user_input::Event::KeyEvent(event)) => key_events.push(event),
+                    Some(user_input::Event::KeyEvent(event)) => {
+                        self.input_manager.handle(UserInput {
+                            event: Some(user_input::Event::KeyEvent(event)),
+                        });
+                    }
                     // Some(event) => println!("{:#?}", event),
                     _ => {}
                 }
             }
-            *self.world.write_resource::<Vec<KeyEvent>>() = key_events;
 
             // Update time.
             let curr_time = SystemTime::now();
