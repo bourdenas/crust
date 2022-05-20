@@ -1,5 +1,5 @@
 use crate::core::Core;
-use crate::trust::{Action, UserInput};
+use crate::crust::{Action, UserInput};
 use prost::Message;
 use std::cell::RefCell;
 use std::ffi::CStr;

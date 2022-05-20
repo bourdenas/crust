@@ -1,4 +1,4 @@
-use crate::{animation::ScriptRunner, trust::AnimationScript};
+use crate::{animation::ScriptRunner, crust::AnimationScript};
 use specs::prelude::*;
 use specs_derive::Component;
 

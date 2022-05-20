@@ -1,7 +1,7 @@
 use super::{Animated, Animator};
 use crate::{
     components::AnimationRunningState,
-    trust::{Animation, AnimationScript},
+    crust::{Animation, AnimationScript},
 };
 use std::time::Duration;
 
@@ -134,7 +134,7 @@ mod tests {
     use super::*;
     use crate::{
         animation::testing::Fixture,
-        trust::{FrameRangeAnimation, TimerAnimation, Vector, VectorAnimation},
+        crust::{FrameRangeAnimation, TimerAnimation, Vector, VectorAnimation},
     };
     use sdl2::rect::Point;
 

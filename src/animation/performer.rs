@@ -1,5 +1,5 @@
 use super::Animated;
-use crate::{components::AnimationRunningState, trust::Animation};
+use crate::{components::AnimationRunningState, crust::Animation};
 use std::time::Duration;
 
 pub trait Performer {

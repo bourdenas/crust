@@ -1,4 +1,4 @@
-use crate::trust::UserInput;
+use crate::crust::UserInput;
 
 #[derive(Default)]
 pub struct InputManager {

@@ -1,5 +1,5 @@
 use crate::core::Status;
-use crate::trust::{self, UserInput};
+use crate::crust::{self, UserInput};
 use sdl2::event::Event;
 use sdl2::mouse::MouseButton;
 
@@ -18,7 +18,7 @@ impl EventPump {
         match self.event_pump.poll_event() {
             Some(event) => self.build_event(event),
             None => UserInput {
-                event: Some(trust::user_input::Event::NoEvent(trust::NoEvent {})),
+                event: Some(crust::user_input::Event::NoEvent(crust::NoEvent {})),
             },
         }
     }
@@ -26,18 +26,18 @@ impl EventPump {
     fn build_event(&self, event: Event) -> UserInput {
         match event {
             Event::Quit { .. } => UserInput {
-                event: Some(trust::user_input::Event::QuitEvent(trust::QuitEvent {})),
+                event: Some(crust::user_input::Event::QuitEvent(crust::QuitEvent {})),
             },
             Event::KeyDown {
                 keycode: Some(key),
                 repeat,
                 ..
             } => UserInput {
-                event: Some(trust::user_input::Event::KeyEvent(trust::KeyEvent {
+                event: Some(crust::user_input::Event::KeyEvent(crust::KeyEvent {
                     key: key.to_string(),
                     key_state: match repeat {
-                        false => trust::KeyState::Pressed as i32,
-                        true => trust::KeyState::None as i32,
+                        false => crust::KeyState::Pressed as i32,
+                        true => crust::KeyState::None as i32,
                     },
                     ..Default::default()
                 })),
@@ -45,22 +45,22 @@ impl EventPump {
             Event::KeyUp {
                 keycode: Some(key), ..
             } => UserInput {
-                event: Some(trust::user_input::Event::KeyEvent(trust::KeyEvent {
+                event: Some(crust::user_input::Event::KeyEvent(crust::KeyEvent {
                     key: key.to_string(),
-                    key_state: trust::KeyState::Released as i32,
+                    key_state: crust::KeyState::Released as i32,
                     ..Default::default()
                 })),
             },
             Event::MouseMotion {
                 x, y, xrel, yrel, ..
             } => UserInput {
-                event: Some(trust::user_input::Event::MouseEvent(trust::MouseEvent {
-                    absolute_position: Some(trust::Vector {
+                event: Some(crust::user_input::Event::MouseEvent(crust::MouseEvent {
+                    absolute_position: Some(crust::Vector {
                         x: x as f64,
                         y: y as f64,
                         z: 0.0,
                     }),
-                    relative_position: Some(trust::Vector {
+                    relative_position: Some(crust::Vector {
                         x: xrel as f64,
                         y: yrel as f64,
                         z: 0.0,
@@ -71,10 +71,10 @@ impl EventPump {
             Event::MouseButtonDown {
                 mouse_btn, x, y, ..
             } => UserInput {
-                event: Some(trust::user_input::Event::MouseEvent(trust::MouseEvent {
+                event: Some(crust::user_input::Event::MouseEvent(crust::MouseEvent {
                     button: translate_mouse_button(mouse_btn),
-                    key_state: trust::KeyState::Pressed as i32,
-                    absolute_position: Some(trust::Vector {
+                    key_state: crust::KeyState::Pressed as i32,
+                    absolute_position: Some(crust::Vector {
                         x: x as f64,
                         y: y as f64,
                         z: 0.0,
@@ -85,10 +85,10 @@ impl EventPump {
             Event::MouseButtonUp {
                 mouse_btn, x, y, ..
             } => UserInput {
-                event: Some(trust::user_input::Event::MouseEvent(trust::MouseEvent {
+                event: Some(crust::user_input::Event::MouseEvent(crust::MouseEvent {
                     button: translate_mouse_button(mouse_btn),
-                    key_state: trust::KeyState::Released as i32,
-                    absolute_position: Some(trust::Vector {
+                    key_state: crust::KeyState::Released as i32,
+                    absolute_position: Some(crust::Vector {
                         x: x as f64,
                         y: y as f64,
                         z: 0.0,
@@ -97,7 +97,7 @@ impl EventPump {
                 })),
             },
             _ => UserInput {
-                event: Some(trust::user_input::Event::NoEvent(trust::NoEvent {})),
+                event: Some(crust::user_input::Event::NoEvent(crust::NoEvent {})),
             },
         }
     }

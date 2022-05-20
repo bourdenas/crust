@@ -4,6 +4,6 @@ import "action.proto";
 import "animation.proto";
 import "user_input.proto";
 
-package trust;
+package crust;
 
 message Empty {}

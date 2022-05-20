@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "primitives.proto";
 
-package trust;
+package crust;
 
 // A SceneNode is an instance of an entity in the world. It represents a
 // tangible element of the game that has dimensions defined by a bounding box.

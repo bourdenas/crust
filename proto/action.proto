@@ -3,7 +3,7 @@ syntax = "proto3";
 import "animation.proto";
 import "scene_node.proto";
 
-package trust;
+package crust;
 
 message Action {
   oneof Action {

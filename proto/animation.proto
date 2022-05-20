@@ -3,7 +3,7 @@ syntax = "proto3";
 // import "audio.proto";
 import "primitives.proto";
 
-package trust;
+package crust;
 
 // Animation scripts for a sprite.
 message SpriteScripts {

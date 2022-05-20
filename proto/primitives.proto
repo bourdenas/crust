@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package trust;
+package crust;
 
 message Vector {
   double x = 1;

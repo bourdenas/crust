@@ -1,17 +1,11 @@
 use super::{Animated, Performer};
-use crate::components::AnimationRunningState;
+use crate::{components::AnimationRunningState, crust::Animation};
 
 #[derive(Default)]
 pub struct TimerPerformer;
 
 impl Performer for TimerPerformer {
-    fn start(
-        &mut self,
-        _animated: &mut Animated,
-        _animation: &crate::trust::Animation,
-        _speed: f64,
-    ) {
-    }
+    fn start(&mut self, _animated: &mut Animated, _animation: &Animation, _speed: f64) {}
     fn stop(&mut self, _animated: &mut Animated) {}
     fn pause(&mut self, _animated: &mut Animated) {}
     fn resume(&mut self, _animated: &mut Animated) {}
@@ -19,7 +13,7 @@ impl Performer for TimerPerformer {
     fn execute(
         &mut self,
         _animated: &mut Animated,
-        _animation: &crate::trust::Animation,
+        _animation: &Animation,
     ) -> AnimationRunningState {
         AnimationRunningState::Finished
     }

@@ -1,10 +1,10 @@
 use crate::action::ActionExecutor;
 use crate::components::{Position, ScriptState, Sprite};
 use crate::core::{renderer, EventPump, Status, TextureManager};
+use crate::crust::{user_input, UserInput};
 use crate::input::InputManager;
 use crate::resources::SpriteSheetsManager;
 use crate::systems::ScriptSystem;
-use crate::trust::{user_input, UserInput};
 use sdl2::image::{self, InitFlag};
 use sdl2::rect::Point;
 use sdl2::render::WindowCanvas;

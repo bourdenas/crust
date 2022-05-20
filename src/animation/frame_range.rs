@@ -1,8 +1,8 @@
 use super::{Animated, Performer};
 use crate::{
     components::{AnimationRunningState, Position, Sprite},
+    crust::{Animation, HorizontalAlign, VerticalAlign},
     resources::SpriteSheet,
-    trust::{Animation, HorizontalAlign, VerticalAlign},
 };
 use sdl2::rect::Point;
 
@@ -118,7 +118,7 @@ mod tests {
     use crate::{
         animation::{performer::PerformerBase, testing::Fixture, FrameRangePerformer, Performer},
         components::AnimationRunningState,
-        trust::{Animation, FrameRangeAnimation},
+        crust::{Animation, FrameRangeAnimation},
     };
     use std::time::Duration;
 

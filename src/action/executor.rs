@@ -1,5 +1,5 @@
 use crate::components::{Position, ScriptState, Sprite};
-use crate::trust::{action, Action, AnimationScriptAction, SceneNodeAction, Vector};
+use crate::crust::{action, Action, AnimationScriptAction, SceneNodeAction, Vector};
 use sdl2::rect::Point;
 use specs::prelude::*;
 

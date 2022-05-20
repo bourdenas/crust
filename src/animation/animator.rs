@@ -1,7 +1,7 @@
 use super::{
     performer::PerformerBase, Animated, FrameRangePerformer, TimerPerformer, TranslationPerformer,
 };
-use crate::trust::Animation;
+use crate::crust::Animation;
 use std::time::Duration;
 
 #[derive(Default)]

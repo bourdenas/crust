@@ -1,5 +1,5 @@
 use super::{Animated, Performer};
-use crate::{components::AnimationRunningState, trust::Animation};
+use crate::{components::AnimationRunningState, crust::Animation};
 use sdl2::rect::Point;
 
 #[derive(Default)]
@@ -38,7 +38,7 @@ mod tests {
     use crate::{
         animation::{performer::PerformerBase, testing::Fixture, Performer, TranslationPerformer},
         components::AnimationRunningState,
-        trust::{Animation, Vector, VectorAnimation},
+        crust::{Animation, Vector, VectorAnimation},
     };
     use sdl2::rect::Point;
     use std::time::Duration;
