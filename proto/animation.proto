@@ -19,7 +19,7 @@ message AnimationScript {
   repeated Animation animation = 2;
 
   // Number of times the script will be performed.
-  int32 repeat = 3;
+  uint32 repeat = 3;
 }
 
 // All animations that are instantiated in this proto are performed on parallel.
@@ -56,8 +56,8 @@ message Animation {
 // after the specified delay (msec).
 message VectorAnimation {
   Vector vec = 1;
-  int32 delay = 2;
-  int32 repeat = 3;
+  uint32 delay = 2;
+  uint32 repeat = 3;
 }
 
 enum VerticalAlign {
@@ -81,8 +81,8 @@ enum HorizontalAlign {
 message FrameRangeAnimation {
   int32 start_frame = 1;
   int32 end_frame = 2;
-  int32 delay = 3;
-  int32 repeat = 4;
+  uint32 delay = 3;
+  uint32 repeat = 4;
 
   VerticalAlign vertical_align = 5;
   HorizontalAlign horizontal_align = 6;
@@ -92,9 +92,9 @@ message FrameRangeAnimation {
 // immediately to the scene node. The consequent frames are applied after the
 // specified delay.
 message FrameListAnimation {
-  repeated int32 frame = 1;
-  int32 delay = 2;
-  int32 repeat = 3;
+  repeated uint32 frame = 1;
+  uint32 delay = 2;
+  uint32 repeat = 3;
 
   VerticalAlign vertical_align = 4;
   HorizontalAlign horizontal_align = 5;
@@ -102,8 +102,8 @@ message FrameListAnimation {
 
 // Animation that makes a scene node to disappear/appear with a frequency.
 message FlashAnimation {
-  int32 delay = 1;
-  int32 repeat = 2;
+  uint32 delay = 1;
+  uint32 repeat = 2;
 }
 
 // Animation that will move a scene node to the destination with a specified
@@ -112,13 +112,14 @@ message FlashAnimation {
 message GotoAnimation {
   Vector destination = 1;
   double step = 2;
-  int32 delay = 3;
+  uint32 delay = 3;
 }
 
 // Non-visual animation that can be used as a time-buffer between other actions
 // in the game.
 message TimerAnimation {
-  int32 delay = 1;
+  uint32 delay = 1;
+  uint32 repeat = 2;
 }
 
 // Executes a script referenced by its id. This can be used for composing more
@@ -130,5 +131,5 @@ message RunScriptAnimation {
 // // Play audio in sync with other animations.
 // message SfxAnimation {
 //   Audio audio = 1;
-//   int32 repeat = 2;
+//   uint32 repeat = 2;
 // }

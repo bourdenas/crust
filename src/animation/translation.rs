@@ -1,60 +1,270 @@
-use crate::components::{AnimationRunningState, Position, TranslationState};
-use core::time::Duration;
+use super::{Animated, Performer};
+use crate::{components::AnimationRunningState, trust::Animation};
 use sdl2::rect::Point;
 
-pub struct TranslationPerformer<'a> {
-    translation: &'a mut TranslationState,
-    position: &'a mut Position,
+#[derive(Default)]
+pub struct TranslationPerformer {
+    iteration: u32,
 }
 
-impl<'a> TranslationPerformer<'a> {
-    pub fn new(translation: &'a mut TranslationState, position: &'a mut Position) -> Self {
-        TranslationPerformer {
-            translation,
-            position,
-        }
-    }
+impl Performer for TranslationPerformer {
+    fn start(&mut self, _animated: &mut Animated, _animation: &Animation, _speed: f64) {}
+    fn stop(&mut self, _animated: &mut Animated) {}
+    fn pause(&mut self, _animated: &mut Animated) {}
+    fn resume(&mut self, _animated: &mut Animated) {}
 
-    pub fn run(&mut self, time_since_last_frame: &Duration) {
-        if self.translation.state == AnimationRunningState::Init {
-            self.translation.state = AnimationRunningState::Running;
-        }
-        if self.translation.state == AnimationRunningState::Running {
-            self.progress(&*time_since_last_frame);
-        }
-    }
-
-    fn progress(&mut self, time_since_last_frame: &Duration) -> Duration {
-        if self.translation.animation.delay == 0 {
-            self.execute();
-            self.translation.state = AnimationRunningState::Finished;
-            return Duration::ZERO;
+    fn execute(&mut self, animated: &mut Animated, animation: &Animation) -> AnimationRunningState {
+        let translation = animation.translation.as_ref().unwrap();
+        if let Some(vec) = &translation.vec {
+            animated.position.0 += Point::new(vec.x as i32, vec.y as i32);
         }
 
-        self.translation.wait_time += *time_since_last_frame;
-        let animation_delay = Duration::from_millis(self.translation.animation.delay as u64);
-        while animation_delay <= self.translation.wait_time {
-            self.translation.wait_time -= animation_delay;
-            if let AnimationRunningState::Finished = self.execute() {
-                self.translation.state = AnimationRunningState::Finished;
-                return *time_since_last_frame - self.translation.wait_time;
-            }
-        }
-
-        *time_since_last_frame
-    }
-
-    fn execute(&mut self) -> AnimationRunningState {
-        if let Some(vec) = &self.translation.animation.vec {
-            self.position.0 += Point::new(vec.x as i32, vec.y as i32);
-        }
-        self.translation.run_number += 1;
-
-        match self.translation.animation.repeat > 0
-            && self.translation.run_number == self.translation.animation.repeat
-        {
+        self.iteration += 1;
+        match translation.repeat > 0 && self.iteration == translation.repeat {
             true => AnimationRunningState::Finished,
             false => AnimationRunningState::Running,
         }
+    }
+}
+
+impl TranslationPerformer {
+    pub fn new() -> Self {
+        TranslationPerformer::default()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        animation::{performer::PerformerBase, testing::Fixture, Performer, TranslationPerformer},
+        components::AnimationRunningState,
+        trust::{Animation, Vector, VectorAnimation},
+    };
+    use sdl2::rect::Point;
+    use std::time::Duration;
+
+    #[test]
+    fn single_execution() {
+        let mut fixture = Fixture::new();
+
+        let animation = Animation {
+            translation: Some(VectorAnimation {
+                vec: Some(Vector {
+                    x: 1.0,
+                    ..Default::default()
+                }),
+                delay: 20,
+                repeat: 1,
+            }),
+            ..Default::default()
+        };
+
+        let mut performer = TranslationPerformer::new();
+        let mut animated = fixture.animated();
+        performer.start(&mut animated, &animation, 1.0);
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.execute(&mut animated, &animation),
+            AnimationRunningState::Finished
+        );
+        assert_eq!(fixture.position.0, Point::new(1, 0));
+
+        // Test Performer using PerformerBase.
+        let mut fixture = Fixture::new();
+        let mut performer = PerformerBase::new(
+            TranslationPerformer::new(),
+            Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64),
+        );
+        let mut animated = fixture.animated();
+        performer.start(&mut animated, &animation, 1.0);
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(performer.finished(), false);
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.progress(Duration::from_millis(50), &mut animated, &animation,),
+            Duration::from_millis(20)
+        );
+        assert_eq!(fixture.position.0, Point::new(1, 0));
+        assert_eq!(performer.finished(), true);
+    }
+
+    #[test]
+    fn repeated_execution() {
+        let mut fixture = Fixture::new();
+
+        let animation = Animation {
+            translation: Some(VectorAnimation {
+                vec: Some(Vector {
+                    x: 1.0,
+                    y: 1.0,
+                    ..Default::default()
+                }),
+                delay: 20,
+                repeat: 3,
+            }),
+            ..Default::default()
+        };
+
+        let mut performer = TranslationPerformer::new();
+        let mut animated = fixture.animated();
+        performer.start(&mut animated, &animation, 1.0);
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.execute(&mut animated, &animation),
+            AnimationRunningState::Running
+        );
+        assert_eq!(fixture.position.0, Point::new(1, 1));
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.execute(&mut animated, &animation),
+            AnimationRunningState::Running
+        );
+        assert_eq!(fixture.position.0, Point::new(2, 2));
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.execute(&mut animated, &animation),
+            AnimationRunningState::Finished
+        );
+        assert_eq!(fixture.position.0, Point::new(3, 3));
+
+        // Test Performer using PerformerBase.
+        let mut fixture = Fixture::new();
+        let mut performer = PerformerBase::new(
+            TranslationPerformer::new(),
+            Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64),
+        );
+        let mut animated = fixture.animated();
+        performer.start(&mut animated, &animation, 1.0);
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(performer.finished(), false);
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.progress(Duration::from_millis(50), &mut animated, &animation,),
+            Duration::from_millis(50)
+        );
+        assert_eq!(fixture.position.0, Point::new(2, 2));
+        assert_eq!(performer.finished(), false);
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.progress(Duration::from_millis(10), &mut animated, &animation,),
+            Duration::from_millis(10)
+        );
+        assert_eq!(fixture.position.0, Point::new(3, 3));
+        assert_eq!(performer.finished(), true);
+    }
+
+    #[test]
+    fn indefinite_execution() {
+        let mut fixture = Fixture::new();
+
+        let animation = Animation {
+            translation: Some(VectorAnimation {
+                vec: Some(Vector {
+                    y: 2.0,
+                    ..Default::default()
+                }),
+                delay: 20,
+                repeat: 0,
+            }),
+            ..Default::default()
+        };
+
+        let mut performer = TranslationPerformer::new();
+        let mut animated = fixture.animated();
+        performer.start(&mut animated, &animation, 1.0);
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+
+        for i in 1..100 {
+            let mut animated = fixture.animated();
+            assert_eq!(
+                performer.execute(&mut animated, &animation),
+                AnimationRunningState::Running
+            );
+            assert_eq!(fixture.position.0, Point::new(0, i * 2));
+        }
+
+        // Test Performer using PerformerBase.
+        let mut fixture = Fixture::new();
+        let mut performer = PerformerBase::new(
+            TranslationPerformer::new(),
+            Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64),
+        );
+        let mut animated = fixture.animated();
+        performer.start(&mut animated, &animation, 1.0);
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(performer.finished(), false);
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.progress(Duration::from_millis(200), &mut animated, &animation,),
+            Duration::from_millis(200)
+        );
+        assert_eq!(fixture.position.0, Point::new(0, 20));
+        assert_eq!(performer.finished(), false);
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.progress(Duration::from_millis(2000), &mut animated, &animation,),
+            Duration::from_millis(2000)
+        );
+        assert_eq!(fixture.position.0, Point::new(0, 220));
+        assert_eq!(performer.finished(), false);
+    }
+
+    #[test]
+    fn zero_delay() {
+        let mut fixture = Fixture::new();
+
+        let animation = Animation {
+            translation: Some(VectorAnimation {
+                vec: Some(Vector {
+                    x: 5.0,
+                    ..Default::default()
+                }),
+                delay: 0,
+                repeat: 0,
+            }),
+            ..Default::default()
+        };
+
+        let mut performer = TranslationPerformer::new();
+        let mut animated = fixture.animated();
+        performer.start(&mut animated, &animation, 1.0);
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.execute(&mut animated, &animation),
+            AnimationRunningState::Running
+        );
+        assert_eq!(fixture.position.0, Point::new(5, 0));
+
+        // Test Performer using PerformerBase.
+        let mut fixture = Fixture::new();
+        let mut performer = PerformerBase::new(
+            TranslationPerformer::new(),
+            Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64),
+        );
+        let mut animated = fixture.animated();
+        performer.start(&mut animated, &animation, 1.0);
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(performer.finished(), false);
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.progress(Duration::from_millis(50), &mut animated, &animation,),
+            Duration::ZERO
+        );
+        assert_eq!(fixture.position.0, Point::new(5, 0));
+        assert_eq!(performer.finished(), true);
     }
 }
