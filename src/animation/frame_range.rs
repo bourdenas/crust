@@ -158,7 +158,10 @@ mod tests {
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
-        let mut performer = PerformerBase::new(FrameRangePerformer::new());
+        let mut performer = PerformerBase::new(
+            FrameRangePerformer::new(),
+            Duration::from_millis(animation.frame_range.as_ref().unwrap().delay as u64),
+        );
         let mut animated = fixture.animated();
         performer.start(&mut animated, &animation, 1.0);
         assert_eq!(fixture.sprite.frame_index, 2);
@@ -166,12 +169,7 @@ mod tests {
 
         let mut animated = fixture.animated();
         assert_eq!(
-            performer.progress(
-                Duration::from_millis(50),
-                &mut animated,
-                &animation,
-                Duration::from_millis(animation.frame_range.as_ref().unwrap().delay as u64)
-            ),
+            performer.progress(Duration::from_millis(50), &mut animated, &animation,),
             Duration::from_millis(50)
         );
         assert_eq!(fixture.sprite.frame_index, 2);
@@ -179,12 +177,7 @@ mod tests {
 
         let mut animated = fixture.animated();
         assert_eq!(
-            performer.progress(
-                Duration::from_millis(180),
-                &mut animated,
-                &animation,
-                Duration::from_millis(animation.frame_range.as_ref().unwrap().delay as u64)
-            ),
+            performer.progress(Duration::from_millis(180), &mut animated, &animation,),
             Duration::from_millis(150)
         );
         assert_eq!(fixture.sprite.frame_index, 4);
@@ -234,7 +227,10 @@ mod tests {
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
-        let mut performer = PerformerBase::new(FrameRangePerformer::new());
+        let mut performer = PerformerBase::new(
+            FrameRangePerformer::new(),
+            Duration::from_millis(animation.frame_range.as_ref().unwrap().delay as u64),
+        );
         let mut animated = fixture.animated();
         performer.start(&mut animated, &animation, 1.0);
         assert_eq!(fixture.sprite.frame_index, 3);
@@ -242,12 +238,7 @@ mod tests {
 
         let mut animated = fixture.animated();
         assert_eq!(
-            performer.progress(
-                Duration::from_millis(800),
-                &mut animated,
-                &animation,
-                Duration::from_millis(animation.frame_range.as_ref().unwrap().delay as u64)
-            ),
+            performer.progress(Duration::from_millis(800), &mut animated, &animation,),
             Duration::from_millis(300)
         );
         assert_eq!(fixture.sprite.frame_index, 4);
@@ -285,7 +276,10 @@ mod tests {
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
-        let mut performer = PerformerBase::new(FrameRangePerformer::new());
+        let mut performer = PerformerBase::new(
+            FrameRangePerformer::new(),
+            Duration::from_millis(animation.frame_range.as_ref().unwrap().delay as u64),
+        );
         let mut animated = fixture.animated();
         performer.start(&mut animated, &animation, 1.0);
         assert_eq!(fixture.sprite.frame_index, 0);
@@ -293,12 +287,7 @@ mod tests {
 
         let mut animated = fixture.animated();
         assert_eq!(
-            performer.progress(
-                Duration::from_millis(200),
-                &mut animated,
-                &animation,
-                Duration::from_millis(animation.frame_range.as_ref().unwrap().delay as u64)
-            ),
+            performer.progress(Duration::from_millis(200), &mut animated, &animation,),
             Duration::from_millis(200)
         );
         assert_eq!(fixture.sprite.frame_index, 1);
@@ -306,12 +295,7 @@ mod tests {
 
         let mut animated = fixture.animated();
         assert_eq!(
-            performer.progress(
-                Duration::from_millis(1500),
-                &mut animated,
-                &animation,
-                Duration::from_millis(animation.frame_range.as_ref().unwrap().delay as u64)
-            ),
+            performer.progress(Duration::from_millis(1500), &mut animated, &animation,),
             Duration::from_millis(1500)
         );
         assert_eq!(fixture.sprite.frame_index, 3);
@@ -351,7 +335,10 @@ mod tests {
         // clear correct behaviour. Implemented behaviour is that animation will
         // apply only one frame change and finish after that.
         let mut fixture = Fixture::new();
-        let mut performer = PerformerBase::new(FrameRangePerformer::new());
+        let mut performer = PerformerBase::new(
+            FrameRangePerformer::new(),
+            Duration::from_millis(animation.frame_range.as_ref().unwrap().delay as u64),
+        );
         let mut animated = fixture.animated();
         performer.start(&mut animated, &animation, 1.0);
         assert_eq!(fixture.sprite.frame_index, 1);
@@ -359,12 +346,7 @@ mod tests {
 
         let mut animated = fixture.animated();
         assert_eq!(
-            performer.progress(
-                Duration::from_millis(200),
-                &mut animated,
-                &animation,
-                Duration::from_millis(animation.frame_range.as_ref().unwrap().delay as u64)
-            ),
+            performer.progress(Duration::from_millis(200), &mut animated, &animation,),
             Duration::ZERO
         );
         assert_eq!(fixture.sprite.frame_index, 2);

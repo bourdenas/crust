@@ -73,7 +73,10 @@ mod tests {
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
-        let mut performer = PerformerBase::new(TranslationPerformer::new());
+        let mut performer = PerformerBase::new(
+            TranslationPerformer::new(),
+            Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64),
+        );
         let mut animated = fixture.animated();
         performer.start(&mut animated, &animation, 1.0);
         assert_eq!(fixture.position.0, Point::new(0, 0));
@@ -81,12 +84,7 @@ mod tests {
 
         let mut animated = fixture.animated();
         assert_eq!(
-            performer.progress(
-                Duration::from_millis(50),
-                &mut animated,
-                &animation,
-                Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64)
-            ),
+            performer.progress(Duration::from_millis(50), &mut animated, &animation,),
             Duration::from_millis(20)
         );
         assert_eq!(fixture.position.0, Point::new(1, 0));
@@ -138,7 +136,10 @@ mod tests {
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
-        let mut performer = PerformerBase::new(TranslationPerformer::new());
+        let mut performer = PerformerBase::new(
+            TranslationPerformer::new(),
+            Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64),
+        );
         let mut animated = fixture.animated();
         performer.start(&mut animated, &animation, 1.0);
         assert_eq!(fixture.position.0, Point::new(0, 0));
@@ -146,12 +147,7 @@ mod tests {
 
         let mut animated = fixture.animated();
         assert_eq!(
-            performer.progress(
-                Duration::from_millis(50),
-                &mut animated,
-                &animation,
-                Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64)
-            ),
+            performer.progress(Duration::from_millis(50), &mut animated, &animation,),
             Duration::from_millis(50)
         );
         assert_eq!(fixture.position.0, Point::new(2, 2));
@@ -159,12 +155,7 @@ mod tests {
 
         let mut animated = fixture.animated();
         assert_eq!(
-            performer.progress(
-                Duration::from_millis(10),
-                &mut animated,
-                &animation,
-                Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64)
-            ),
+            performer.progress(Duration::from_millis(10), &mut animated, &animation,),
             Duration::from_millis(10)
         );
         assert_eq!(fixture.position.0, Point::new(3, 3));
@@ -203,7 +194,10 @@ mod tests {
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
-        let mut performer = PerformerBase::new(TranslationPerformer::new());
+        let mut performer = PerformerBase::new(
+            TranslationPerformer::new(),
+            Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64),
+        );
         let mut animated = fixture.animated();
         performer.start(&mut animated, &animation, 1.0);
         assert_eq!(fixture.position.0, Point::new(0, 0));
@@ -211,12 +205,7 @@ mod tests {
 
         let mut animated = fixture.animated();
         assert_eq!(
-            performer.progress(
-                Duration::from_millis(200),
-                &mut animated,
-                &animation,
-                Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64)
-            ),
+            performer.progress(Duration::from_millis(200), &mut animated, &animation,),
             Duration::from_millis(200)
         );
         assert_eq!(fixture.position.0, Point::new(0, 20));
@@ -224,12 +213,7 @@ mod tests {
 
         let mut animated = fixture.animated();
         assert_eq!(
-            performer.progress(
-                Duration::from_millis(2000),
-                &mut animated,
-                &animation,
-                Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64)
-            ),
+            performer.progress(Duration::from_millis(2000), &mut animated, &animation,),
             Duration::from_millis(2000)
         );
         assert_eq!(fixture.position.0, Point::new(0, 220));
@@ -266,7 +250,10 @@ mod tests {
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
-        let mut performer = PerformerBase::new(TranslationPerformer::new());
+        let mut performer = PerformerBase::new(
+            TranslationPerformer::new(),
+            Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64),
+        );
         let mut animated = fixture.animated();
         performer.start(&mut animated, &animation, 1.0);
         assert_eq!(fixture.position.0, Point::new(0, 0));
@@ -274,12 +261,7 @@ mod tests {
 
         let mut animated = fixture.animated();
         assert_eq!(
-            performer.progress(
-                Duration::from_millis(50),
-                &mut animated,
-                &animation,
-                Duration::from_millis(animation.translation.as_ref().unwrap().delay as u64)
-            ),
+            performer.progress(Duration::from_millis(50), &mut animated, &animation,),
             Duration::ZERO
         );
         assert_eq!(fixture.position.0, Point::new(5, 0));
