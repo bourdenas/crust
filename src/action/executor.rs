@@ -10,23 +10,19 @@ impl ActionExecutor {
         ActionExecutor {}
     }
 
-    pub fn execute(&self, action: Action, world: &mut World) -> Option<u32> {
+    pub fn execute(&self, action: Action, world: &mut World) {
         match action.action {
-            Some(action::Action::Quit(..)) => None,
+            Some(action::Action::Quit(..)) => (),
             Some(action::Action::CreateSceneNode(action)) => self.create_scene_node(action, world),
             Some(action::Action::PlayAnimation(action)) => self.play_animation(action, world),
             Some(action::Action::StopAnimation(action)) => self.stop_animation(action, world),
-            _ => None,
+            _ => (),
         }
     }
 
-    fn create_scene_node(
-        &self,
-        scene_node_action: SceneNodeAction,
-        world: &mut World,
-    ) -> Option<u32> {
+    fn create_scene_node(&self, scene_node_action: SceneNodeAction, world: &mut World) {
         if let Some(node) = scene_node_action.scene_node {
-            let entity = world
+            world
                 .create_entity()
                 .with(Position(make_point(
                     &node.position.expect("Node missing position"),
@@ -36,16 +32,10 @@ impl ActionExecutor {
                     frame_index: node.frame_index as usize,
                 })
                 .build();
-            return Some(entity.id());
         }
-        None
     }
 
-    fn play_animation(
-        &self,
-        script_action: AnimationScriptAction,
-        world: &mut World,
-    ) -> Option<u32> {
+    fn play_animation(&self, script_action: AnimationScriptAction, world: &mut World) {
         if let Some(script) = script_action.script {
             let entity = world.entities().entity(script_action.scene_node_id);
 
@@ -54,17 +44,15 @@ impl ActionExecutor {
                 println!("play_animation: {}", e);
             }
         }
-        None
     }
 
-    fn stop_animation(&self, scene_node_action: SceneNodeAction, world: &mut World) -> Option<u32> {
+    fn stop_animation(&self, scene_node_action: SceneNodeAction, world: &mut World) {
         if let Some(node) = scene_node_action.scene_node {
             let entity = world.entities().entity(node.id);
 
             let mut scripts = world.write_storage::<ScriptState>();
             scripts.remove(entity);
         }
-        None
     }
 }
 

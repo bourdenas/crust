@@ -1,15 +1,17 @@
 use crate::action::ActionExecutor;
 use crate::components::{Position, ScriptState, Sprite};
 use crate::core::{renderer, EventPump, Status, TextureManager};
-use crate::crust::{user_input, UserInput};
+use crate::crust::{user_input, Action, UserInput};
 use crate::input::InputManager;
 use crate::resources::SpriteSheetsManager;
 use crate::systems::ScriptSystem;
 use sdl2::image::{self, InitFlag};
-use sdl2::rect::Point;
 use sdl2::render::WindowCanvas;
 use specs::prelude::*;
+use std::sync::mpsc::{self, Receiver};
 use std::time::{Duration, SystemTime};
+
+use super::actions::{ActionQueue, ACTION_QUEUE};
 
 pub struct Core {
     resource_path: String,
@@ -17,6 +19,8 @@ pub struct Core {
     pub world: World,
     pub executor: ActionExecutor,
     pub input_manager: InputManager,
+
+    rx: Receiver<Action>,
 
     _sdl_context: sdl2::Sdl,
     _video_subsystem: sdl2::VideoSubsystem,
@@ -51,11 +55,17 @@ impl Core {
         world.insert(sheets_manager);
         world.insert(Duration::ZERO);
 
+        let (tx, rx) = mpsc::channel();
+        ACTION_QUEUE.with(|queue| {
+            *queue.borrow_mut() = Some(ActionQueue::new(tx));
+        });
+
         Ok(Core {
             resource_path: resource_path.to_owned(),
             world,
             executor: ActionExecutor::new(),
             input_manager: InputManager::new(),
+            rx,
             _sdl_context: sdl_context,
             _video_subsystem: video_subsystem,
             _image_context: image::init(InitFlag::PNG | InitFlag::JPG)?,
@@ -95,6 +105,11 @@ impl Core {
                     _ => {}
                 }
             }
+
+            // Apply any incoming Actions as a result of input handling.
+            self.rx.try_iter().for_each(|action| {
+                self.executor.execute(action, &mut self.world);
+            });
 
             // Update time.
             let curr_time = SystemTime::now();

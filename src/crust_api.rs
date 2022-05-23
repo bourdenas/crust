@@ -1,4 +1,4 @@
-use crate::core::Core;
+use crate::core::{Core, ACTION_QUEUE};
 use crate::crust::{Action, UserInput};
 use prost::Message;
 use std::cell::RefCell;
@@ -46,19 +46,14 @@ fn decode_action(len: i64, encoded_action: *const u8) -> Action {
 }
 
 #[no_mangle]
-pub extern "C" fn execute(len: i64, encoded_action: *const u8) -> u32 {
+pub extern "C" fn execute(len: i64, encoded_action: *const u8) {
     let action = decode_action(len, encoded_action);
 
-    let mut retval = 0;
-    CORE.with(|core| {
-        if let Some(core) = &mut *core.borrow_mut() {
-            if let Some(id) = core.executor.execute(action, &mut core.world) {
-                retval = id;
-            }
+    ACTION_QUEUE.with(|queue| {
+        if let Some(queue) = &*queue.borrow() {
+            queue.push(action);
         }
     });
-
-    retval
 }
 
 #[no_mangle]
