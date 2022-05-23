@@ -7,14 +7,17 @@ package crust;
 // A SceneNode is an instance of an entity in the world. It represents a
 // tangible element of the game that has dimensions defined by a bounding box.
 message SceneNode {
-  uint32 id = 1;
+  // This numeric handle is generated and owned from crust.
+  uint32 crust_entity_handle = 1;
 
-  string sprite_id = 2;
+  string label =  2;
 
-  int32 frame_index = 3;
+  string sprite_id = 3;
+
+  int32 frame_index = 4;
 
   // {top, left} position of scene node's bounding box.
-  Vector position = 4;
+  Vector position = 5;
 
-  bool hidden = 5;
+  bool hidden = 6;
 }
