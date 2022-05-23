@@ -47,6 +47,10 @@ impl Core {
         world.register::<Sprite>();
         world.register::<ScriptState>();
 
+        let sheets_manager = SpriteSheetsManager::new();
+        world.insert(sheets_manager);
+        world.insert(Duration::ZERO);
+
         Ok(Core {
             resource_path: resource_path.to_owned(),
             world,
@@ -69,37 +73,6 @@ impl Core {
             .build();
         dispatcher.setup(&mut self.world);
 
-        self.world.insert(Duration::ZERO);
-
-        let sheets_manager = SpriteSheetsManager::new();
-        self.world.insert(sheets_manager);
-
-        self.world
-            .create_entity()
-            .with(Position(Point::new(400, 300)))
-            .with(Sprite {
-                resource: "reaper".to_owned(),
-                frame_index: 3,
-            })
-            // .with(FrameRangeState::new(FrameRangeAnimation {
-            //     start_frame: 0,
-            //     end_frame: 3,
-            //     delay: 200,
-            //     // repeat: 3,
-            //     // horizontal_align: HorizontalAlign::Right as i32,
-            //     ..Default::default()
-            // }))
-            // .with(TranslationState::new(VectorAnimation {
-            //     vec: Some(Vector {
-            //         x: 0.0,
-            //         y: 1.0,
-            //         z: 0.0,
-            //     }),
-            //     delay: 16,
-            //     ..Default::default()
-            // }))
-            .build();
-
         let mut prev_time = SystemTime::now();
 
         'game: loop {
@@ -113,7 +86,6 @@ impl Core {
                         break 'game;
                     }
                     Some(user_input::Event::KeyEvent(event)) if event.key == "Q" => break 'game,
-                    // Some(user_input::Event::KeyEvent(event)) => key_events.push(event),
                     Some(user_input::Event::KeyEvent(event)) => {
                         self.input_manager.handle(UserInput {
                             event: Some(user_input::Event::KeyEvent(event)),

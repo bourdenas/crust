@@ -37,28 +37,26 @@ pub extern "C" fn halt() {
     });
 }
 
-#[no_mangle]
-pub extern "C" fn execute(len: i64, encoded_action: *const u8) -> u32 {
+fn decode_action(len: i64, encoded_action: *const u8) -> Action {
     let buffer: &[u8];
     unsafe {
         buffer = std::slice::from_raw_parts(encoded_action, len as usize);
     }
+    Action::decode(buffer).expect("🦀 Failed to parse Action")
+}
+
+#[no_mangle]
+pub extern "C" fn execute(len: i64, encoded_action: *const u8) -> u32 {
+    let action = decode_action(len, encoded_action);
 
     let mut retval = 0;
-
-    let action = Action::decode(buffer);
-    match action {
-        Ok(action) => {
-            CORE.with(|core| {
-                if let Some(core) = &mut *core.borrow_mut() {
-                    if let Some(id) = core.executor.execute(action, &mut core.world) {
-                        retval = id;
-                    }
-                }
-            });
+    CORE.with(|core| {
+        if let Some(core) = &mut *core.borrow_mut() {
+            if let Some(id) = core.executor.execute(action, &mut core.world) {
+                retval = id;
+            }
         }
-        Err(e) => println!("🦀 execute error: {}", e),
-    }
+    });
 
     retval
 }
