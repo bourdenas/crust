@@ -1,5 +1,6 @@
-use crate::core::{Core, ACTION_QUEUE};
-use crate::crust::{Action, UserInput};
+use crate::action::ACTION_QUEUE;
+use crate::core::Core;
+use crate::crust::{Action, Query, UserInput};
 use prost::Message;
 use std::cell::RefCell;
 use std::ffi::CStr;
@@ -37,17 +38,17 @@ pub extern "C" fn halt() {
     });
 }
 
-fn decode_action(len: i64, encoded_action: *const u8) -> Action {
+fn decode_message<T: Message + Default>(len: i64, encoded_action: *const u8) -> T {
     let buffer: &[u8];
     unsafe {
         buffer = std::slice::from_raw_parts(encoded_action, len as usize);
     }
-    Action::decode(buffer).expect("🦀 Failed to parse Action")
+    T::decode(buffer).expect("🦀 Failed to parse protobuf message")
 }
 
 #[no_mangle]
 pub extern "C" fn execute(len: i64, encoded_action: *const u8) {
-    let action = decode_action(len, encoded_action);
+    let action = decode_message::<Action>(len, encoded_action);
 
     ACTION_QUEUE.with(|queue| {
         if let Some(queue) = &*queue.borrow() {

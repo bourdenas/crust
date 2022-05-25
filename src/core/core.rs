@@ -1,4 +1,4 @@
-use crate::action::ActionExecutor;
+use crate::action::{ActionExecutor, ActionQueue, ACTION_QUEUE};
 use crate::components::{Position, ScriptState, Sprite};
 use crate::core::{renderer, EventPump, Status, TextureManager};
 use crate::crust::{user_input, Action, UserInput};
@@ -10,8 +10,6 @@ use sdl2::render::WindowCanvas;
 use specs::prelude::*;
 use std::sync::mpsc::{self, Receiver};
 use std::time::{Duration, SystemTime};
-
-use super::actions::{ActionQueue, ACTION_QUEUE};
 
 pub struct Core {
     resource_path: String,
