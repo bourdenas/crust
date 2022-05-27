@@ -1,53 +1,45 @@
 use crate::core::Status;
 use sdl2::rect::Rect;
 use std::collections::HashMap;
-use std::rc::Rc;
-use std::sync::Arc;
 
 pub struct SpriteSheetsManager {
-    _cache: Arc<HashMap<String, Arc<SpriteSheet>>>,
+    _path: String,
+    _cache: HashMap<String, SpriteSheet>,
 }
 
 impl SpriteSheetsManager {
-    pub fn new() -> Self {
+    pub fn new(resource_path: &str) -> Self {
         SpriteSheetsManager {
-            _cache: Arc::new(HashMap::new()),
+            _path: resource_path.to_owned(),
+            _cache: HashMap::new(),
         }
     }
 
-    pub fn load(&self, key: &str) -> Result<Rc<SpriteSheet>, Status> {
-        // TODO: Eventually should load them from disk.
-        match key {
-            "reaper" => Ok(Rc::new(SpriteSheet {
-                resource: "reaper".to_owned(),
-                bounding_boxes: vec![
-                    Rect::new(6, 7, 24, 28),
-                    Rect::new(37, 6, 24, 29),
-                    Rect::new(70, 6, 24, 28),
-                    Rect::new(5, 43, 24, 28),
-                    Rect::new(37, 42, 24, 29),
-                    Rect::new(68, 43, 25, 28),
-                    Rect::new(1, 79, 24, 28),
-                    Rect::new(33, 78, 24, 29),
-                    Rect::new(65, 79, 24, 28),
-                    Rect::new(1, 115, 24, 28),
-                    Rect::new(33, 114, 24, 29),
-                    Rect::new(65, 114, 24, 28),
-                ],
-            })),
-            _ => Err(Status::not_found(&format!(
-                "Sprite sheet '{}' was not found.",
-                key
-            ))),
+    pub fn load<'a>(&'a mut self, key: &str) -> Result<&'a SpriteSheet, Status> {
+        // if let Some(sheet) = self._cache.get(key) {
+        //     return Ok(sheet);
+        // }
+
+        let filename = format!("{}/{}.json", self._path, key);
+        let json = std::fs::read(filename)?;
+        match serde_json::from_slice::<SpriteSheet>(&json) {
+            Ok(sheet) => {
+                self._cache.insert(key.to_owned(), sheet);
+                Ok(&self._cache.get(key).unwrap())
+            }
+            Err(e) => Err(Status::new("Failed to load sprite sheet: {}", e)),
         }
     }
 }
 
-use serde::{de::Visitor, Deserialize, Serialize};
+use serde::{
+    de::{SeqAccess, Visitor},
+    Deserialize, Serialize,
+};
 use serde_with::serde_as;
 
 #[serde_with::serde_as]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SpriteSheet {
     pub resource: String,
 
@@ -86,30 +78,34 @@ impl<'de> serde_with::DeserializeAs<'de, Rect> for CrustRect {
             fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
                 write!(formatter, "a json vector containing exactly 4 integers")
             }
-        }
 
-        let s = String::deserialize(deserializer)?;
-        println!("value: {}", &s);
-        let mut v = vec![];
-        for value in s.split(",") {
-            match value.parse::<i32>() {
-                Ok(value) => v.push(value),
-                Err(_) => {
-                    return Err(serde::de::Error::invalid_value(
-                        serde::de::Unexpected::Str(&s),
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: SeqAccess<'de>,
+            {
+                let mut v: Vec<i32> = vec![];
+                for _ in 0..4 {
+                    match seq.next_element()? {
+                        Some(value) => v.push(value),
+                        None => {
+                            return Err(serde::de::Error::invalid_length(
+                                v.len(),
+                                &CrustRectVisitor {},
+                            ))
+                        }
+                    }
+                }
+
+                match v.len() {
+                    4 => Ok(Rect::new(v[0], v[1], v[2] as u32, v[3] as u32)),
+                    _ => Err(serde::de::Error::invalid_length(
+                        v.len(),
                         &CrustRectVisitor {},
-                    ));
+                    )),
                 }
             }
         }
 
-        if v.len() != 4 {
-            return Err(serde::de::Error::invalid_length(
-                v.len(),
-                &CrustRectVisitor {},
-            ));
-        }
-
-        Ok(Rect::new(v[0], v[1], v[2] as u32, v[3] as u32))
+        deserializer.deserialize_seq(CrustRectVisitor {})
     }
 }

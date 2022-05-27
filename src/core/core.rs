@@ -49,7 +49,7 @@ impl Core {
         world.register::<Sprite>();
         world.register::<ScriptState>();
 
-        let sheets_manager = SpriteSheetsManager::new();
+        let sheets_manager = SpriteSheetsManager::new(resource_path);
         world.insert(sheets_manager);
         world.insert(Duration::ZERO);
 

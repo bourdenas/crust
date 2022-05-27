@@ -9,7 +9,7 @@ use std::time::Duration;
 #[derive(SystemData)]
 pub struct ScriptSystemData<'a> {
     time_since_last_frame: ReadExpect<'a, Duration>,
-    sheets_manager: ReadExpect<'a, SpriteSheetsManager>,
+    sheets_manager: WriteExpect<'a, SpriteSheetsManager>,
     entities: Entities<'a>,
     updater: Read<'a, LazyUpdate>,
 

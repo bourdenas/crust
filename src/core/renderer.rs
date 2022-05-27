@@ -6,7 +6,7 @@ use sdl2::render::WindowCanvas;
 use specs::prelude::*;
 
 type SystemData<'a> = (
-    ReadExpect<'a, SpriteSheetsManager>,
+    WriteExpect<'a, SpriteSheetsManager>,
     ReadStorage<'a, Position>,
     ReadStorage<'a, Sprite>,
 );
@@ -14,7 +14,7 @@ type SystemData<'a> = (
 pub fn render(
     canvas: &mut WindowCanvas,
     texture_manager: &mut TextureManager<sdl2::video::WindowContext>,
-    (sheets_manager, pos, sprite): SystemData,
+    (mut sheets_manager, pos, sprite): SystemData,
 ) -> Result<(), Status> {
     // canvas.set_draw_color(background);
     canvas.clear();
