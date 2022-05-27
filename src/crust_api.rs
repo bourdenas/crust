@@ -1,6 +1,6 @@
 use crate::action::ACTION_QUEUE;
 use crate::core::Core;
-use crate::crust::{Action, Query, UserInput};
+use crate::crust::{Action, UserInput};
 use prost::Message;
 use std::cell::RefCell;
 use std::ffi::CStr;

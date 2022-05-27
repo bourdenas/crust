@@ -54,7 +54,7 @@ message SceneNodeAction {
 }
 
 message SceneNodeRefAction {
-    uint32 crust_node_handle = 1;
+    string scene_node_id = 1;
   }
   
 // message SceneNodeVectorAction {
@@ -72,7 +72,7 @@ message AnimationScriptAction {
   AnimationScript script = 1;
 
   // Scene node where the script will be applied to.
-  uint32 crust_node_handle = 2;
+  string scene_node_id = 2;
 
   // Speed to be applied on original sciprt.
   // * If value is greater than 1, it speeds up the animation.

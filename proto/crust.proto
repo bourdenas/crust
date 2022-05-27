@@ -2,6 +2,8 @@ syntax = "proto3";
 
 import "action.proto";
 import "animation.proto";
+import "primitives.proto";
+import "scene_node.proto";
 import "user_input.proto";
 
 package crust;

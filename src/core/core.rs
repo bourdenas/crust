@@ -1,4 +1,4 @@
-use crate::action::{ActionExecutor, ActionQueue, ACTION_QUEUE};
+use crate::action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX};
 use crate::components::{Position, ScriptState, Sprite};
 use crate::core::{renderer, EventPump, Status, TextureManager};
 use crate::crust::{user_input, Action, UserInput};
@@ -56,6 +56,9 @@ impl Core {
         let (tx, rx) = mpsc::channel();
         ACTION_QUEUE.with(|queue| {
             *queue.borrow_mut() = Some(ActionQueue::new(tx));
+        });
+        INDEX.with(|index| {
+            *index.borrow_mut() = Some(Index::new());
         });
 
         Ok(Core {
