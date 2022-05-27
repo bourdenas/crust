@@ -43,7 +43,73 @@ impl SpriteSheetsManager {
     }
 }
 
+use serde::{de::Visitor, Deserialize, Serialize};
+use serde_with::serde_as;
+
+#[serde_with::serde_as]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SpriteSheet {
     pub resource: String,
+
+    #[serde_as(as = "Vec<CrustRect>")]
     pub bounding_boxes: Vec<Rect>,
+}
+
+struct CrustRect;
+
+impl serde_with::SerializeAs<Rect> for CrustRect {
+    fn serialize_as<S>(source: &Rect, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let s = format!(
+            "[{}, {}, {}, {}]",
+            source.x(),
+            source.y(),
+            source.width(),
+            source.height()
+        );
+        serializer.serialize_str(&s)
+    }
+}
+
+impl<'de> serde_with::DeserializeAs<'de, Rect> for CrustRect {
+    fn deserialize_as<D>(deserializer: D) -> Result<Rect, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct CrustRectVisitor;
+
+        impl<'de> Visitor<'de> for CrustRectVisitor {
+            type Value = Rect;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(formatter, "a json vector containing exactly 4 integers")
+            }
+        }
+
+        let s = String::deserialize(deserializer)?;
+        println!("value: {}", &s);
+        let mut v = vec![];
+        for value in s.split(",") {
+            match value.parse::<i32>() {
+                Ok(value) => v.push(value),
+                Err(_) => {
+                    return Err(serde::de::Error::invalid_value(
+                        serde::de::Unexpected::Str(&s),
+                        &CrustRectVisitor {},
+                    ));
+                }
+            }
+        }
+
+        if v.len() != 4 {
+            return Err(serde::de::Error::invalid_length(
+                v.len(),
+                &CrustRectVisitor {},
+            ));
+        }
+
+        Ok(Rect::new(v[0], v[1], v[2] as u32, v[3] as u32))
+    }
 }
