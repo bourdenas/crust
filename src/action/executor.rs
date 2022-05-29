@@ -1,5 +1,5 @@
 use super::INDEX;
-use crate::components::{Position, ScriptState, Sprite};
+use crate::components::{Id, Position, ScriptState, Sprite};
 use crate::crust::{
     action, Action, AnimationScriptAction, SceneNodeAction, SceneNodeRefAction, Vector,
 };
@@ -30,6 +30,7 @@ impl ActionExecutor {
         if let Some(node) = scene_node_action.scene_node {
             let entity = world
                 .create_entity()
+                .with(Id(node.id.clone()))
                 .with(Position(make_point(
                     &node.position.expect("Node missing position"),
                 )))

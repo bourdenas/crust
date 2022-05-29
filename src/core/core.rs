@@ -1,5 +1,5 @@
 use crate::action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX};
-use crate::components::{Position, ScriptState, Sprite};
+use crate::components::{Id, Position, ScriptState, Sprite};
 use crate::core::{renderer, EventPump, Status, TextureManager};
 use crate::crust::{user_input, Action, UserInput};
 use crate::input::InputManager;
@@ -45,6 +45,7 @@ impl Core {
             .expect("could not make a canvas");
 
         let mut world = World::new();
+        world.register::<Id>();
         world.register::<Position>();
         world.register::<Sprite>();
         world.register::<ScriptState>();
