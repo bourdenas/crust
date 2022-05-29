@@ -22,9 +22,9 @@ message Action {
     // SceneNodeVectorAction position_scene_node = 6;
     // SceneNodeVectorAction move_scene_node = 7;
 
-    // CollisionAction on_collision = 12;
-    // CollisionAction on_overlap = 13;
-    // CollisionAction on_detaching = 14;
+    CollisionAction on_collision = 12;
+    CollisionAction on_overlap = 13;
+    CollisionAction on_detaching = 14;
 
     // EmitAction emit = 15;
 
@@ -62,11 +62,14 @@ message SceneNodeRefAction {
 //   Vector vec = 2;
 // }
 
-// message CollisionAction {
-//   repeated string sprite_id = 1;
-//   repeated string scene_node_id = 2;
-//   repeated Action action = 3;
-// }
+message CollisionAction {
+  // Ids of elements in a collision. These can be either scene node ids or
+  // sprite ids.
+  string left_id = 1;
+  string right_id = 2;
+
+  repeated Action action = 3;
+}
 
 message AnimationScriptAction {
   AnimationScript script = 1;

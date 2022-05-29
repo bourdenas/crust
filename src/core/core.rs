@@ -3,6 +3,7 @@ use crate::components::{Id, Position, ScriptState, Sprite};
 use crate::core::{renderer, EventPump, Status, TextureManager};
 use crate::crust::{user_input, Action, UserInput};
 use crate::input::InputManager;
+use crate::physics::CollisionChecker;
 use crate::resources::SpriteSheetsManager;
 use crate::systems::ScriptSystem;
 use sdl2::image::{self, InitFlag};
@@ -52,6 +53,10 @@ impl Core {
 
         let sheets_manager = SpriteSheetsManager::new(resource_path);
         world.insert(sheets_manager);
+
+        let collision_checker = CollisionChecker::new();
+        world.insert(collision_checker);
+
         world.insert(Duration::ZERO);
 
         let (tx, rx) = mpsc::channel();
