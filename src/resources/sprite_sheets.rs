@@ -16,10 +16,6 @@ impl SpriteSheetsManager {
     }
 
     pub fn load<'a>(&'a mut self, key: &str) -> Result<&'a SpriteSheet, Status> {
-        // if let Some(sheet) = self._cache.get(key) {
-        //     return Ok(sheet);
-        // }
-
         let filename = format!("{}/{}.json", self._path, key);
         let json = std::fs::read(filename)?;
         match serde_json::from_slice::<SpriteSheet>(&json) {
@@ -29,6 +25,10 @@ impl SpriteSheetsManager {
             }
             Err(e) => Err(Status::new("Failed to load sprite sheet: {}", e)),
         }
+    }
+
+    pub fn get<'a>(&'a self, key: &str) -> Option<&'a SpriteSheet> {
+        self._cache.get(key)
     }
 }
 
