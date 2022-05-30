@@ -1,5 +1,6 @@
 use super::{
-    performer::PerformerBase, Animated, FrameRangePerformer, TimerPerformer, TranslationPerformer,
+    performer::PerformerBase, Animated, FrameRangePerformer, ScalingPerformer, TimerPerformer,
+    TranslationPerformer,
 };
 use crate::crust::Animation;
 use std::time::Duration;
@@ -7,6 +8,7 @@ use std::time::Duration;
 #[derive(Default)]
 pub struct Animator {
     translation: Option<PerformerBase<TranslationPerformer>>,
+    scaling: Option<PerformerBase<ScalingPerformer>>,
     frame_range: Option<PerformerBase<FrameRangePerformer>>,
     timer: Option<PerformerBase<TimerPerformer>>,
 
@@ -25,6 +27,16 @@ impl Animator {
                 Duration::from_millis(translation.delay as u64),
             ));
             self.translation
+                .as_mut()
+                .unwrap()
+                .start(animated, animation, speed);
+        }
+        if let Some(scaling) = &animation.scaling {
+            self.scaling = Some(PerformerBase::new(
+                ScalingPerformer::new(),
+                Duration::from_millis(scaling.delay as u64),
+            ));
+            self.scaling
                 .as_mut()
                 .unwrap()
                 .start(animated, animation, speed);
@@ -78,6 +90,16 @@ impl Animator {
                 maybe_finished = true;
             }
         }
+        if let Some(performer) = &mut self.scaling {
+            let performer_consumed = performer.progress(time_since_last_frame, animated, animation);
+            if performer_consumed > time_consumed {
+                time_consumed = performer_consumed;
+            }
+            if performer.finished() {
+                self.scaling = None;
+                maybe_finished = true;
+            }
+        }
         if let Some(performer) = &mut self.frame_range {
             let performer_consumed = performer.progress(time_since_last_frame, animated, animation);
             if performer_consumed > time_consumed {
@@ -100,8 +122,13 @@ impl Animator {
         }
 
         if maybe_finished {
-            self.finished = match (&self.translation, &self.frame_range, &self.timer) {
-                (None, None, None) => true,
+            self.finished = match (
+                &self.translation,
+                &self.scaling,
+                &self.frame_range,
+                &self.timer,
+            ) {
+                (None, None, None, None) => true,
                 _ if !animation.wait_all => true,
                 _ => false,
             };

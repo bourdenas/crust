@@ -37,6 +37,7 @@ impl ActionExecutor {
                 .with(Sprite {
                     resource: node.sprite_id,
                     frame_index: node.frame_index as usize,
+                    ..Default::default()
                 })
                 .build();
 

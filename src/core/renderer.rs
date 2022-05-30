@@ -27,14 +27,15 @@ pub fn render(
             continue;
         }
 
+        let bb = sprite_sheet.bounding_boxes[sprite.frame_index];
         canvas.copy(
             &texture,
-            sprite_sheet.bounding_boxes[sprite.frame_index],
+            bb,
             Rect::new(
                 pos.0.x(),
                 pos.0.y(),
-                2 * sprite_sheet.bounding_boxes[sprite.frame_index].width(),
-                2 * sprite_sheet.bounding_boxes[sprite.frame_index].height(),
+                (bb.width() as f64 * sprite.scaling.x) as u32,
+                (bb.height() as f64 * sprite.scaling.x) as u32,
             ),
         )?;
     }

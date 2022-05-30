@@ -21,6 +21,7 @@ impl Fixture {
             sprite: Sprite {
                 resource: "foo".to_owned(),
                 frame_index: 0,
+                ..Default::default()
             },
             sheet: SpriteSheet {
                 resource: "foo".to_owned(),

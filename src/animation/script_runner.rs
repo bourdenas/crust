@@ -134,6 +134,7 @@ mod tests {
     use super::*;
     use crate::{
         animation::testing::Fixture,
+        components::ScalingVec,
         crust::{FrameRangeAnimation, TimerAnimation, Vector, VectorAnimation},
     };
     use sdl2::rect::Point;
@@ -420,6 +421,45 @@ mod tests {
         runner.progress(Duration::from_millis(300), &mut animated, &script);
         assert_eq!(fixture.position.0, Point::new(14, 10));
         assert_eq!(fixture.sprite.frame_index, 5);
+        assert_eq!(runner.finished(), true);
+    }
+
+    #[test]
+    fn instant_script() {
+        let mut fixture = Fixture::new();
+
+        let script = AnimationScript {
+            id: "move_right".to_owned(),
+            animation: vec![Animation {
+                scaling: Some(VectorAnimation {
+                    vec: Some(Vector {
+                        x: 1.2,
+                        y: 2.0,
+                        ..Default::default()
+                    }),
+                    delay: 0,
+                    repeat: 1,
+                }),
+                ..Default::default()
+            }],
+            repeat: 1,
+        };
+
+        let mut runner = ScriptRunner::new(1.0);
+        let mut animated = fixture.animated();
+        runner.start(&mut animated, &script);
+        assert_eq!(runner.finished(), false);
+        assert_eq!(runner.index, 0);
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.sprite.frame_index, 0);
+        assert_eq!(fixture.sprite.scaling, ScalingVec::new(1.0, 1.0));
+
+        // Run first leg to finish.
+        let mut animated = fixture.animated();
+        runner.progress(Duration::from_millis(10), &mut animated, &script);
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.sprite.frame_index, 0);
+        assert_eq!(fixture.sprite.scaling, ScalingVec::new(1.2, 2.0));
         assert_eq!(runner.finished(), true);
     }
 
