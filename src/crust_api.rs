@@ -1,6 +1,6 @@
 use crate::action::ACTION_QUEUE;
 use crate::core::Core;
-use crate::crust::{Action, UserInput};
+use crate::crust::{Action, Event, UserInput};
 use prost::Message;
 use std::cell::RefCell;
 use std::ffi::CStr;
@@ -58,20 +58,39 @@ pub extern "C" fn execute(len: i64, encoded_action: *const u8) {
 }
 
 #[no_mangle]
-pub extern "C" fn register_handler(handler: extern "C" fn(usize, *const u8)) {
+pub extern "C" fn register_input_handler(handler: extern "C" fn(usize, *const u8)) {
     CORE.with(|core| {
         if let Some(core) = &mut *core.borrow_mut() {
-            core.input_manager.register(wrap_handler(handler));
+            core.input_manager.register(wrap_input_handler(handler));
         }
     });
 }
 
-fn wrap_handler(handler: extern "C" fn(usize, *const u8)) -> Box<dyn Fn(&UserInput)> {
+fn wrap_input_handler(handler: extern "C" fn(usize, *const u8)) -> Box<dyn Fn(&UserInput)> {
     Box::new(move |event: &UserInput| {
         let mut bytes = vec![];
         event
             .encode(&mut bytes)
             .expect("Failed to encode UserInput message");
+        handler(bytes.len(), bytes.as_mut_ptr());
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn register_event_handler(handler: extern "C" fn(usize, *const u8)) {
+    CORE.with(|core| {
+        if let Some(core) = &mut *core.borrow_mut() {
+            core.event_manager.register(wrap_event_handler(handler));
+        }
+    });
+}
+
+fn wrap_event_handler(handler: extern "C" fn(usize, *const u8)) -> Box<dyn Fn(&Event)> {
+    Box::new(move |event: &Event| {
+        let mut bytes = vec![];
+        event
+            .encode(&mut bytes)
+            .expect("Failed to encode Event message");
         handler(bytes.len(), bytes.as_mut_ptr());
     })
 }
