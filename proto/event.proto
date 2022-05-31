@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package crust;
+
+message Event {
+  string event_id = 1;
+}

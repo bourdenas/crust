@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "animation.proto";
+import "event.proto";
 import "scene_node.proto";
 
 package crust;
@@ -26,7 +27,7 @@ message Action {
     CollisionAction on_overlap = 13;
     CollisionAction on_detaching = 14;
 
-    // EmitAction emit = 15;
+    EmitAction emit = 15;
 
     // SfxAction play_audio = 16;
     // SfxAction stop_audio = 17;
@@ -43,11 +44,9 @@ message QuitAction {}
 
 message ChangeSceneAction {}
 
-
-// message EmitAction {
-//   Event event = 1;
-//   string scene_node_pattern = 2;
-// }
+message EmitAction {
+  Event event = 1;
+}
 
 message SceneNodeAction {
   SceneNode scene_node = 1;
