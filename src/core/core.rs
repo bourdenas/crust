@@ -2,6 +2,7 @@ use crate::action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX};
 use crate::components::{Id, Position, ScriptState, Sprite};
 use crate::core::{renderer, EventPump, Status, TextureManager};
 use crate::crust::{user_input, Action, UserInput};
+use crate::event::EventManager;
 use crate::input::InputManager;
 use crate::physics::CollisionChecker;
 use crate::resources::SpriteSheetsManager;
@@ -18,6 +19,7 @@ pub struct Core {
     pub world: World,
     pub executor: ActionExecutor,
     pub input_manager: InputManager,
+    pub event_manager: EventManager,
 
     rx: Receiver<Action>,
 
@@ -72,6 +74,7 @@ impl Core {
             world,
             executor: ActionExecutor::new(),
             input_manager: InputManager::new(),
+            event_manager: EventManager::new(),
             rx,
             _sdl_context: sdl_context,
             _video_subsystem: video_subsystem,
