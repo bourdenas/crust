@@ -6,7 +6,7 @@ use crate::event::EventManager;
 use crate::input::InputManager;
 use crate::physics::CollisionChecker;
 use crate::resources::SpriteSheetsManager;
-use crate::systems::ScriptSystem;
+use crate::systems::{CollisionSystem, ScriptSystem};
 use sdl2::image::{self, InitFlag};
 use sdl2::render::WindowCanvas;
 use specs::prelude::*;
@@ -90,6 +90,7 @@ impl Core {
 
         let mut dispatcher = DispatcherBuilder::new()
             .with(ScriptSystem::default(), "Scripts", &[])
+            .with(CollisionSystem::default(), "Collisions", &["Scripts"])
             .build();
         dispatcher.setup(&mut self.world);
 
@@ -118,7 +119,8 @@ impl Core {
 
             // Apply any incoming Actions as a result of input handling.
             self.rx.try_iter().for_each(|action| {
-                self.executor.execute(action, &mut self.world);
+                self.executor
+                    .execute(action, &mut self.world, &mut self.event_manager);
             });
 
             // Update time.
@@ -126,22 +128,22 @@ impl Core {
             let time_since_last_frame = curr_time.duration_since(prev_time).unwrap();
             *self.world.write_resource::<Duration>() = time_since_last_frame;
 
-            // self.start_frame(&time_since_last_frame);
             dispatcher.dispatch(&mut self.world);
-            self.world.maintain();
 
+            // Apply any incoming Actions as a result of systems being dispatched.
+            self.rx.try_iter().for_each(|action| {
+                self.executor
+                    .execute(action, &mut self.world, &mut self.event_manager);
+            });
+
+            self.world.maintain();
             self.render(&mut texture_manager);
 
-            // self.end_frame(&time_since_last_frame);
             prev_time = curr_time;
         }
     }
 
     pub fn halt(&self) {}
-
-    // fn start_frame(&self, _time_since_last_frame: &Duration) {}
-
-    // fn end_frame(&self, _time_since_last_frame: &Duration) {}
 
     fn render(&mut self, texture_manager: &mut TextureManager<sdl2::video::WindowContext>) {
         if let Err(e) =

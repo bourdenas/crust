@@ -1,8 +1,9 @@
 use super::INDEX;
 use crate::components::{Id, Position, ScriptState, Sprite};
 use crate::crust::{
-    action, Action, AnimationScriptAction, SceneNodeAction, SceneNodeRefAction, Vector,
+    action, Action, AnimationScriptAction, EmitAction, SceneNodeAction, SceneNodeRefAction, Vector,
 };
+use crate::event::EventManager;
 use sdl2::rect::Point;
 use specs::prelude::*;
 
@@ -13,7 +14,7 @@ impl ActionExecutor {
         ActionExecutor {}
     }
 
-    pub fn execute(&self, action: Action, world: &mut World) {
+    pub fn execute(&self, action: Action, world: &mut World, event_manager: &mut EventManager) {
         match action.action {
             Some(action::Action::Quit(..)) => (),
             Some(action::Action::CreateSceneNode(action)) => self.create_scene_node(action, world),
@@ -22,6 +23,7 @@ impl ActionExecutor {
             }
             Some(action::Action::PlayAnimation(action)) => self.play_animation(action, world),
             Some(action::Action::StopAnimation(action)) => self.stop_animation(action, world),
+            Some(action::Action::Emit(action)) => self.emit(action, event_manager),
             _ => (),
         }
     }
@@ -98,6 +100,12 @@ impl ActionExecutor {
 
             let mut scripts = world.write_storage::<ScriptState>();
             scripts.remove(entity);
+        }
+    }
+
+    fn emit(&self, emit_action: EmitAction, event_manager: &mut EventManager) {
+        if let Some(event) = emit_action.event {
+            event_manager.handle(event);
         }
     }
 }
