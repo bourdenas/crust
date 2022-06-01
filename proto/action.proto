@@ -62,10 +62,11 @@ message SceneNodeRefAction {
 // }
 
 message CollisionAction {
+  string scene_node_id = 1;
+
   // Ids of elements in a collision. These can be either scene node ids or
   // sprite ids.
-  string left_id = 1;
-  string right_id = 2;
+  string other_id = 2;
 
   repeated Action action = 3;
 }
