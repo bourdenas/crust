@@ -9,7 +9,7 @@ use crate::systems::{CollisionSystem, ScriptSystem};
 use sdl2::image::{self, InitFlag};
 use sdl2::render::WindowCanvas;
 use specs::prelude::*;
-use std::sync::mpsc::{self, Receiver};
+use std::sync::mpsc::{self, Receiver, Sender};
 use std::time::{Duration, SystemTime};
 
 pub struct Core {
@@ -20,6 +20,7 @@ pub struct Core {
     pub input_manager: InputManager,
     pub event_manager: EventManager,
 
+    tx: Sender<Action>,
     rx: Receiver<Action>,
 
     _sdl_context: sdl2::Sdl,
@@ -58,7 +59,7 @@ impl Core {
 
         let (tx, rx) = mpsc::channel();
         ACTION_QUEUE.with(|queue| {
-            *queue.borrow_mut() = Some(ActionQueue::new(tx));
+            *queue.borrow_mut() = Some(ActionQueue::new(tx.clone()));
         });
         INDEX.with(|index| {
             *index.borrow_mut() = Some(Index::new());
@@ -70,6 +71,7 @@ impl Core {
             executor: ActionExecutor::new(),
             input_manager: InputManager::new(),
             event_manager: EventManager::new(),
+            tx,
             rx,
             _sdl_context: sdl_context,
             _video_subsystem: video_subsystem,
@@ -85,7 +87,11 @@ impl Core {
 
         let mut dispatcher = DispatcherBuilder::new()
             .with(ScriptSystem::default(), "Scripts", &[])
-            .with(CollisionSystem::default(), "Collisions", &["Scripts"])
+            .with(
+                CollisionSystem::new(self.tx.clone()),
+                "Collisions",
+                &["Scripts"],
+            )
             .build();
         dispatcher.setup(&mut self.world);
 

@@ -1,9 +1,11 @@
 use crate::{
     components::{Collisions, Id, Position, Sprite},
+    crust::Action,
     physics::{CollisionChecker, CollisionNode},
     resources::SpriteSheetsManager,
 };
 use specs::prelude::*;
+use std::sync::mpsc::Sender;
 
 #[derive(SystemData)]
 pub struct CollisionSystemData<'a> {
@@ -16,8 +18,15 @@ pub struct CollisionSystemData<'a> {
     collisions: ReadStorage<'a, Collisions>,
 }
 
-#[derive(Default)]
-pub struct CollisionSystem;
+pub struct CollisionSystem {
+    tx: Sender<Action>,
+}
+
+impl CollisionSystem {
+    pub fn new(tx: Sender<Action>) -> Self {
+        CollisionSystem { tx }
+    }
+}
 
 impl<'a> System<'a> for CollisionSystem {
     type SystemData = CollisionSystemData<'a>;
@@ -61,6 +70,7 @@ impl<'a> System<'a> for CollisionSystem {
                         },
                     },
                     &collisions.on_collision,
+                    &self.tx,
                 )
             }
         }
