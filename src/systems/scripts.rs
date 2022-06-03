@@ -41,16 +41,23 @@ impl<'a> System<'a> for ScriptSystem {
             .join()
         {
             let sprite_sheet = &data.sheets_manager.load(&sprite.resource).unwrap();
-            let mut animated = Animated::new(entity, position, sprite, sprite_sheet);
+            let mut animated = Animated::new(
+                entity,
+                id,
+                position,
+                sprite,
+                sprite_sheet,
+                Some(&self.queue),
+            );
 
             if script.runner.state() == AnimationRunningState::Init {
-                script.runner.start(&mut animated, &script.script);
+                script.runner.start(&mut animated);
             }
 
             if script.runner.state() == AnimationRunningState::Running {
                 script
                     .runner
-                    .progress(*data.time_since_last_frame, &mut animated, &script.script);
+                    .progress(*data.time_since_last_frame, &mut animated);
             }
 
             if script.runner.state() == AnimationRunningState::Finished {
@@ -70,7 +77,7 @@ impl ScriptSystem {
         self.queue.emit(
             format!("{}_script_done", id.0),
             event::Event::AnimationScriptDone(AnimationEvent {
-                animation_id: script.script.id.clone(),
+                animation_id: script.runner.script.id.clone(),
                 position: Some(Vector {
                     x: position.0.x() as f64,
                     y: position.0.y() as f64,

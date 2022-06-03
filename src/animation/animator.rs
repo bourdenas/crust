@@ -7,6 +7,8 @@ use std::time::Duration;
 
 #[derive(Default)]
 pub struct Animator {
+    animation: Animation,
+
     translation: Option<PerformerBase<TranslationPerformer>>,
     scaling: Option<PerformerBase<ScalingPerformer>>,
     frame_range: Option<PerformerBase<FrameRangePerformer>>,
@@ -16,50 +18,46 @@ pub struct Animator {
 }
 
 impl Animator {
-    pub fn new() -> Self {
-        Animator::default()
+    pub fn new(animation: Animation) -> Self {
+        Animator {
+            animation,
+            ..Default::default()
+        }
     }
 
-    pub fn start(&mut self, animated: &mut Animated, animation: &Animation, speed: f64) {
-        if let Some(translation) = &animation.translation {
+    pub fn start(&mut self, animated: &mut Animated, speed: f64) {
+        let animation = self.animation.clone();
+        if let Some(translation) = animation.translation {
+            let delay = translation.delay as u64;
             self.translation = Some(PerformerBase::new(
-                TranslationPerformer::new(),
-                Duration::from_millis(translation.delay as u64),
+                TranslationPerformer::new(translation),
+                Duration::from_millis(delay),
             ));
-            self.translation
-                .as_mut()
-                .unwrap()
-                .start(animated, animation, speed);
+            self.translation.as_mut().unwrap().start(animated, speed);
         }
-        if let Some(scaling) = &animation.scaling {
+        if let Some(scaling) = animation.scaling {
+            let delay = scaling.delay as u64;
             self.scaling = Some(PerformerBase::new(
-                ScalingPerformer::new(),
-                Duration::from_millis(scaling.delay as u64),
+                ScalingPerformer::new(scaling),
+                Duration::from_millis(delay),
             ));
-            self.scaling
-                .as_mut()
-                .unwrap()
-                .start(animated, animation, speed);
+            self.scaling.as_mut().unwrap().start(animated, speed);
         }
-        if let Some(frame_range) = &animation.frame_range {
+        if let Some(frame_range) = animation.frame_range {
+            let delay = frame_range.delay as u64;
             self.frame_range = Some(PerformerBase::new(
-                FrameRangePerformer::new(),
-                Duration::from_millis(frame_range.delay as u64),
+                FrameRangePerformer::new(frame_range),
+                Duration::from_millis(delay),
             ));
-            self.frame_range
-                .as_mut()
-                .unwrap()
-                .start(animated, animation, speed);
+            self.frame_range.as_mut().unwrap().start(animated, speed);
         }
-        if let Some(timer) = &animation.timer {
+        if let Some(timer) = animation.timer {
+            let delay = timer.delay as u64;
             self.timer = Some(PerformerBase::new(
-                TimerPerformer::new(),
-                Duration::from_millis(timer.delay as u64),
+                TimerPerformer::new(timer),
+                Duration::from_millis(delay),
             ));
-            self.timer
-                .as_mut()
-                .unwrap()
-                .start(animated, animation, speed);
+            self.timer.as_mut().unwrap().start(animated, speed);
         }
     }
 
@@ -75,13 +73,12 @@ impl Animator {
         &mut self,
         time_since_last_frame: Duration,
         animated: &mut Animated,
-        animation: &Animation,
     ) -> Duration {
         let mut maybe_finished = false;
 
         let mut time_consumed = Duration::ZERO;
         if let Some(performer) = &mut self.translation {
-            let performer_consumed = performer.progress(time_since_last_frame, animated, animation);
+            let performer_consumed = performer.progress(time_since_last_frame, animated);
             if performer_consumed > time_consumed {
                 time_consumed = performer_consumed;
             }
@@ -91,7 +88,7 @@ impl Animator {
             }
         }
         if let Some(performer) = &mut self.scaling {
-            let performer_consumed = performer.progress(time_since_last_frame, animated, animation);
+            let performer_consumed = performer.progress(time_since_last_frame, animated);
             if performer_consumed > time_consumed {
                 time_consumed = performer_consumed;
             }
@@ -101,7 +98,7 @@ impl Animator {
             }
         }
         if let Some(performer) = &mut self.frame_range {
-            let performer_consumed = performer.progress(time_since_last_frame, animated, animation);
+            let performer_consumed = performer.progress(time_since_last_frame, animated);
             if performer_consumed > time_consumed {
                 time_consumed = performer_consumed;
             }
@@ -111,7 +108,7 @@ impl Animator {
             }
         }
         if let Some(performer) = &mut self.timer {
-            let performer_consumed = performer.progress(time_since_last_frame, animated, animation);
+            let performer_consumed = performer.progress(time_since_last_frame, animated);
             if performer_consumed > time_consumed {
                 time_consumed = performer_consumed;
             }
@@ -129,7 +126,7 @@ impl Animator {
                 &self.timer,
             ) {
                 (None, None, None, None) => true,
-                _ if !animation.wait_all => true,
+                _ if !self.animation.wait_all => true,
                 _ => false,
             };
         }

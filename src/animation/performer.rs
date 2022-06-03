@@ -1,14 +1,14 @@
 use super::Animated;
-use crate::{components::AnimationRunningState, crust::Animation};
+use crate::components::AnimationRunningState;
 use std::time::Duration;
 
 pub trait Performer {
-    fn start(&mut self, animated: &mut Animated, animation: &Animation, speed: f64);
+    fn start(&mut self, animated: &mut Animated, speed: f64);
     fn stop(&mut self, animated: &mut Animated);
     fn pause(&mut self, animated: &mut Animated);
     fn resume(&mut self, animated: &mut Animated);
 
-    fn execute(&mut self, animated: &mut Animated, animation: &Animation) -> AnimationRunningState;
+    fn execute(&mut self, animated: &mut Animated) -> AnimationRunningState;
 }
 
 #[derive(Default)]
@@ -36,8 +36,8 @@ where
         self.state == AnimationRunningState::Finished
     }
 
-    pub fn start(&mut self, animated: &mut Animated, animation: &Animation, speed: f64) {
-        self.performer.start(animated, animation, speed);
+    pub fn start(&mut self, animated: &mut Animated, speed: f64) {
+        self.performer.start(animated, speed);
         self.state = AnimationRunningState::Running;
     }
 
@@ -45,10 +45,9 @@ where
         &mut self,
         time_since_last_frame: Duration,
         animated: &mut Animated,
-        animation: &Animation,
     ) -> Duration {
         if self.animation_delay == Duration::ZERO {
-            self.performer.execute(animated, animation);
+            self.performer.execute(animated);
             self.state = AnimationRunningState::Finished;
             return Duration::ZERO;
         }
@@ -56,7 +55,7 @@ where
         self.wait_time += time_since_last_frame;
         while self.animation_delay <= self.wait_time {
             self.wait_time -= self.animation_delay;
-            if let AnimationRunningState::Finished = self.performer.execute(animated, animation) {
+            if let AnimationRunningState::Finished = self.performer.execute(animated) {
                 self.state = AnimationRunningState::Finished;
                 return time_since_last_frame - self.wait_time;
             }

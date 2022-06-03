@@ -5,15 +5,13 @@ use specs_derive::Component;
 #[derive(Component, Default)]
 #[storage(VecStorage)]
 pub struct ScriptState {
-    pub script: AnimationScript,
     pub runner: ScriptRunner,
 }
 
 impl ScriptState {
     pub fn new(script: AnimationScript) -> Self {
         ScriptState {
-            script,
-            runner: ScriptRunner::new(1.0),
+            runner: ScriptRunner::new(script, 1.0),
         }
     }
 }
