@@ -5,7 +5,7 @@ use crate::{
     resources::SpriteSheetsManager,
 };
 use specs::prelude::*;
-use std::{collections::HashSet, sync::mpsc::Sender};
+use std::sync::mpsc::Sender;
 
 #[derive(SystemData)]
 pub struct CollisionSystemData<'a> {
@@ -19,15 +19,13 @@ pub struct CollisionSystemData<'a> {
 }
 
 pub struct CollisionSystem {
-    tx: Sender<Action>,
-    overlapping_pairs: HashSet<(u32, u32)>,
+    checker: CollisionChecker,
 }
 
 impl CollisionSystem {
     pub fn new(tx: Sender<Action>) -> Self {
         CollisionSystem {
-            tx,
-            overlapping_pairs: HashSet::default(),
+            checker: CollisionChecker::new(tx),
         }
     }
 }
@@ -57,7 +55,7 @@ impl<'a> System<'a> for CollisionSystem {
                 if entity_a == entity_b {
                     continue;
                 }
-                CollisionChecker::check_collision(
+                self.checker.check_collision(
                     CollisionNode {
                         entity_id: entity_a.id(),
                         id: id_a,
@@ -76,8 +74,6 @@ impl<'a> System<'a> for CollisionSystem {
                         },
                     },
                     &collisions.on_collision,
-                    &self.tx,
-                    &mut self.overlapping_pairs,
                 )
             }
         }

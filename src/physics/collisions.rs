@@ -6,16 +6,25 @@ use crate::{
 use sdl2::rect::Rect;
 use std::{collections::HashSet, sync::mpsc::Sender};
 
-#[derive(Default, Debug)]
-pub struct CollisionChecker {}
+#[derive(Debug)]
+pub struct CollisionChecker {
+    tx: Sender<Action>,
+    overlapping_pairs: HashSet<(u32, u32)>,
+}
 
 impl CollisionChecker {
+    pub fn new(tx: Sender<Action>) -> Self {
+        CollisionChecker {
+            tx,
+            overlapping_pairs: HashSet::default(),
+        }
+    }
+
     pub fn check_collision(
+        &mut self,
         lhs: CollisionNode,
         rhs: CollisionNode,
         collision_actions: &Vec<CollisionAction>,
-        tx: &Sender<Action>,
-        overlapping_pairs: &mut HashSet<(u32, u32)>,
     ) {
         for collision in collision_actions {
             if rhs.id.0 == collision.other_id || rhs.sprite.resource == collision.other_id {
@@ -23,25 +32,23 @@ impl CollisionChecker {
 
                 match lhs.aabb() & rhs.aabb() {
                     Some(intersection) => {
-                        if overlapping_pairs.contains(&pair) {
+                        if self.overlapping_pairs.contains(&pair) {
                             continue;
                         }
-                        overlapping_pairs.insert(pair);
 
-                        CollisionChecker::emit_collision(
-                            lhs.id.0.clone(),
-                            rhs.id.0.clone(),
-                            &intersection,
-                            tx,
-                        );
+                        self.overlapping_pairs.insert(pair);
+                        self.emit_collision(lhs.id.0.clone(), rhs.id.0.clone(), &intersection);
 
                         for action in &collision.action {
-                            tx.send(action.clone()).expect("🦀 Action channel closed.");
+                            self.tx
+                                .send(action.clone())
+                                .expect("🦀 Action channel closed.");
                         }
                     }
                     None => {
-                        if overlapping_pairs.contains(&pair) {
-                            overlapping_pairs.remove(&pair);
+                        if self.overlapping_pairs.contains(&pair) {
+                            self.overlapping_pairs.remove(&pair);
+                            self.emit_detach(lhs.id.0.clone(), rhs.id.0.clone());
                         }
                     }
                 }
@@ -49,25 +56,43 @@ impl CollisionChecker {
         }
     }
 
-    fn emit_collision(lhs_id: String, rhs_id: String, intersection: &Rect, tx: &Sender<Action>) {
-        tx.send(Action {
-            action: Some(action::Action::Emit(EmitAction {
-                event: Some(Event {
-                    event_id: format!("{}_collision", &lhs_id),
-                    event: Some(event::Event::OnCollision(CollisionEvent {
-                        lhs_id: lhs_id,
-                        rhs_id: rhs_id,
-                        intersection: Some(Box {
-                            left: intersection.x(),
-                            top: intersection.y(),
-                            width: intersection.width(),
-                            height: intersection.height(),
-                        }),
-                    })),
-                }),
-            })),
-        })
-        .expect("🦀 Action channel closed.");
+    fn emit_collision(&self, lhs_id: String, rhs_id: String, intersection: &Rect) {
+        self.tx
+            .send(Action {
+                action: Some(action::Action::Emit(EmitAction {
+                    event: Some(Event {
+                        event_id: format!("{}_collide", &lhs_id),
+                        event: Some(event::Event::OnCollision(CollisionEvent {
+                            lhs_id: lhs_id,
+                            rhs_id: rhs_id,
+                            intersection: Some(Box {
+                                left: intersection.x(),
+                                top: intersection.y(),
+                                width: intersection.width(),
+                                height: intersection.height(),
+                            }),
+                        })),
+                    }),
+                })),
+            })
+            .expect("🦀 Action channel closed.");
+    }
+
+    fn emit_detach(&self, lhs_id: String, rhs_id: String) {
+        self.tx
+            .send(Action {
+                action: Some(action::Action::Emit(EmitAction {
+                    event: Some(Event {
+                        event_id: format!("{}_detach", &lhs_id),
+                        event: Some(event::Event::OnDetach(CollisionEvent {
+                            lhs_id: lhs_id,
+                            rhs_id: rhs_id,
+                            intersection: None,
+                        })),
+                    }),
+                })),
+            })
+            .expect("🦀 Action channel closed.");
     }
 }
 
