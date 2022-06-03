@@ -1,11 +1,12 @@
 use crate::{
+    action::ActionQueue,
     animation::Animated,
     components::{AnimationRunningState, Id, Position, ScriptState, Sprite},
-    crust::{action, event, Action, AnimationEvent, EmitAction, Event, Vector},
+    crust::{event, AnimationEvent, Vector},
     resources::SpriteSheetsManager,
 };
 use specs::prelude::*;
-use std::{sync::mpsc::Sender, time::Duration};
+use std::time::Duration;
 
 #[derive(SystemData)]
 pub struct ScriptSystemData<'a> {
@@ -21,7 +22,7 @@ pub struct ScriptSystemData<'a> {
 }
 
 pub struct ScriptSystem {
-    tx: Sender<Action>,
+    queue: ActionQueue,
 }
 
 impl<'a> System<'a> for ScriptSystem {
@@ -61,28 +62,22 @@ impl<'a> System<'a> for ScriptSystem {
 }
 
 impl ScriptSystem {
-    pub fn new(tx: Sender<Action>) -> Self {
-        ScriptSystem { tx }
+    pub fn new(queue: ActionQueue) -> Self {
+        ScriptSystem { queue }
     }
 
     fn emit_done(&self, id: &Id, script: &ScriptState, position: &Position, sprite: &Sprite) {
-        self.tx
-            .send(Action {
-                action: Some(action::Action::Emit(EmitAction {
-                    event: Some(Event {
-                        event_id: format!("{}_script_done", id.0),
-                        event: Some(event::Event::AnimationScriptDone(AnimationEvent {
-                            animation_id: script.script.id.clone(),
-                            position: Some(Vector {
-                                x: position.0.x() as f64,
-                                y: position.0.y() as f64,
-                                z: 0.0,
-                            }),
-                            frame_index: sprite.frame_index as u32,
-                        })),
-                    }),
-                })),
-            })
-            .expect("🦀 Action channel closed.");
+        self.queue.emit(
+            format!("{}_script_done", id.0),
+            event::Event::AnimationScriptDone(AnimationEvent {
+                animation_id: script.script.id.clone(),
+                position: Some(Vector {
+                    x: position.0.x() as f64,
+                    y: position.0.y() as f64,
+                    z: 0.0,
+                }),
+                frame_index: sprite.frame_index as u32,
+            }),
+        );
     }
 }

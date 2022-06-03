@@ -1,4 +1,4 @@
-use crate::crust::Action;
+use crate::crust::{action, event, Action, EmitAction, Event};
 use std::{cell::RefCell, sync::mpsc::Sender};
 
 // A global Action queue that receives/dispatches actions during the frame.
@@ -15,7 +15,18 @@ impl ActionQueue {
 
     pub fn push(&self, action: Action) {
         if let Err(e) = self.tx.send(action) {
-            eprintln!("Pushing into action queue failed: {}", e);
+            eprintln!("🦀 Action channel closed: {}", e);
         }
+    }
+
+    pub fn emit(&self, event_id: String, event: event::Event) {
+        self.push(Action {
+            action: Some(action::Action::Emit(EmitAction {
+                event: Some(Event {
+                    event_id,
+                    event: Some(event),
+                }),
+            })),
+        });
     }
 }
