@@ -11,12 +11,22 @@ message Event {
   oneof Event {
     CollisionEvent on_collision = 2;
     CollisionEvent on_detach = 3;
+
+    AnimationEvent animation_done = 4;
+    AnimationEvent animation_script_done = 5;
+    AnimationEvent animation_script_rewind = 6;
   }
 }
 
 message CollisionEvent {
-    string lhs_id = 1;
-    string rhs_id = 2;
+  string lhs_id = 1;
+  string rhs_id = 2;
 
-    Box intersection = 3;
+  Box intersection = 3;
+}
+
+message AnimationEvent {
+  string animation_id = 1;
+  Vector position = 2;
+  uint32 frame_index = 3;
 }
