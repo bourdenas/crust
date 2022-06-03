@@ -2,13 +2,14 @@ use crate::action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX};
 use crate::components::{Id, Position, ScriptState, Sprite};
 use crate::core::{renderer, EventPump, Status, TextureManager};
 use crate::crust::{user_input, Action, UserInput};
+use crate::event::EventManager;
 use crate::input::InputManager;
 use crate::resources::SpriteSheetsManager;
-use crate::systems::ScriptSystem;
+use crate::systems::{CollisionSystem, ScriptSystem};
 use sdl2::image::{self, InitFlag};
 use sdl2::render::WindowCanvas;
 use specs::prelude::*;
-use std::sync::mpsc::{self, Receiver};
+use std::sync::mpsc::{self, Receiver, Sender};
 use std::time::{Duration, SystemTime};
 
 pub struct Core {
@@ -17,7 +18,9 @@ pub struct Core {
     pub world: World,
     pub executor: ActionExecutor,
     pub input_manager: InputManager,
+    pub event_manager: EventManager,
 
+    tx: Sender<Action>,
     rx: Receiver<Action>,
 
     _sdl_context: sdl2::Sdl,
@@ -56,7 +59,7 @@ impl Core {
 
         let (tx, rx) = mpsc::channel();
         ACTION_QUEUE.with(|queue| {
-            *queue.borrow_mut() = Some(ActionQueue::new(tx));
+            *queue.borrow_mut() = Some(ActionQueue::new(tx.clone()));
         });
         INDEX.with(|index| {
             *index.borrow_mut() = Some(Index::new());
@@ -67,6 +70,8 @@ impl Core {
             world,
             executor: ActionExecutor::new(),
             input_manager: InputManager::new(),
+            event_manager: EventManager::new(),
+            tx,
             rx,
             _sdl_context: sdl_context,
             _video_subsystem: video_subsystem,
@@ -82,6 +87,11 @@ impl Core {
 
         let mut dispatcher = DispatcherBuilder::new()
             .with(ScriptSystem::default(), "Scripts", &[])
+            .with(
+                CollisionSystem::new(self.tx.clone()),
+                "Collisions",
+                &["Scripts"],
+            )
             .build();
         dispatcher.setup(&mut self.world);
 
@@ -110,7 +120,8 @@ impl Core {
 
             // Apply any incoming Actions as a result of input handling.
             self.rx.try_iter().for_each(|action| {
-                self.executor.execute(action, &mut self.world);
+                self.executor
+                    .execute(action, &mut self.world, &mut self.event_manager);
             });
 
             // Update time.
@@ -118,22 +129,22 @@ impl Core {
             let time_since_last_frame = curr_time.duration_since(prev_time).unwrap();
             *self.world.write_resource::<Duration>() = time_since_last_frame;
 
-            // self.start_frame(&time_since_last_frame);
             dispatcher.dispatch(&mut self.world);
-            self.world.maintain();
 
+            // Apply any incoming Actions as a result of systems being dispatched.
+            self.rx.try_iter().for_each(|action| {
+                self.executor
+                    .execute(action, &mut self.world, &mut self.event_manager);
+            });
+
+            self.world.maintain();
             self.render(&mut texture_manager);
 
-            // self.end_frame(&time_since_last_frame);
             prev_time = curr_time;
         }
     }
 
     pub fn halt(&self) {}
-
-    // fn start_frame(&self, _time_since_last_frame: &Duration) {}
-
-    // fn end_frame(&self, _time_since_last_frame: &Duration) {}
 
     fn render(&mut self, texture_manager: &mut TextureManager<sdl2::video::WindowContext>) {
         if let Err(e) =

@@ -1,8 +1,7 @@
-use std::ops::MulAssign;
-
 use sdl2::rect::Point;
 use specs::prelude::*;
 use specs_derive::Component;
+use std::ops::MulAssign;
 
 #[derive(Component, Default, Debug)]
 #[storage(NullStorage)]

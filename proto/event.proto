@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+import "primitives.proto";
+
+package crust;
+
+
+message Event {
+  string event_id = 1;
+
+  oneof Event {
+    CollisionEvent on_collision = 2;
+    CollisionEvent on_detach = 3;
+  }
+}
+
+message CollisionEvent {
+    string lhs_id = 1;
+    string rhs_id = 2;
+
+    Box intersection = 3;
+}
