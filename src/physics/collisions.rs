@@ -1,6 +1,6 @@
 use crate::{
     components::{Id, Position, Sprite},
-    crust::{Action, CollisionAction},
+    crust::{action, event, Action, Box, CollisionAction, CollisionEvent, EmitAction, Event},
     resources::SpriteSheet,
 };
 use sdl2::rect::Rect;
@@ -22,11 +22,18 @@ impl CollisionChecker {
                 let pair = ordered(lhs.entity_id, rhs.entity_id);
 
                 match lhs.aabb() & rhs.aabb() {
-                    Some(_) => {
+                    Some(intersection) => {
                         if overlapping_pairs.contains(&pair) {
                             continue;
                         }
                         overlapping_pairs.insert(pair);
+
+                        CollisionChecker::emit_collision(
+                            lhs.id.0.clone(),
+                            rhs.id.0.clone(),
+                            &intersection,
+                            tx,
+                        );
 
                         for action in &collision.action {
                             tx.send(action.clone()).expect("🦀 Action channel closed.");
@@ -40,6 +47,27 @@ impl CollisionChecker {
                 }
             }
         }
+    }
+
+    fn emit_collision(lhs_id: String, rhs_id: String, intersection: &Rect, tx: &Sender<Action>) {
+        tx.send(Action {
+            action: Some(action::Action::Emit(EmitAction {
+                event: Some(Event {
+                    event_id: format!("{}_collision", &lhs_id),
+                    event: Some(event::Event::OnCollision(CollisionEvent {
+                        lhs_id: lhs_id,
+                        rhs_id: rhs_id,
+                        intersection: Some(Box {
+                            left: intersection.x(),
+                            top: intersection.y(),
+                            width: intersection.width(),
+                            height: intersection.height(),
+                        }),
+                    })),
+                }),
+            })),
+        })
+        .expect("🦀 Action channel closed.");
     }
 }
 
