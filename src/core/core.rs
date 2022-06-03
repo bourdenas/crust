@@ -86,9 +86,13 @@ impl Core {
         let mut texture_manager = TextureManager::new(&self.resource_path, &texture_creator);
 
         let mut dispatcher = DispatcherBuilder::new()
-            .with(ScriptSystem::default(), "Scripts", &[])
             .with(
-                CollisionSystem::new(self.tx.clone()),
+                ScriptSystem::new(ActionQueue::new(self.tx.clone())),
+                "Scripts",
+                &[],
+            )
+            .with(
+                CollisionSystem::new(ActionQueue::new(self.tx.clone())),
                 "Collisions",
                 &["Scripts"],
             )

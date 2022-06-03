@@ -1,11 +1,10 @@
 use crate::{
+    action::ActionQueue,
     components::{Collisions, Id, Position, Sprite},
-    crust::Action,
     physics::{CollisionChecker, CollisionNode},
     resources::SpriteSheetsManager,
 };
 use specs::prelude::*;
-use std::sync::mpsc::Sender;
 
 #[derive(SystemData)]
 pub struct CollisionSystemData<'a> {
@@ -23,9 +22,9 @@ pub struct CollisionSystem {
 }
 
 impl CollisionSystem {
-    pub fn new(tx: Sender<Action>) -> Self {
+    pub fn new(queue: ActionQueue) -> Self {
         CollisionSystem {
-            checker: CollisionChecker::new(tx),
+            checker: CollisionChecker::new(queue),
         }
     }
 }
