@@ -34,6 +34,7 @@ impl SpriteSheetsManager {
 
 use serde::{
     de::{SeqAccess, Visitor},
+    ser::SerializeSeq,
     Deserialize, Serialize,
 };
 use serde_with::serde_as;
@@ -54,14 +55,12 @@ impl serde_with::SerializeAs<Rect> for CrustRect {
     where
         S: serde::Serializer,
     {
-        let s = format!(
-            "[{}, {}, {}, {}]",
-            source.x(),
-            source.y(),
-            source.width(),
-            source.height()
-        );
-        serializer.serialize_str(&s)
+        let mut seq = serializer.serialize_seq(Some(4))?;
+        seq.serialize_element(&source.x())?;
+        seq.serialize_element(&source.y())?;
+        seq.serialize_element(&source.width())?;
+        seq.serialize_element(&source.height())?;
+        seq.end()
     }
 }
 
