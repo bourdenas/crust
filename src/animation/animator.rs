@@ -1,6 +1,6 @@
 use super::{
-    performer::PerformerBase, Animated, FrameRangePerformer, ScalingPerformer, TimerPerformer,
-    TranslationPerformer,
+    performer::PerformerBase, Animated, FrameListPerformer, FrameRangePerformer, ScalingPerformer,
+    TimerPerformer, TranslationPerformer,
 };
 use crate::crust::Animation;
 use std::time::Duration;
@@ -12,6 +12,7 @@ pub struct Animator {
     translation: Option<PerformerBase<TranslationPerformer>>,
     scaling: Option<PerformerBase<ScalingPerformer>>,
     frame_range: Option<PerformerBase<FrameRangePerformer>>,
+    frame_list: Option<PerformerBase<FrameListPerformer>>,
     timer: Option<PerformerBase<TimerPerformer>>,
 
     finished: bool,
@@ -50,6 +51,14 @@ impl Animator {
                 Duration::from_millis(delay),
             ));
             self.frame_range.as_mut().unwrap().start(animated, speed);
+        }
+        if let Some(frame_list) = animation.frame_list {
+            let delay = frame_list.delay as u64;
+            self.frame_list = Some(PerformerBase::new(
+                FrameListPerformer::new(frame_list),
+                Duration::from_millis(delay),
+            ));
+            self.frame_list.as_mut().unwrap().start(animated, speed);
         }
         if let Some(timer) = animation.timer {
             let delay = timer.delay as u64;
@@ -107,6 +116,16 @@ impl Animator {
                 maybe_finished = true;
             }
         }
+        if let Some(performer) = &mut self.frame_list {
+            let performer_consumed = performer.progress(time_since_last_frame, animated);
+            if performer_consumed > time_consumed {
+                time_consumed = performer_consumed;
+            }
+            if performer.finished() {
+                self.frame_list = None;
+                maybe_finished = true;
+            }
+        }
         if let Some(performer) = &mut self.timer {
             let performer_consumed = performer.progress(time_since_last_frame, animated);
             if performer_consumed > time_consumed {
@@ -123,9 +142,10 @@ impl Animator {
                 &self.translation,
                 &self.scaling,
                 &self.frame_range,
+                &self.frame_list,
                 &self.timer,
             ) {
-                (None, None, None, None) => true,
+                (None, None, None, None, None) => true,
                 _ if !self.animation.wait_all => true,
                 _ => false,
             };
