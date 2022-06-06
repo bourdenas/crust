@@ -1,5 +1,6 @@
 mod animated;
 mod animator;
+mod frame_list;
 mod frame_range;
 mod performer;
 mod scaling;
@@ -9,6 +10,7 @@ mod timer;
 mod translation;
 
 pub use animated::Animated;
+pub use frame_list::FrameListPerformer;
 pub use frame_range::FrameRangePerformer;
 pub use scaling::ScalingPerformer;
 pub use script_runner::ScriptRunner;
