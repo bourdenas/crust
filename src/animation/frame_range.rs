@@ -118,7 +118,9 @@ fn set_frame(
 #[cfg(test)]
 mod tests {
     use crate::{
-        animation::{performer::PerformerBase, testing::Fixture, FrameRangePerformer, Performer},
+        animation::{
+            performer::PerformerBase, testing::util::Fixture, FrameRangePerformer, Performer,
+        },
         components::AnimationRunningState,
         crust::FrameRangeAnimation,
     };

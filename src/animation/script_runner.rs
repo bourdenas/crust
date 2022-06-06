@@ -156,7 +156,7 @@ impl ScriptRunner {
 mod tests {
     use super::*;
     use crate::{
-        animation::testing::Fixture,
+        animation::testing::util::Fixture,
         components::ScalingVec,
         crust::{FrameRangeAnimation, TimerAnimation, Vector, VectorAnimation},
     };

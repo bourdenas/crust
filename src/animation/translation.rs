@@ -39,7 +39,9 @@ impl TranslationPerformer {
 #[cfg(test)]
 mod tests {
     use crate::{
-        animation::{performer::PerformerBase, testing::Fixture, Performer, TranslationPerformer},
+        animation::{
+            performer::PerformerBase, testing::util::Fixture, Performer, TranslationPerformer,
+        },
         components::AnimationRunningState,
         crust::{Vector, VectorAnimation},
     };

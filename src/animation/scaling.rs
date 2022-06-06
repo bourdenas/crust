@@ -41,7 +41,9 @@ impl ScalingPerformer {
 #[cfg(test)]
 mod tests {
     use crate::{
-        animation::{performer::PerformerBase, testing::Fixture, Performer, ScalingPerformer},
+        animation::{
+            performer::PerformerBase, testing::util::Fixture, Performer, ScalingPerformer,
+        },
         components::{AnimationRunningState, ScalingVec},
         crust::{Vector, VectorAnimation},
     };
