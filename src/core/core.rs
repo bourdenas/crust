@@ -5,7 +5,7 @@ use crate::crust::{user_input, Action, UserInput};
 use crate::event::EventManager;
 use crate::input::InputManager;
 use crate::resources::SpriteSheetsManager;
-use crate::systems::{CollisionSystem, ScriptSystem};
+use crate::systems::{CollisionSystem, RigidBodiesSystem, ScriptSystem};
 use sdl2::image::{self, InitFlag};
 use sdl2::render::WindowCanvas;
 use specs::prelude::*;
@@ -96,6 +96,11 @@ impl Core {
                 CollisionSystem::new(ActionQueue::new(self.tx.clone())),
                 "Collisions",
                 &["Scripts"],
+            )
+            .with(
+                RigidBodiesSystem {},
+                "RigidBodies",
+                &["Scripts", "Collisions"],
             )
             .build();
         dispatcher.setup(&mut self.world);

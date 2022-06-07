@@ -73,7 +73,7 @@ impl<'a> System<'a> for CollisionSystem {
                         },
                     },
                     &collisions.on_collision,
-                )
+                );
             }
         }
     }
