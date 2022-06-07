@@ -16,5 +16,5 @@ message SceneNode {
   // {top, left} position of scene node's bounding box.
   Vector position = 4;
 
-  bool hidden = 5;
+  bool rigid_body = 5;
 }

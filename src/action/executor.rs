@@ -1,5 +1,5 @@
 use super::INDEX;
-use crate::components::{Collisions, Id, Position, ScriptState, Sprite};
+use crate::components::{Collisions, Id, Position, RigidBody, ScriptState, Sprite};
 use crate::crust::{
     action, Action, AnimationScriptAction, CollisionAction, EmitAction, SceneNodeAction,
     SceneNodeRefAction, Vector,
@@ -32,7 +32,7 @@ impl ActionExecutor {
 
     fn create_scene_node(&self, scene_node_action: SceneNodeAction, world: &mut World) {
         if let Some(node) = scene_node_action.scene_node {
-            let entity = world
+            let mut builder = world
                 .create_entity()
                 .with(Id(node.id.clone()))
                 .with(Position(make_point(
@@ -42,8 +42,11 @@ impl ActionExecutor {
                     resource: node.sprite_id,
                     frame_index: node.frame_index as usize,
                     ..Default::default()
-                })
-                .build();
+                });
+            if node.rigid_body {
+                builder = builder.with(RigidBody {});
+            }
+            let entity = builder.build();
 
             INDEX.with(|index| {
                 if let Some(index) = &mut *index.borrow_mut() {

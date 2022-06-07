@@ -1,5 +1,5 @@
 use crate::action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX};
-use crate::components::{Id, Position, ScriptState, Sprite};
+use crate::components::{Dirty, Id, Position, RigidBody, ScriptState, Sprite};
 use crate::core::{renderer, EventPump, Status, TextureManager};
 use crate::crust::{user_input, Action, UserInput};
 use crate::event::EventManager;
@@ -52,6 +52,7 @@ impl Core {
         world.register::<Position>();
         world.register::<Sprite>();
         world.register::<ScriptState>();
+        world.register::<RigidBody>();
 
         let sheets_manager = SpriteSheetsManager::new(resource_path);
         world.insert(sheets_manager);
