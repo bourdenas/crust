@@ -7,7 +7,7 @@ use sdl2::rect::Point;
 use specs::prelude::*;
 
 #[derive(SystemData)]
-pub struct RigidBodiesSystemData<'a> {
+pub struct MovementSystemData<'a> {
     sheets_manager: WriteExpect<'a, SpriteSheetsManager>,
     entities: Entities<'a>,
 
@@ -18,14 +18,14 @@ pub struct RigidBodiesSystemData<'a> {
     rigid_bodies: ReadStorage<'a, RigidBody>,
 }
 
-pub struct RigidBodiesSystem;
+pub struct MovementSystem;
 
-impl<'a> System<'a> for RigidBodiesSystem {
-    type SystemData = RigidBodiesSystemData<'a>;
+impl<'a> System<'a> for MovementSystem {
+    type SystemData = MovementSystemData<'a>;
 
     fn run(&mut self, data: Self::SystemData) {
         let mut data = data;
-        let mut movements = vec![];
+        let mut dirty = BitSet::new();
 
         for (entity_a, id_a, position_a, velocity_a, sprite_a, _) in (
             &data.entities,
@@ -40,6 +40,7 @@ impl<'a> System<'a> for RigidBodiesSystem {
             if velocity_a.0 == Point::new(0, 0) {
                 continue;
             }
+            dirty.add(entity_a.id());
 
             let sprite_sheet_a = match data.sheets_manager.get(&sprite_a.resource) {
                 Some(sheet) => sheet,
@@ -95,22 +96,11 @@ impl<'a> System<'a> for RigidBodiesSystem {
                     };
                 }
             }
-            movements.push(Movement {
-                entity: entity_a,
-                offset: velocity_a.0,
-            });
-            velocity_a.0 = Point::new(0, 0);
         }
 
-        for movement in movements {
-            if let Some(position) = data.positions.get_mut(movement.entity) {
-                position.0 += movement.offset;
-            }
+        for (position, velocity, _) in (&mut data.positions, &mut data.velocities, &dirty).join() {
+            position.0 += velocity.0;
+            velocity.0 = Point::new(0, 0);
         }
     }
-}
-
-struct Movement {
-    entity: Entity,
-    offset: Point,
 }

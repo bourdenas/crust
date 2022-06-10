@@ -1,7 +1,7 @@
 mod animator;
 mod collisions;
-mod rigid;
+mod movement;
 
 pub use animator::AnimatorSystem;
 pub use collisions::CollisionSystem;
-pub use rigid::RigidBodiesSystem;
+pub use movement::MovementSystem;
