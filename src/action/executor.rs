@@ -1,5 +1,5 @@
 use super::INDEX;
-use crate::components::{Collisions, Id, Position, RigidBody, ScriptState, Sprite, Velocity};
+use crate::components::{Animation, Collisions, Id, Position, RigidBody, Sprite, Velocity};
 use crate::crust::{
     action, Action, AnimationScriptAction, CollisionAction, EmitAction, SceneNodeAction,
     SceneNodeRefAction, Vector,
@@ -85,8 +85,8 @@ impl ActionExecutor {
             if let Some(id) = entity_id {
                 let entity = world.entities().entity(id);
 
-                let mut scripts = world.write_storage::<ScriptState>();
-                if let Err(e) = scripts.insert(entity, ScriptState::new(script)) {
+                let mut scripts = world.write_storage::<Animation>();
+                if let Err(e) = scripts.insert(entity, Animation::new(script)) {
                     eprintln!("play_animation(): {}", e);
                 }
             }
@@ -104,7 +104,7 @@ impl ActionExecutor {
         if let Some(id) = entity_id {
             let entity = world.entities().entity(id);
 
-            let mut scripts = world.write_storage::<ScriptState>();
+            let mut scripts = world.write_storage::<Animation>();
             scripts.remove(entity);
         }
     }

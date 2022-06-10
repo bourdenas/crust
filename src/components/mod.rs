@@ -2,6 +2,6 @@ mod animation;
 mod collision;
 mod sprites;
 
-pub use animation::{AnimationRunningState, ScriptState};
+pub use animation::{Animation, AnimationRunningState};
 pub use collision::{Collisions, RigidBody};
 pub use sprites::{Id, Position, ScalingVec, Sprite, Velocity};
