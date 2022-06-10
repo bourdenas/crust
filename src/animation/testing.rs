@@ -2,7 +2,7 @@
 pub mod util {
     use crate::{
         animation::Animated,
-        components::{Id, Position, Sprite},
+        components::{Id, Position, Sprite, Velocity},
         resources::SpriteSheet,
     };
     use sdl2::rect::{Point, Rect};
@@ -12,6 +12,7 @@ pub mod util {
         world: World,
         id: Id,
         pub position: Position,
+        velocity: Velocity,
         pub sprite: Sprite,
         sheet: SpriteSheet,
     }
@@ -22,6 +23,7 @@ pub mod util {
                 world: World::new(),
                 id: Id("test_id".to_owned()),
                 position: Position(Point::new(0, 0)),
+                velocity: Velocity(Point::new(0, 0)),
                 sprite: Sprite {
                     resource: "foo".to_owned(),
                     frame_index: 0,
@@ -46,6 +48,7 @@ pub mod util {
                 self.world.create_entity().build(),
                 &self.id,
                 &mut self.position,
+                &mut self.velocity,
                 &mut self.sprite,
                 &self.sheet,
                 None,

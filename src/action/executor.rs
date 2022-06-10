@@ -1,5 +1,5 @@
 use super::INDEX;
-use crate::components::{Collisions, Id, Position, RigidBody, ScriptState, Sprite};
+use crate::components::{Collisions, Id, Position, RigidBody, ScriptState, Sprite, Velocity};
 use crate::crust::{
     action, Action, AnimationScriptAction, CollisionAction, EmitAction, SceneNodeAction,
     SceneNodeRefAction, Vector,
@@ -38,6 +38,7 @@ impl ActionExecutor {
                 .with(Position(make_point(
                     &node.position.expect("Node missing position"),
                 )))
+                .with(Velocity(Point::new(0, 0)))
                 .with(Sprite {
                     resource: node.sprite_id,
                     frame_index: node.frame_index as usize,

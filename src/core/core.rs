@@ -1,5 +1,5 @@
 use crate::action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX};
-use crate::components::{Dirty, Id, Position, RigidBody, ScriptState, Sprite};
+use crate::components::{Id, Position, RigidBody, ScriptState, Sprite, Velocity};
 use crate::core::{renderer, EventPump, Status, TextureManager};
 use crate::crust::{user_input, Action, UserInput};
 use crate::event::EventManager;
@@ -51,6 +51,7 @@ impl Core {
         world.register::<Id>();
         world.register::<Position>();
         world.register::<Sprite>();
+        world.register::<Velocity>();
         world.register::<ScriptState>();
         world.register::<RigidBody>();
 
@@ -92,15 +93,11 @@ impl Core {
                 "Scripts",
                 &[],
             )
+            .with(RigidBodiesSystem {}, "RigidBodies", &["Scripts"])
             .with(
                 CollisionSystem::new(ActionQueue::new(self.tx.clone())),
                 "Collisions",
-                &["Scripts"],
-            )
-            .with(
-                RigidBodiesSystem {},
-                "RigidBodies",
-                &["Scripts", "Collisions"],
+                &["Scripts", "RigidBodies"],
             )
             .build();
         dispatcher.setup(&mut self.world);

@@ -1,7 +1,7 @@
 use crate::{
     action::ActionQueue,
     animation::Animated,
-    components::{AnimationRunningState, Id, Position, ScriptState, Sprite},
+    components::{AnimationRunningState, Id, Position, ScriptState, Sprite, Velocity},
     crust::{event, AnimationEvent, Vector},
     resources::SpriteSheetsManager,
 };
@@ -17,7 +17,8 @@ pub struct ScriptSystemData<'a> {
 
     ids: ReadStorage<'a, Id>,
     scripts: WriteStorage<'a, ScriptState>,
-    positions: WriteStorage<'a, Position>,
+    positions: ReadStorage<'a, Position>,
+    velocities: WriteStorage<'a, Velocity>,
     sprites: WriteStorage<'a, Sprite>,
 }
 
@@ -31,11 +32,12 @@ impl<'a> System<'a> for ScriptSystem {
     fn run(&mut self, data: Self::SystemData) {
         let mut data = data;
 
-        for (entity, id, script, position, sprite) in (
+        for (entity, id, script, position, velocity, sprite) in (
             &data.entities,
             &data.ids,
             &mut data.scripts,
-            &mut data.positions,
+            &data.positions,
+            &mut data.velocities,
             &mut data.sprites,
         )
             .join()
@@ -45,6 +47,7 @@ impl<'a> System<'a> for ScriptSystem {
                 entity,
                 id,
                 position,
+                velocity,
                 sprite,
                 sprite_sheet,
                 Some(&self.queue),
