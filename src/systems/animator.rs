@@ -1,7 +1,7 @@
 use crate::{
     action::ActionQueue,
     animation::Animated,
-    components::{AnimationRunningState, Id, Position, ScriptState, Sprite},
+    components::{Animation, AnimationRunningState, Id, Position, Sprite, Velocity},
     crust::{event, AnimationEvent, Vector},
     resources::SpriteSheetsManager,
 };
@@ -9,33 +9,35 @@ use specs::prelude::*;
 use std::time::Duration;
 
 #[derive(SystemData)]
-pub struct ScriptSystemData<'a> {
+pub struct AnimatorSystemData<'a> {
     time_since_last_frame: ReadExpect<'a, Duration>,
     sheets_manager: WriteExpect<'a, SpriteSheetsManager>,
     entities: Entities<'a>,
     updater: Read<'a, LazyUpdate>,
 
     ids: ReadStorage<'a, Id>,
-    scripts: WriteStorage<'a, ScriptState>,
-    positions: WriteStorage<'a, Position>,
+    animations: WriteStorage<'a, Animation>,
+    positions: ReadStorage<'a, Position>,
+    velocities: WriteStorage<'a, Velocity>,
     sprites: WriteStorage<'a, Sprite>,
 }
 
-pub struct ScriptSystem {
+pub struct AnimatorSystem {
     queue: ActionQueue,
 }
 
-impl<'a> System<'a> for ScriptSystem {
-    type SystemData = ScriptSystemData<'a>;
+impl<'a> System<'a> for AnimatorSystem {
+    type SystemData = AnimatorSystemData<'a>;
 
     fn run(&mut self, data: Self::SystemData) {
         let mut data = data;
 
-        for (entity, id, script, position, sprite) in (
+        for (entity, id, animation, position, velocity, sprite) in (
             &data.entities,
             &data.ids,
-            &mut data.scripts,
-            &mut data.positions,
+            &mut data.animations,
+            &data.positions,
+            &mut data.velocities,
             &mut data.sprites,
         )
             .join()
@@ -45,35 +47,36 @@ impl<'a> System<'a> for ScriptSystem {
                 entity,
                 id,
                 position,
+                velocity,
                 sprite,
                 sprite_sheet,
                 Some(&self.queue),
             );
 
-            if script.runner.state() == AnimationRunningState::Init {
-                script.runner.start(&mut animated);
+            if animation.runner.state() == AnimationRunningState::Init {
+                animation.runner.start(&mut animated);
             }
 
-            if script.runner.state() == AnimationRunningState::Running {
-                script
+            if animation.runner.state() == AnimationRunningState::Running {
+                animation
                     .runner
                     .progress(*data.time_since_last_frame, &mut animated);
             }
 
-            if script.runner.state() == AnimationRunningState::Finished {
-                self.emit_done(id, script, position, sprite);
-                data.updater.remove::<ScriptState>(entity);
+            if animation.runner.state() == AnimationRunningState::Finished {
+                self.emit_done(id, animation, position, sprite);
+                data.updater.remove::<Animation>(entity);
             }
         }
     }
 }
 
-impl ScriptSystem {
+impl AnimatorSystem {
     pub fn new(queue: ActionQueue) -> Self {
-        ScriptSystem { queue }
+        AnimatorSystem { queue }
     }
 
-    fn emit_done(&self, id: &Id, script: &ScriptState, position: &Position, sprite: &Sprite) {
+    fn emit_done(&self, id: &Id, script: &Animation, position: &Position, sprite: &Sprite) {
         self.queue.emit(
             format!("{}_script_done", id.0),
             event::Event::AnimationScriptDone(AnimationEvent {

@@ -1,11 +1,11 @@
 use crate::action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX};
-use crate::components::{Id, Position, ScriptState, Sprite};
+use crate::components::{Animation, Id, Position, RigidBody, Sprite, Velocity};
 use crate::core::{renderer, EventPump, Status, TextureManager};
 use crate::crust::{user_input, Action, UserInput};
 use crate::event::EventManager;
 use crate::input::InputManager;
 use crate::resources::SpriteSheetsManager;
-use crate::systems::{CollisionSystem, ScriptSystem};
+use crate::systems::{AnimatorSystem, CollisionSystem, MovementSystem};
 use sdl2::image::{self, InitFlag};
 use sdl2::render::WindowCanvas;
 use specs::prelude::*;
@@ -51,7 +51,9 @@ impl Core {
         world.register::<Id>();
         world.register::<Position>();
         world.register::<Sprite>();
-        world.register::<ScriptState>();
+        world.register::<Velocity>();
+        world.register::<Animation>();
+        world.register::<RigidBody>();
 
         let sheets_manager = SpriteSheetsManager::new(resource_path);
         world.insert(sheets_manager);
@@ -87,14 +89,15 @@ impl Core {
 
         let mut dispatcher = DispatcherBuilder::new()
             .with(
-                ScriptSystem::new(ActionQueue::new(self.tx.clone())),
-                "Scripts",
+                AnimatorSystem::new(ActionQueue::new(self.tx.clone())),
+                "Animation",
                 &[],
             )
+            .with(MovementSystem {}, "Movement", &["Animation"])
             .with(
                 CollisionSystem::new(ActionQueue::new(self.tx.clone())),
                 "Collisions",
-                &["Scripts"],
+                &["Animation", "Movement"],
             )
             .build();
         dispatcher.setup(&mut self.world);

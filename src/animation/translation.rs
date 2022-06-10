@@ -16,7 +16,7 @@ impl Performer for TranslationPerformer {
 
     fn execute(&mut self, animated: &mut Animated) -> AnimationRunningState {
         if let Some(vec) = &self.translation.vec {
-            animated.position.0 += Point::new(vec.x as i32, vec.y as i32);
+            animated.velocity.0 += Point::new(vec.x as i32, vec.y as i32);
         }
 
         self.iteration += 1;

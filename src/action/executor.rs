@@ -1,5 +1,5 @@
 use super::INDEX;
-use crate::components::{Collisions, Id, Position, ScriptState, Sprite};
+use crate::components::{Animation, Collisions, Id, Position, RigidBody, Sprite, Velocity};
 use crate::crust::{
     action, Action, AnimationScriptAction, CollisionAction, EmitAction, SceneNodeAction,
     SceneNodeRefAction, Vector,
@@ -32,18 +32,22 @@ impl ActionExecutor {
 
     fn create_scene_node(&self, scene_node_action: SceneNodeAction, world: &mut World) {
         if let Some(node) = scene_node_action.scene_node {
-            let entity = world
+            let mut builder = world
                 .create_entity()
                 .with(Id(node.id.clone()))
                 .with(Position(make_point(
                     &node.position.expect("Node missing position"),
                 )))
+                .with(Velocity(Point::new(0, 0)))
                 .with(Sprite {
                     resource: node.sprite_id,
                     frame_index: node.frame_index as usize,
                     ..Default::default()
-                })
-                .build();
+                });
+            if node.rigid_body {
+                builder = builder.with(RigidBody {});
+            }
+            let entity = builder.build();
 
             INDEX.with(|index| {
                 if let Some(index) = &mut *index.borrow_mut() {
@@ -81,8 +85,8 @@ impl ActionExecutor {
             if let Some(id) = entity_id {
                 let entity = world.entities().entity(id);
 
-                let mut scripts = world.write_storage::<ScriptState>();
-                if let Err(e) = scripts.insert(entity, ScriptState::new(script)) {
+                let mut scripts = world.write_storage::<Animation>();
+                if let Err(e) = scripts.insert(entity, Animation::new(script)) {
                     eprintln!("play_animation(): {}", e);
                 }
             }
@@ -100,7 +104,7 @@ impl ActionExecutor {
         if let Some(id) = entity_id {
             let entity = world.entities().entity(id);
 
-            let mut scripts = world.write_storage::<ScriptState>();
+            let mut scripts = world.write_storage::<Animation>();
             scripts.remove(entity);
         }
     }

@@ -1,5 +1,7 @@
+mod animator;
 mod collisions;
-mod scripts;
+mod movement;
 
+pub use animator::AnimatorSystem;
 pub use collisions::CollisionSystem;
-pub use scripts::ScriptSystem;
+pub use movement::MovementSystem;

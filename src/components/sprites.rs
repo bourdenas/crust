@@ -21,6 +21,10 @@ impl Default for Position {
     }
 }
 
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct Velocity(pub Point);
+
 #[derive(Component, Default, Debug)]
 #[storage(VecStorage)]
 pub struct Sprite {

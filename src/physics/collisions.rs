@@ -98,7 +98,7 @@ pub struct CollisionNode<'a> {
 }
 
 impl<'a> CollisionNode<'a> {
-    fn aabb(&self) -> Rect {
+    pub fn aabb(&self) -> Rect {
         let mut aabb = self.sprite_sheet.bounding_boxes[self.sprite.frame_index];
         aabb.reposition(self.position.0);
         aabb.resize(
