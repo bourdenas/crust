@@ -190,12 +190,12 @@ mod tests {
 
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(20), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(1, 0));
+        assert_eq!(fixture.velocity.0, Point::new(1, 0));
         assert_eq!(runner.finished(), false);
 
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(100), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(3, 0));
+        assert_eq!(fixture.velocity.0, Point::new(3, 0));
         assert_eq!(runner.finished(), true);
     }
 
@@ -227,12 +227,12 @@ mod tests {
 
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(20), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(1, 0));
+        assert_eq!(fixture.velocity.0, Point::new(1, 0));
         assert_eq!(runner.finished(), false);
 
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(110), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(6, 0));
+        assert_eq!(fixture.velocity.0, Point::new(6, 0));
         assert_eq!(runner.finished(), false);
     }
 
@@ -268,41 +268,41 @@ mod tests {
         runner.start(&mut animated);
         assert_eq!(runner.finished(), false);
         assert_eq!(runner.index, 0);
-        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(0, 0));
         assert_eq!(fixture.sprite.frame_index, 2);
 
         // Progress that only affects one of the animations.
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(20), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(1, 0));
+        assert_eq!(fixture.velocity.0, Point::new(1, 0));
         assert_eq!(fixture.sprite.frame_index, 2);
         assert_eq!(runner.finished(), false);
 
         // Check first frame change happens on time.
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(30), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(2, 0));
+        assert_eq!(fixture.velocity.0, Point::new(2, 0));
         assert_eq!(fixture.sprite.frame_index, 3);
         assert_eq!(runner.finished(), false);
 
         // FrameRange finishes but the animator is not `finished` as it repeats.
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(110), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(8, 0));
+        assert_eq!(fixture.velocity.0, Point::new(8, 0));
         assert_eq!(fixture.sprite.frame_index, 5);
         assert_eq!(runner.finished(), false);
 
         // Next FrameRange change wraps to the initial frame.
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(50), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(10, 0));
+        assert_eq!(fixture.velocity.0, Point::new(10, 0));
         assert_eq!(fixture.sprite.frame_index, 2);
         assert_eq!(runner.finished(), false);
 
         // FrameRange now finishes and the script with it too.
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(150), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(18, 0));
+        assert_eq!(fixture.velocity.0, Point::new(18, 0));
         assert_eq!(fixture.sprite.frame_index, 5);
         assert_eq!(runner.finished(), true);
     }
@@ -365,13 +365,13 @@ mod tests {
         runner.start(&mut animated);
         assert_eq!(runner.finished(), false);
         assert_eq!(runner.index, 0);
-        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(0, 0));
         assert_eq!(fixture.sprite.frame_index, 2);
 
         // Run first leg to finish.
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(150), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(7, 0));
+        assert_eq!(fixture.velocity.0, Point::new(7, 0));
         assert_eq!(fixture.sprite.frame_index, 5);
         assert_eq!(runner.finished(), false);
 
@@ -379,14 +379,14 @@ mod tests {
         // change legs if enough duration has passed.
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(220), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(7, 1));
+        assert_eq!(fixture.velocity.0, Point::new(7, 1));
         assert_eq!(fixture.sprite.frame_index, 5);
         assert_eq!(runner.finished(), false);
 
         // Run the last leg to end.
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(80), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(7, 5));
+        assert_eq!(fixture.velocity.0, Point::new(7, 5));
         assert_eq!(fixture.sprite.frame_index, 5);
         assert_eq!(runner.finished(), true);
     }
@@ -402,13 +402,13 @@ mod tests {
         runner.start(&mut animated);
         assert_eq!(runner.finished(), false);
         assert_eq!(runner.index, 0);
-        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(0, 0));
         assert_eq!(fixture.sprite.frame_index, 2);
 
         // Run first leg to finish.
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(150), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(7, 0));
+        assert_eq!(fixture.velocity.0, Point::new(7, 0));
         assert_eq!(fixture.sprite.frame_index, 5);
         assert_eq!(runner.finished(), false);
 
@@ -416,7 +416,7 @@ mod tests {
         // change legs if enough duration has passed.
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(220), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(7, 1));
+        assert_eq!(fixture.velocity.0, Point::new(7, 1));
         assert_eq!(fixture.sprite.frame_index, 5);
         assert_eq!(runner.finished(), false);
 
@@ -424,7 +424,7 @@ mod tests {
         // animators is called FrameRange already applies a change.
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(80), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(7, 5));
+        assert_eq!(fixture.velocity.0, Point::new(7, 5));
         assert_eq!(fixture.sprite.frame_index, 2);
         assert_eq!(runner.finished(), false);
 
@@ -435,13 +435,13 @@ mod tests {
         // parallel frame range would have stopped that earlier. Need to uplevel
         // the iteration on the Animator level from the Performer.
         runner.progress(Duration::from_millis(150), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(14, 5));
+        assert_eq!(fixture.velocity.0, Point::new(14, 5));
         assert_eq!(fixture.sprite.frame_index, 5);
         assert_eq!(runner.finished(), false);
 
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(300), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(14, 10));
+        assert_eq!(fixture.velocity.0, Point::new(14, 10));
         assert_eq!(fixture.sprite.frame_index, 5);
         assert_eq!(runner.finished(), true);
     }
@@ -472,14 +472,14 @@ mod tests {
         runner.start(&mut animated);
         assert_eq!(runner.finished(), false);
         assert_eq!(runner.index, 0);
-        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(0, 0));
         assert_eq!(fixture.sprite.frame_index, 0);
         assert_eq!(fixture.sprite.scaling, ScalingVec::new(1.0, 1.0));
 
         // Run first leg to finish.
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(10), &mut animated);
-        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(0, 0));
         assert_eq!(fixture.sprite.frame_index, 0);
         assert_eq!(fixture.sprite.scaling, ScalingVec::new(1.2, 2.0));
         assert_eq!(runner.finished(), true);

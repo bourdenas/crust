@@ -10,7 +10,7 @@ pub mod util {
     pub struct Fixture {
         id: Id,
         pub position: Position,
-        velocity: Velocity,
+        pub velocity: Velocity,
         pub sprite: Sprite,
         sheet: SpriteSheet,
     }

@@ -66,13 +66,15 @@ mod tests {
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
         assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(0, 0));
 
         let mut animated = fixture.animated();
         assert_eq!(
             performer.execute(&mut animated,),
             AnimationRunningState::Finished
         );
-        assert_eq!(fixture.position.0, Point::new(1, 0));
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(1, 0));
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
@@ -83,6 +85,7 @@ mod tests {
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
         assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(0, 0));
         assert_eq!(performer.finished(), false);
 
         let mut animated = fixture.animated();
@@ -90,7 +93,8 @@ mod tests {
             performer.progress(Duration::from_millis(50), &mut animated),
             Duration::from_millis(20)
         );
-        assert_eq!(fixture.position.0, Point::new(1, 0));
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(1, 0));
         assert_eq!(performer.finished(), true);
     }
 
@@ -113,27 +117,31 @@ mod tests {
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
         assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(0, 0));
 
         let mut animated = fixture.animated();
         assert_eq!(
             performer.execute(&mut animated),
             AnimationRunningState::Running
         );
-        assert_eq!(fixture.position.0, Point::new(1, 1));
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(1, 1));
 
         let mut animated = fixture.animated();
         assert_eq!(
             performer.execute(&mut animated),
             AnimationRunningState::Running
         );
-        assert_eq!(fixture.position.0, Point::new(2, 2));
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(2, 2));
 
         let mut animated = fixture.animated();
         assert_eq!(
             performer.execute(&mut animated),
             AnimationRunningState::Finished
         );
-        assert_eq!(fixture.position.0, Point::new(3, 3));
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(3, 3));
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
@@ -144,6 +152,7 @@ mod tests {
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
         assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(0, 0));
         assert_eq!(performer.finished(), false);
 
         let mut animated = fixture.animated();
@@ -151,7 +160,8 @@ mod tests {
             performer.progress(Duration::from_millis(50), &mut animated),
             Duration::from_millis(50)
         );
-        assert_eq!(fixture.position.0, Point::new(2, 2));
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(2, 2));
         assert_eq!(performer.finished(), false);
 
         let mut animated = fixture.animated();
@@ -159,7 +169,8 @@ mod tests {
             performer.progress(Duration::from_millis(10), &mut animated),
             Duration::from_millis(10)
         );
-        assert_eq!(fixture.position.0, Point::new(3, 3));
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(3, 3));
         assert_eq!(performer.finished(), true);
     }
 
@@ -181,6 +192,7 @@ mod tests {
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
         assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(0, 0));
 
         for i in 1..100 {
             let mut animated = fixture.animated();
@@ -188,7 +200,8 @@ mod tests {
                 performer.execute(&mut animated),
                 AnimationRunningState::Running
             );
-            assert_eq!(fixture.position.0, Point::new(0, i * 2));
+            assert_eq!(fixture.position.0, Point::new(0, 0));
+            assert_eq!(fixture.velocity.0, Point::new(0, i * 2));
         }
 
         // Test Performer using PerformerBase.
@@ -200,6 +213,7 @@ mod tests {
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
         assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(0, 0));
         assert_eq!(performer.finished(), false);
 
         let mut animated = fixture.animated();
@@ -207,7 +221,8 @@ mod tests {
             performer.progress(Duration::from_millis(200), &mut animated),
             Duration::from_millis(200)
         );
-        assert_eq!(fixture.position.0, Point::new(0, 20));
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(0, 20));
         assert_eq!(performer.finished(), false);
 
         let mut animated = fixture.animated();
@@ -215,7 +230,8 @@ mod tests {
             performer.progress(Duration::from_millis(2000), &mut animated),
             Duration::from_millis(2000)
         );
-        assert_eq!(fixture.position.0, Point::new(0, 220));
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(0, 220));
         assert_eq!(performer.finished(), false);
     }
 
@@ -237,13 +253,15 @@ mod tests {
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
         assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(0, 0));
 
         let mut animated = fixture.animated();
         assert_eq!(
             performer.execute(&mut animated),
             AnimationRunningState::Running
         );
-        assert_eq!(fixture.position.0, Point::new(5, 0));
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(5, 0));
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
@@ -254,6 +272,7 @@ mod tests {
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
         assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(0, 0));
         assert_eq!(performer.finished(), false);
 
         let mut animated = fixture.animated();
@@ -261,7 +280,8 @@ mod tests {
             performer.progress(Duration::from_millis(50), &mut animated),
             Duration::ZERO
         );
-        assert_eq!(fixture.position.0, Point::new(5, 0));
+        assert_eq!(fixture.position.0, Point::new(0, 0));
+        assert_eq!(fixture.velocity.0, Point::new(5, 0));
         assert_eq!(performer.finished(), true);
     }
 }
