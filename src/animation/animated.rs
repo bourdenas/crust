@@ -5,21 +5,18 @@ use crate::{
     resources::SpriteSheet,
 };
 use sdl2::rect::Point;
-use specs::Entity;
 
 pub struct Animated<'a> {
-    pub entity: Entity,
     pub id: &'a Id,
     pub position: &'a Position,
     pub velocity: &'a mut Velocity,
     pub sprite: &'a mut Sprite,
-    pub sprite_sheet: &'a SpriteSheet,
+    sprite_sheet: &'a SpriteSheet,
     pub queue: Option<&'a ActionQueue>,
 }
 
 impl<'a> Animated<'a> {
     pub fn new(
-        entity: Entity,
         id: &'a Id,
         position: &'a Position,
         velocity: &'a mut Velocity,
@@ -28,7 +25,6 @@ impl<'a> Animated<'a> {
         queue: Option<&'a ActionQueue>,
     ) -> Self {
         Animated {
-            entity,
             id,
             position,
             velocity,

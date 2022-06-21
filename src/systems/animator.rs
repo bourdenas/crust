@@ -44,7 +44,6 @@ impl<'a> System<'a> for AnimatorSystem {
         {
             let sprite_sheet = &data.sheets_manager.load(&sprite.resource).unwrap();
             let mut animated = Animated::new(
-                entity,
                 id,
                 position,
                 velocity,
