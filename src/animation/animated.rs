@@ -49,12 +49,14 @@ pub fn set_frame(
     velocity: &mut Velocity,
     sprite_sheet: &SpriteSheet,
 ) {
-    let mut prev_aabb = sprite_sheet.bounding_boxes[sprite.frame_index].clone();
+    let mut prev_aabb = sprite_sheet.bounding_boxes[sprite.frame_index];
     prev_aabb.reposition(position.0);
-    let mut next_aabb = sprite_sheet.bounding_boxes[frame_index].clone();
+    let mut next_aabb = sprite_sheet.bounding_boxes[frame_index];
     next_aabb.reposition(position.0);
 
     sprite.frame_index = frame_index;
+    sprite.bounding_box = sprite_sheet.bounding_boxes[frame_index];
+
     velocity.0 += Point::new(
         match h_align {
             HorizontalAlign::Right => {

@@ -1,4 +1,4 @@
-use sdl2::rect::Point;
+use sdl2::rect::{Point, Rect};
 use specs::prelude::*;
 use specs_derive::Component;
 use std::ops::MulAssign;
@@ -25,11 +25,12 @@ impl Default for Position {
 #[storage(VecStorage)]
 pub struct Velocity(pub Point);
 
-#[derive(Component, Default, Debug)]
+#[derive(Component, Debug)]
 #[storage(VecStorage)]
 pub struct Sprite {
     pub resource: String,
     pub frame_index: usize,
+    pub bounding_box: Rect,
     pub scaling: ScalingVec,
 }
 

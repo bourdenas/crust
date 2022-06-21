@@ -27,8 +27,14 @@ impl SpriteSheetsManager {
         }
     }
 
-    pub fn get<'a>(&'a self, key: &str) -> Option<&'a SpriteSheet> {
-        self._cache.get(key)
+    pub fn get(&self, key: &str, index: usize) -> Option<Rect> {
+        match self._cache.get(key) {
+            Some(sheet) => match index < sheet.bounding_boxes.len() {
+                true => Some(sheet.bounding_boxes[index]),
+                false => None,
+            },
+            None => None,
+        }
     }
 }
 

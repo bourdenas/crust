@@ -1,11 +1,14 @@
 use super::INDEX;
-use crate::components::{Animation, Collisions, Id, Position, RigidBody, Sprite, Velocity};
+use crate::components::{
+    Animation, Collisions, Id, Position, RigidBody, ScalingVec, Sprite, Velocity,
+};
 use crate::crust::{
     action, Action, AnimationScriptAction, CollisionAction, EmitAction, SceneNodeAction,
     SceneNodeRefAction, Vector,
 };
 use crate::event::EventManager;
-use sdl2::rect::Point;
+use crate::resources::SpriteSheetsManager;
+use sdl2::rect::{Point, Rect};
 use specs::prelude::*;
 
 pub struct ActionExecutor;
@@ -30,8 +33,30 @@ impl ActionExecutor {
         }
     }
 
+    fn get_bounding_box(world: &mut World, resource: &str, frame_index: usize) -> Option<Rect> {
+        let mut sheets_manager = world.write_resource::<SpriteSheetsManager>();
+        if let Err(e) = sheets_manager.load(resource) {
+            eprintln!("🦀 {}", e);
+            return None;
+        }
+
+        sheets_manager.get(resource, frame_index)
+    }
+
     fn create_scene_node(&self, scene_node_action: SceneNodeAction, world: &mut World) {
         if let Some(node) = scene_node_action.scene_node {
+            let bbox =
+                match Self::get_bounding_box(world, &node.sprite_id, node.frame_index as usize) {
+                    Some(bbox) => bbox,
+                    None => {
+                        eprintln!(
+                            "🦀 Failed to retrieve frame '{}' from resouce sheet '{}'",
+                            node.frame_index, &node.sprite_id
+                        );
+                        return;
+                    }
+                };
+
             let mut builder = world
                 .create_entity()
                 .with(Id(node.id.clone()))
@@ -40,10 +65,12 @@ impl ActionExecutor {
                 )))
                 .with(Velocity(Point::new(0, 0)))
                 .with(Sprite {
-                    resource: node.sprite_id,
+                    resource: node.sprite_id.clone(),
                     frame_index: node.frame_index as usize,
-                    ..Default::default()
+                    bounding_box: bbox,
+                    scaling: ScalingVec::default(),
                 });
+
             if node.rigid_body {
                 builder = builder.with(RigidBody {});
             }

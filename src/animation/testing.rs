@@ -2,7 +2,7 @@
 pub mod util {
     use crate::{
         animation::Animated,
-        components::{Id, Position, Sprite, Velocity},
+        components::{Id, Position, ScalingVec, Sprite, Velocity},
         resources::SpriteSheet,
     };
     use sdl2::rect::{Point, Rect};
@@ -27,7 +27,8 @@ pub mod util {
                 sprite: Sprite {
                     resource: "foo".to_owned(),
                     frame_index: 0,
-                    ..Default::default()
+                    bounding_box: Rect::new(0, 0, 32, 32),
+                    scaling: ScalingVec::default(),
                 },
                 sheet: SpriteSheet {
                     resource: "foo".to_owned(),

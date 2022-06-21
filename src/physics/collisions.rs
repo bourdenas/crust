@@ -2,7 +2,6 @@ use crate::{
     action::ActionQueue,
     components::{Id, Position, Sprite},
     crust::{event, Box, CollisionAction, CollisionEvent},
-    resources::SpriteSheet,
 };
 use sdl2::rect::Rect;
 use std::collections::HashSet;
@@ -94,12 +93,11 @@ pub struct CollisionNode<'a> {
     pub id: &'a Id,
     pub position: &'a Position,
     pub sprite: &'a Sprite,
-    pub sprite_sheet: &'a SpriteSheet,
 }
 
 impl<'a> CollisionNode<'a> {
     pub fn aabb(&self) -> Rect {
-        let mut aabb = self.sprite_sheet.bounding_boxes[self.sprite.frame_index];
+        let mut aabb = self.sprite.bounding_box;
         aabb.reposition(self.position.0);
         aabb.resize(
             (aabb.width() as f64 * self.sprite.scaling.x) as u32,

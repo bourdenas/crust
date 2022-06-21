@@ -1,14 +1,12 @@
 use crate::{
     components::{Id, Position, RigidBody, Sprite, Velocity},
     physics::CollisionNode,
-    resources::SpriteSheetsManager,
 };
 use sdl2::rect::Point;
 use specs::prelude::*;
 
 #[derive(SystemData)]
 pub struct MovementSystemData<'a> {
-    sheets_manager: WriteExpect<'a, SpriteSheetsManager>,
     entities: Entities<'a>,
 
     ids: ReadStorage<'a, Id>,
@@ -42,16 +40,11 @@ impl<'a> System<'a> for MovementSystem {
             }
             dirty.add(entity_a.id());
 
-            let sprite_sheet_a = match data.sheets_manager.get(&sprite_a.resource) {
-                Some(sheet) => sheet,
-                None => continue,
-            };
             let lhs = CollisionNode {
                 entity_id: entity_a.id(),
                 id: id_a,
                 position: position_a,
                 sprite: sprite_a,
-                sprite_sheet: sprite_sheet_a,
             };
             let mut lhs_aabb = lhs.aabb();
 
@@ -73,10 +66,6 @@ impl<'a> System<'a> for MovementSystem {
                     id: id_b,
                     position: position_b,
                     sprite: sprite_b,
-                    sprite_sheet: match data.sheets_manager.get(&sprite_b.resource) {
-                        Some(sheet) => sheet,
-                        None => continue,
-                    },
                 };
 
                 lhs_aabb.offset(velocity_a.0.x(), velocity_a.0.y());
