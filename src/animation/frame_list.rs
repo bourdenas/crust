@@ -1,4 +1,4 @@
-use super::{animated::set_frame, Animated, Performer};
+use super::{Animated, Performer};
 use crate::{
     components::AnimationRunningState,
     crust::{FrameListAnimation, HorizontalAlign, VerticalAlign},
@@ -19,14 +19,10 @@ impl Performer for FrameListPerformer {
             true => self.frame_list.frame.len() - 1,
         };
 
-        set_frame(
+        animated.change_frame(
             self.frame_list.frame[self.index] as usize,
             VerticalAlign::from_i32(self.frame_list.vertical_align).unwrap(),
             HorizontalAlign::from_i32(self.frame_list.horizontal_align).unwrap(),
-            animated.sprite,
-            animated.position,
-            animated.velocity,
-            animated.sprite_sheet,
         );
 
         self.finished = self.frame_list.repeat == 1 && self.frame_list.frame.len() == 1;
@@ -42,14 +38,10 @@ impl Performer for FrameListPerformer {
             self.index = 0;
         }
 
-        set_frame(
+        animated.change_frame(
             self.frame_list.frame[self.index] as usize,
             VerticalAlign::from_i32(self.frame_list.vertical_align).unwrap(),
             HorizontalAlign::from_i32(self.frame_list.horizontal_align).unwrap(),
-            animated.sprite,
-            animated.position,
-            animated.velocity,
-            animated.sprite_sheet,
         );
 
         if self.index == (self.frame_list.frame.len() - 1) && self.frame_list.repeat > 0 {

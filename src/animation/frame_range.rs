@@ -1,4 +1,4 @@
-use super::{animated::set_frame, Animated, Performer};
+use super::{Animated, Performer};
 use crate::{
     components::AnimationRunningState,
     crust::{FrameRangeAnimation, HorizontalAlign, VerticalAlign},
@@ -23,14 +23,10 @@ impl Performer for FrameRangePerformer {
             false => self.frame_range.start_frame,
         };
 
-        set_frame(
+        animated.change_frame(
             start_frame as usize,
             VerticalAlign::from_i32(self.frame_range.vertical_align).unwrap(),
             HorizontalAlign::from_i32(self.frame_range.horizontal_align).unwrap(),
-            animated.sprite,
-            animated.position,
-            animated.velocity,
-            animated.sprite_sheet,
         );
 
         self.finished = self.frame_range.repeat == 1
@@ -47,14 +43,10 @@ impl Performer for FrameRangePerformer {
             next_frame = self.frame_range.start_frame;
         }
 
-        set_frame(
+        animated.change_frame(
             next_frame as usize,
             VerticalAlign::from_i32(self.frame_range.vertical_align).unwrap(),
             HorizontalAlign::from_i32(self.frame_range.horizontal_align).unwrap(),
-            animated.sprite,
-            animated.position,
-            animated.velocity,
-            animated.sprite_sheet,
         );
 
         if animated.sprite.frame_index as i32 == self.frame_range.end_frame - self.step

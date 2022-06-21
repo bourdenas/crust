@@ -37,44 +37,41 @@ impl<'a> Animated<'a> {
             queue,
         }
     }
-}
 
-/// Handles sprite frame changes taking care of sprite film alignments.
-pub fn set_frame(
-    frame_index: usize,
-    v_align: VerticalAlign,
-    h_align: HorizontalAlign,
-    sprite: &mut Sprite,
-    position: &Position,
-    velocity: &mut Velocity,
-    sprite_sheet: &SpriteSheet,
-) {
-    let mut prev_aabb = sprite_sheet.bounding_boxes[sprite.frame_index];
-    prev_aabb.reposition(position.0);
-    let mut next_aabb = sprite_sheet.bounding_boxes[frame_index];
-    next_aabb.reposition(position.0);
+    /// Handles sprite frame changes taking care of sprite film alignments.
+    pub fn change_frame(
+        &mut self,
+        frame_index: usize,
+        v_align: VerticalAlign,
+        h_align: HorizontalAlign,
+    ) {
+        let mut prev_aabb = self.sprite_sheet.bounding_boxes[self.sprite.frame_index];
+        prev_aabb.reposition(self.position.0);
+        let mut next_aabb = self.sprite_sheet.bounding_boxes[frame_index];
+        next_aabb.reposition(self.position.0);
 
-    sprite.frame_index = frame_index;
-    sprite.bounding_box = sprite_sheet.bounding_boxes[frame_index];
+        self.sprite.frame_index = frame_index;
+        self.sprite.bounding_box = self.sprite_sheet.bounding_boxes[frame_index];
 
-    velocity.0 += Point::new(
-        match h_align {
-            HorizontalAlign::Right => {
-                position.0.x() + (prev_aabb.width() - next_aabb.width()) as i32
-            }
-            HorizontalAlign::Hcentre => {
-                position.0.x() + ((prev_aabb.width() - next_aabb.width()) / 2) as i32
-            }
-            _ => 0,
-        },
-        match v_align {
-            VerticalAlign::Bottom => {
-                position.0.y() + (prev_aabb.height() - next_aabb.height()) as i32
-            }
-            VerticalAlign::Vcentre => {
-                position.0.y() + (prev_aabb.height() - next_aabb.height() / 2) as i32
-            }
-            _ => 0,
-        },
-    );
+        self.velocity.0 += Point::new(
+            match h_align {
+                HorizontalAlign::Right => {
+                    self.position.0.x() + (prev_aabb.width() - next_aabb.width()) as i32
+                }
+                HorizontalAlign::Hcentre => {
+                    self.position.0.x() + ((prev_aabb.width() - next_aabb.width()) / 2) as i32
+                }
+                _ => 0,
+            },
+            match v_align {
+                VerticalAlign::Bottom => {
+                    self.position.0.y() + (prev_aabb.height() - next_aabb.height()) as i32
+                }
+                VerticalAlign::Vcentre => {
+                    self.position.0.y() + (prev_aabb.height() - next_aabb.height() / 2) as i32
+                }
+                _ => 0,
+            },
+        );
+    }
 }
