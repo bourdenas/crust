@@ -1,5 +1,6 @@
 use crate::components::{Position, Sprite};
-use crate::core::{Status, TextureManager};
+use crate::core::Status;
+use crate::resources::TextureManager;
 use sdl2::rect::Rect;
 use sdl2::render::WindowCanvas;
 use specs::prelude::*;

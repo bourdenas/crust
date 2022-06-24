@@ -1,10 +1,10 @@
 use crate::action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX};
 use crate::components::{Animation, Id, Position, RigidBody, Sprite, Velocity};
-use crate::core::{renderer, EventPump, Status, TextureManager};
+use crate::core::{renderer, EventPump, Status};
 use crate::crust::{user_input, Action, UserInput};
 use crate::event::EventManager;
 use crate::input::InputManager;
-use crate::resources::SpriteSheetsManager;
+use crate::resources::{SpriteSheetsManager, TextureManager};
 use crate::systems::{AnimatorSystem, CollisionSystem, MovementSystem};
 use sdl2::image::{self, InitFlag};
 use sdl2::render::WindowCanvas;

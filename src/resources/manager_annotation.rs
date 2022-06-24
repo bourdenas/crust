@@ -4,23 +4,23 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::rc::Rc;
 
-pub struct ResourceManager<'l, Key, Resource, Loader>
+pub struct ResourceManagerWithAnnotation<'l, Key, Resource, Loader>
 where
     Key: Hash + Eq,
-    Loader: 'l + ResourceLoader<'l, Resource>,
+    Loader: 'l + ResourceLoaderWithAnnotation<'l, Resource>,
 {
     resource_path: String,
     loader: &'l Loader,
     cache: HashMap<Key, Rc<Resource>>,
 }
 
-impl<'l, Key, Resource, Loader> ResourceManager<'l, Key, Resource, Loader>
+impl<'l, Key, Resource, Loader> ResourceManagerWithAnnotation<'l, Key, Resource, Loader>
 where
     Key: Hash + Eq,
-    Loader: ResourceLoader<'l, Resource>,
+    Loader: ResourceLoaderWithAnnotation<'l, Resource>,
 {
     pub fn new(resource_path: &str, loader: &'l Loader) -> Self {
-        ResourceManager {
+        ResourceManagerWithAnnotation {
             resource_path: resource_path.to_owned(),
             loader,
             cache: HashMap::new(),
@@ -31,7 +31,7 @@ where
     // while allowing it to use &str for gets
     pub fn load<D>(&mut self, details: &D) -> Result<Rc<Resource>, Status>
     where
-        Loader: ResourceLoader<'l, Resource, Args = D>,
+        Loader: ResourceLoaderWithAnnotation<'l, Resource, Args = D>,
         D: Eq + Hash + ?Sized,
         Key: Borrow<D> + for<'a> From<&'a D>,
     {
@@ -47,7 +47,7 @@ where
 }
 
 /// Generic trait to load resource.
-pub trait ResourceLoader<'l, Resource> {
+pub trait ResourceLoaderWithAnnotation<'l, Resource> {
     type Args: ?Sized;
 
     fn load(&'l self, path: &str, resource: &Self::Args) -> Result<Resource, Status>;
