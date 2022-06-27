@@ -4,6 +4,11 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::rc::Rc;
 
+// A generic resource manager that handles loading external resources and
+// maintaining an in-memory cache for quick retrieval.
+//
+// Simlilar to [resources::ResourceManager] but specific for Resources whose
+// lifetime is tied to that of their associated Loader.
 pub struct ResourceManagerWithAnnotation<'l, Key, Resource, Loader>
 where
     Key: Hash + Eq,

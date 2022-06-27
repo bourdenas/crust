@@ -58,7 +58,7 @@ impl Core {
         world.register::<Animation>();
         world.register::<RigidBody>();
 
-        let sheets_manager = SpriteSheetsManager::new(resource_path);
+        let sheets_manager = SpriteSheetsManager::create(resource_path);
         world.insert(sheets_manager);
         world.insert(Duration::ZERO);
 
@@ -91,18 +91,13 @@ impl Core {
         let texture_creator = self.canvas.texture_creator();
         let mut texture_manager = TextureManager::new(&self.resource_path, &texture_creator);
 
+        let animations = AnimatorSystem::new(ActionQueue::new(self.tx.clone()));
+        let collisions = CollisionSystem::new(ActionQueue::new(self.tx.clone()));
+
         let mut dispatcher = DispatcherBuilder::new()
-            .with(
-                AnimatorSystem::new(ActionQueue::new(self.tx.clone())),
-                "Animation",
-                &[],
-            )
+            .with(animations, "Animation", &[])
             .with(MovementSystem {}, "Movement", &["Animation"])
-            .with(
-                CollisionSystem::new(ActionQueue::new(self.tx.clone())),
-                "Collisions",
-                &["Animation", "Movement"],
-            )
+            .with(collisions, "Collisions", &["Animation", "Movement"])
             .build();
         dispatcher.setup(&mut self.world);
 

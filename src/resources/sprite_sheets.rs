@@ -1,34 +1,31 @@
+use super::{ResourceLoader, ResourceManager};
 use crate::core::Status;
 use sdl2::rect::Rect;
-use std::collections::HashMap;
 
-pub struct SpriteSheetsManager {
-    _path: String,
-    _cache: HashMap<String, SpriteSheet>,
-}
+pub type SpriteSheetsManager = ResourceManager<String, SpriteSheet, SpriteSheetsLoader>;
 
-impl SpriteSheetsManager {
-    pub fn new(resource_path: &str) -> Self {
-        SpriteSheetsManager {
-            _path: resource_path.to_owned(),
-            _cache: HashMap::new(),
-        }
-    }
+pub struct SpriteSheetsLoader;
 
-    pub fn load<'a>(&'a mut self, key: &str) -> Result<&'a SpriteSheet, Status> {
-        let filename = format!("{}/{}.json", self._path, key);
+impl ResourceLoader<SpriteSheet> for SpriteSheetsLoader {
+    type Args = str;
+
+    fn load(&self, path: &str, resource: &str) -> Result<SpriteSheet, Status> {
+        let filename = format!("{}/{}.json", path, resource);
         let json = std::fs::read(filename)?;
         match serde_json::from_slice::<SpriteSheet>(&json) {
-            Ok(sheet) => {
-                self._cache.insert(key.to_owned(), sheet);
-                Ok(&self._cache.get(key).unwrap())
-            }
+            Ok(sheet) => Ok(sheet),
             Err(e) => Err(Status::new("Failed to load sprite sheet: {}", e)),
         }
     }
+}
 
-    pub fn get(&self, key: &str, index: usize) -> Option<Rect> {
-        match self._cache.get(key) {
+impl SpriteSheetsManager {
+    pub fn create(resource_path: &str) -> Self {
+        SpriteSheetsManager::new(resource_path, SpriteSheetsLoader {})
+    }
+
+    pub fn get_box(&self, key: &str, index: usize) -> Option<Rect> {
+        match self.get(key) {
             Some(sheet) => match index < sheet.bounding_boxes.len() {
                 true => Some(sheet.bounding_boxes[index]),
                 false => None,

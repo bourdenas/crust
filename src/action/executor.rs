@@ -40,7 +40,7 @@ impl ActionExecutor {
             return None;
         }
 
-        sheets_manager.get(resource, frame_index)
+        sheets_manager.get_box(resource, frame_index)
     }
 
     fn create_scene_node(&self, scene_node_action: SceneNodeAction, world: &mut World) {
