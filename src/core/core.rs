@@ -1,3 +1,4 @@
+use super::FpsCounter;
 use crate::action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX};
 use crate::components::{Animation, Id, Position, RigidBody, Sprite, Velocity};
 use crate::core::{renderer, EventPump, Status};
@@ -19,6 +20,8 @@ pub struct Core {
     pub executor: ActionExecutor,
     pub input_manager: InputManager,
     pub event_manager: EventManager,
+
+    fps_counter: FpsCounter,
 
     tx: Sender<Action>,
     rx: Receiver<Action>,
@@ -73,6 +76,7 @@ impl Core {
             executor: ActionExecutor::new(),
             input_manager: InputManager::new(),
             event_manager: EventManager::new(),
+            fps_counter: FpsCounter::new(),
             tx,
             rx,
             _sdl_context: sdl_context,
@@ -105,6 +109,8 @@ impl Core {
         let mut prev_time = SystemTime::now();
 
         'game: loop {
+            self.fps_counter.start_frame();
+
             // Input event handling.
             'events: loop {
                 match self.event_pump.poll().event {
@@ -135,6 +141,8 @@ impl Core {
             let curr_time = SystemTime::now();
             let time_since_last_frame = curr_time.duration_since(prev_time).unwrap();
             *self.world.write_resource::<Duration>() = time_since_last_frame;
+            self.fps_counter.progress(time_since_last_frame);
+            prev_time = curr_time;
 
             dispatcher.dispatch(&mut self.world);
 
@@ -147,7 +155,7 @@ impl Core {
             self.world.maintain();
             self.render(&mut texture_manager);
 
-            prev_time = curr_time;
+            self.fps_counter.end_frame();
         }
     }
 
