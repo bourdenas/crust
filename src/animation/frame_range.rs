@@ -74,7 +74,7 @@ impl FrameRangePerformer {
 mod tests {
     use crate::{
         animation::{
-            performer::{PerformerBase, TimeProgressor},
+            progressor::{Progressor, ProgressorImpl},
             testing::util::Fixture,
             FrameRangePerformer, Performer,
         },
@@ -117,7 +117,7 @@ mod tests {
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
-        let mut performer = PerformerBase::new(
+        let mut performer = ProgressorImpl::new(
             FrameRangePerformer::new(animation.clone()),
             Duration::from_millis(animation.delay as u64),
         );
@@ -183,7 +183,7 @@ mod tests {
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
-        let mut performer = PerformerBase::new(
+        let mut performer = ProgressorImpl::new(
             FrameRangePerformer::new(animation.clone()),
             Duration::from_millis(animation.delay as u64),
         );
@@ -229,7 +229,7 @@ mod tests {
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
-        let mut performer = PerformerBase::new(
+        let mut performer = ProgressorImpl::new(
             FrameRangePerformer::new(animation.clone()),
             Duration::from_millis(animation.delay as u64),
         );
@@ -285,7 +285,7 @@ mod tests {
         // clear correct behaviour. Implemented behaviour is that animation will
         // apply only one frame change and finish after that.
         let mut fixture = Fixture::new();
-        let mut performer = PerformerBase::new(
+        let mut performer = ProgressorImpl::new(
             FrameRangePerformer::new(animation.clone()),
             Duration::from_millis(animation.delay as u64),
         );

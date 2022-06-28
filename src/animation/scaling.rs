@@ -42,7 +42,7 @@ impl ScalingPerformer {
 mod tests {
     use crate::{
         animation::{
-            performer::{PerformerBase, TimeProgressor},
+            progressor::{Progressor, ProgressorImpl},
             testing::util::Fixture,
             Performer, ScalingPerformer,
         },
@@ -80,7 +80,7 @@ mod tests {
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
-        let mut performer = PerformerBase::new(
+        let mut performer = ProgressorImpl::new(
             ScalingPerformer::new(animation.clone()),
             Duration::from_millis(animation.delay as u64),
         );

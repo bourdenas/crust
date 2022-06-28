@@ -1,5 +1,5 @@
 use super::{
-    performer::{PerformerBase, TimeProgressor},
+    progressor::{Progressor, ProgressorImpl},
     Animated, FrameListPerformer, FrameRangePerformer, ScalingPerformer, TimerPerformer,
     TranslationPerformer,
 };
@@ -9,7 +9,7 @@ use std::time::Duration;
 #[derive(Default)]
 pub struct Animator {
     animation: Animation,
-    progressors: Vec<Box<dyn TimeProgressor + Send + Sync>>,
+    progressors: Vec<Box<dyn Progressor + Send + Sync>>,
     finished: bool,
 }
 
@@ -26,35 +26,35 @@ impl Animator {
         let animation = self.animation.clone();
         if let Some(translation) = animation.translation {
             let delay = translation.delay as u64;
-            self.progressors.push(Box::new(PerformerBase::new(
+            self.progressors.push(Box::new(ProgressorImpl::new(
                 TranslationPerformer::new(translation),
                 Duration::from_millis(delay),
             )));
         }
         if let Some(scaling) = animation.scaling {
             let delay = scaling.delay as u64;
-            self.progressors.push(Box::new(PerformerBase::new(
+            self.progressors.push(Box::new(ProgressorImpl::new(
                 ScalingPerformer::new(scaling),
                 Duration::from_millis(delay),
             )));
         }
         if let Some(frame_range) = animation.frame_range {
             let delay = frame_range.delay as u64;
-            self.progressors.push(Box::new(PerformerBase::new(
+            self.progressors.push(Box::new(ProgressorImpl::new(
                 FrameRangePerformer::new(frame_range),
                 Duration::from_millis(delay),
             )));
         }
         if let Some(frame_list) = animation.frame_list {
             let delay = frame_list.delay as u64;
-            self.progressors.push(Box::new(PerformerBase::new(
+            self.progressors.push(Box::new(ProgressorImpl::new(
                 FrameListPerformer::new(frame_list),
                 Duration::from_millis(delay),
             )));
         }
         if let Some(timer) = animation.timer {
             let delay = timer.delay as u64;
-            self.progressors.push(Box::new(PerformerBase::new(
+            self.progressors.push(Box::new(ProgressorImpl::new(
                 TimerPerformer::new(timer),
                 Duration::from_millis(delay),
             )));

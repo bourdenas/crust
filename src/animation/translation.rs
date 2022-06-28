@@ -40,7 +40,7 @@ impl TranslationPerformer {
 mod tests {
     use crate::{
         animation::{
-            performer::{PerformerBase, TimeProgressor},
+            progressor::{Progressor, ProgressorImpl},
             testing::util::Fixture,
             Performer, TranslationPerformer,
         },
@@ -80,7 +80,7 @@ mod tests {
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
-        let mut performer = PerformerBase::new(
+        let mut performer = ProgressorImpl::new(
             TranslationPerformer::new(animation.clone()),
             Duration::from_millis(animation.delay as u64),
         );
@@ -147,7 +147,7 @@ mod tests {
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
-        let mut performer = PerformerBase::new(
+        let mut performer = ProgressorImpl::new(
             TranslationPerformer::new(animation.clone()),
             Duration::from_millis(animation.delay as u64),
         );
@@ -208,7 +208,7 @@ mod tests {
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
-        let mut performer = PerformerBase::new(
+        let mut performer = ProgressorImpl::new(
             TranslationPerformer::new(animation.clone()),
             Duration::from_millis(animation.delay as u64),
         );
@@ -267,7 +267,7 @@ mod tests {
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
-        let mut performer = PerformerBase::new(
+        let mut performer = ProgressorImpl::new(
             TranslationPerformer::new(animation.clone()),
             Duration::from_millis(animation.delay as u64),
         );
