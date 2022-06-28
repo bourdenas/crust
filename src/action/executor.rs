@@ -10,25 +10,34 @@ use crate::event::EventManager;
 use crate::resources::SpriteSheetsManager;
 use sdl2::rect::{Point, Rect};
 use specs::prelude::*;
+use std::sync::mpsc::Receiver;
 
-pub struct ActionExecutor;
+pub struct ActionExecutor {
+    rx: Receiver<Action>,
+}
 
 impl ActionExecutor {
-    pub fn new() -> Self {
-        ActionExecutor {}
+    pub fn new(rx: Receiver<Action>) -> Self {
+        ActionExecutor { rx }
     }
 
-    pub fn execute(&self, action: Action, world: &mut World, event_manager: &mut EventManager) {
+    pub fn process(&self, world: &mut World, event_manager: &mut EventManager) {
+        self.rx
+            .try_iter()
+            .for_each(|action| Self::execute(action, world, event_manager));
+    }
+
+    fn execute(action: Action, world: &mut World, event_manager: &mut EventManager) {
         match action.action {
             Some(action::Action::Quit(..)) => (),
-            Some(action::Action::CreateSceneNode(action)) => self.create_scene_node(action, world),
+            Some(action::Action::CreateSceneNode(action)) => Self::create_scene_node(action, world),
             Some(action::Action::DestroySceneNode(action)) => {
-                self.destroy_scene_node(action, world)
+                Self::destroy_scene_node(action, world)
             }
-            Some(action::Action::PlayAnimation(action)) => self.play_animation(action, world),
-            Some(action::Action::StopAnimation(action)) => self.stop_animation(action, world),
-            Some(action::Action::OnCollision(action)) => self.on_collision(action, world),
-            Some(action::Action::Emit(action)) => self.emit(action, event_manager),
+            Some(action::Action::PlayAnimation(action)) => Self::play_animation(action, world),
+            Some(action::Action::StopAnimation(action)) => Self::stop_animation(action, world),
+            Some(action::Action::OnCollision(action)) => Self::on_collision(action, world),
+            Some(action::Action::Emit(action)) => Self::emit(action, event_manager),
             _ => (),
         }
     }
@@ -43,7 +52,7 @@ impl ActionExecutor {
         sheets_manager.get_box(resource, frame_index)
     }
 
-    fn create_scene_node(&self, scene_node_action: SceneNodeAction, world: &mut World) {
+    fn create_scene_node(scene_node_action: SceneNodeAction, world: &mut World) {
         if let Some(node) = scene_node_action.scene_node {
             let bbox =
                 match Self::get_bounding_box(world, &node.sprite_id, node.frame_index as usize) {
@@ -84,7 +93,7 @@ impl ActionExecutor {
         }
     }
 
-    fn destroy_scene_node(&self, scene_node_action: SceneNodeRefAction, world: &mut World) {
+    fn destroy_scene_node(scene_node_action: SceneNodeRefAction, world: &mut World) {
         let mut entity_id = None;
         INDEX.with(|index| {
             if let Some(index) = &mut *index.borrow_mut() {
@@ -100,7 +109,7 @@ impl ActionExecutor {
         }
     }
 
-    fn play_animation(&self, script_action: AnimationScriptAction, world: &mut World) {
+    fn play_animation(script_action: AnimationScriptAction, world: &mut World) {
         if let Some(script) = script_action.script {
             let mut entity_id = None;
             INDEX.with(|index| {
@@ -120,7 +129,7 @@ impl ActionExecutor {
         }
     }
 
-    fn stop_animation(&self, scene_node_ref_action: SceneNodeRefAction, world: &mut World) {
+    fn stop_animation(scene_node_ref_action: SceneNodeRefAction, world: &mut World) {
         let mut entity_id = None;
         INDEX.with(|index| {
             if let Some(index) = &*index.borrow() {
@@ -136,7 +145,7 @@ impl ActionExecutor {
         }
     }
 
-    fn on_collision(&self, collision_action: CollisionAction, world: &mut World) {
+    fn on_collision(collision_action: CollisionAction, world: &mut World) {
         let mut entity_id = None;
         INDEX.with(|index| {
             if let Some(index) = &*index.borrow() {
@@ -166,7 +175,7 @@ impl ActionExecutor {
         }
     }
 
-    fn emit(&self, emit_action: EmitAction, event_manager: &mut EventManager) {
+    fn emit(emit_action: EmitAction, event_manager: &mut EventManager) {
         if let Some(event) = emit_action.event {
             event_manager.handle(event);
         }

@@ -10,7 +10,7 @@ use crate::systems::{AnimatorSystem, CollisionSystem, MovementSystem};
 use sdl2::image::{self, InitFlag};
 use sdl2::render::WindowCanvas;
 use specs::prelude::*;
-use std::sync::mpsc::{self, Receiver, Sender};
+use std::sync::mpsc::{self, Sender};
 use std::time::{Duration, SystemTime};
 
 pub struct Core {
@@ -24,7 +24,6 @@ pub struct Core {
     fps_counter: FpsCounter,
 
     tx: Sender<Action>,
-    rx: Receiver<Action>,
 
     _sdl_context: sdl2::Sdl,
     _video_subsystem: sdl2::VideoSubsystem,
@@ -74,12 +73,11 @@ impl Core {
         Ok(Core {
             resource_path: resource_path.to_owned(),
             world,
-            executor: ActionExecutor::new(),
+            executor: ActionExecutor::new(rx),
             input_manager: InputManager::new(),
             event_manager: EventManager::new(),
             fps_counter: FpsCounter::new(),
             tx,
-            rx,
             _sdl_context: sdl_context,
             _video_subsystem: video_subsystem,
             _image_context: image::init(InitFlag::PNG | InitFlag::JPG)?,
@@ -128,10 +126,8 @@ impl Core {
             }
 
             // Apply any incoming Actions as a result of input handling.
-            self.rx.try_iter().for_each(|action| {
-                self.executor
-                    .execute(action, &mut self.world, &mut self.event_manager);
-            });
+            self.executor
+                .process(&mut self.world, &mut self.event_manager);
 
             // Update time.
             let curr_time = SystemTime::now();
@@ -143,10 +139,8 @@ impl Core {
             dispatcher.dispatch(&mut self.world);
 
             // Apply any incoming Actions as a result of systems being dispatched.
-            self.rx.try_iter().for_each(|action| {
-                self.executor
-                    .execute(action, &mut self.world, &mut self.event_manager);
-            });
+            self.executor
+                .process(&mut self.world, &mut self.event_manager);
 
             self.world.maintain();
             self.render(&mut texture_manager);
