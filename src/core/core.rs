@@ -91,11 +91,12 @@ impl Core {
         let mut texture_manager = TextureManager::new(&self.resource_path, &texture_creator);
 
         let animations = AnimatorSystem::new(ActionQueue::new(self.tx.clone()));
+        let movement = MovementSystem::new();
         let collisions = CollisionSystem::new(ActionQueue::new(self.tx.clone()));
 
         let mut dispatcher = DispatcherBuilder::new()
             .with(animations, "Animation", &[])
-            .with(MovementSystem {}, "Movement", &["Animation"])
+            .with(movement, "Movement", &["Animation"])
             .with(collisions, "Collisions", &["Animation", "Movement"])
             .build();
         dispatcher.setup(&mut self.world);

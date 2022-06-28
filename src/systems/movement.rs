@@ -9,14 +9,23 @@ use specs::prelude::*;
 pub struct MovementSystemData<'a> {
     entities: Entities<'a>,
 
-    ids: ReadStorage<'a, Id>,
     positions: WriteStorage<'a, Position>,
     velocities: WriteStorage<'a, Velocity>,
     sprites: ReadStorage<'a, Sprite>,
     rigid_bodies: ReadStorage<'a, RigidBody>,
 }
 
-pub struct MovementSystem;
+pub struct MovementSystem {
+    null_id: Id,
+}
+
+impl MovementSystem {
+    pub fn new() -> Self {
+        MovementSystem {
+            null_id: Id(String::default()),
+        }
+    }
+}
 
 impl<'a> System<'a> for MovementSystem {
     type SystemData = MovementSystemData<'a>;
@@ -25,9 +34,8 @@ impl<'a> System<'a> for MovementSystem {
         let mut data = data;
         let mut dirty = BitSet::new();
 
-        for (entity_a, id_a, position_a, velocity_a, sprite_a, _) in (
+        for (entity_a, position_a, velocity_a, sprite_a, _) in (
             &data.entities,
-            &data.ids,
             &data.positions,
             &mut data.velocities,
             &data.sprites,
@@ -42,14 +50,13 @@ impl<'a> System<'a> for MovementSystem {
 
             let lhs = CollisionNode {
                 entity_id: entity_a.id(),
-                id: id_a,
+                id: &self.null_id,
                 position: position_a,
                 sprite: sprite_a,
             };
 
-            for (entity_b, id_b, position_b, sprite_b, _) in (
+            for (entity_b, position_b, sprite_b, _) in (
                 &data.entities,
-                &data.ids,
                 &data.positions,
                 &data.sprites,
                 &data.rigid_bodies,
@@ -62,7 +69,7 @@ impl<'a> System<'a> for MovementSystem {
 
                 let rhs = CollisionNode {
                     entity_id: entity_b.id(),
-                    id: id_b,
+                    id: &self.null_id,
                     position: position_b,
                     sprite: sprite_b,
                 };
@@ -106,7 +113,6 @@ mod tests {
 
     fn create_world() -> World {
         let mut w = World::new();
-        w.register::<Id>();
         w.register::<Position>();
         w.register::<Velocity>();
         w.register::<Sprite>();
@@ -117,7 +123,6 @@ mod tests {
     fn create_node(world: &mut World, position: Point, velocity: Point) -> Entity {
         world
             .create_entity()
-            .with(Id("nodeId".to_owned()))
             .with(Position(position))
             .with(Velocity(velocity))
             .with(Sprite {
@@ -136,7 +141,7 @@ mod tests {
         let node = create_node(&mut world, Point::new(0, 0), Point::new(0, 0));
 
         let mut dispatcher = DispatcherBuilder::new()
-            .with(MovementSystem {}, "move", &[])
+            .with(MovementSystem::new(), "move", &[])
             .build();
         dispatcher.dispatch(&mut world);
         world.maintain();
@@ -153,7 +158,7 @@ mod tests {
         let node = create_node(&mut world, Point::new(0, 0), Point::new(2, 0));
 
         let mut dispatcher = DispatcherBuilder::new()
-            .with(MovementSystem {}, "move", &[])
+            .with(MovementSystem::new(), "move", &[])
             .build();
         dispatcher.dispatch(&mut world);
         world.maintain();
@@ -170,7 +175,6 @@ mod tests {
         let node = create_node(&mut world, Point::new(0, 0), Point::new(2, 0));
         world
             .create_entity()
-            .with(Id("nodeId".to_owned()))
             .with(Position(Point::new(33, 0)))
             .with(Velocity(Point::new(0, 0)))
             .with(Sprite {
@@ -182,7 +186,7 @@ mod tests {
             .build();
 
         let mut dispatcher = DispatcherBuilder::new()
-            .with(MovementSystem {}, "move", &[])
+            .with(MovementSystem::new(), "move", &[])
             .build();
         dispatcher.dispatch(&mut world);
         world.maintain();
@@ -200,7 +204,7 @@ mod tests {
         create_node(&mut world, Point::new(33, 0), Point::new(0, 0));
 
         let mut dispatcher = DispatcherBuilder::new()
-            .with(MovementSystem {}, "move", &[])
+            .with(MovementSystem::new(), "move", &[])
             .build();
         dispatcher.dispatch(&mut world);
         world.maintain();
@@ -218,7 +222,7 @@ mod tests {
         create_node(&mut world, Point::new(32, 0), Point::new(0, 0));
 
         let mut dispatcher = DispatcherBuilder::new()
-            .with(MovementSystem {}, "move", &[])
+            .with(MovementSystem::new(), "move", &[])
             .build();
         dispatcher.dispatch(&mut world);
         world.maintain();
@@ -236,7 +240,7 @@ mod tests {
         create_node(&mut world, Point::new(5, 0), Point::new(0, 0));
 
         let mut dispatcher = DispatcherBuilder::new()
-            .with(MovementSystem {}, "move", &[])
+            .with(MovementSystem::new(), "move", &[])
             .build();
         dispatcher.dispatch(&mut world);
         world.maintain();
