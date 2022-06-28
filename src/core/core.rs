@@ -1,6 +1,6 @@
 use super::FpsCounter;
 use crate::action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX};
-use crate::components::{Animation, Id, Position, RigidBody, Sprite, Velocity};
+use crate::components::{Animation, Collisions, Id, Position, RigidBody, Sprite, Velocity};
 use crate::core::{renderer, EventPump, Status};
 use crate::crust::{user_input, Action, UserInput};
 use crate::event::EventManager;
@@ -56,6 +56,7 @@ impl Core {
         world.register::<Sprite>();
         world.register::<Velocity>();
         world.register::<Animation>();
+        world.register::<Collisions>();
         world.register::<RigidBody>();
 
         let sheets_manager = SpriteSheetsManager::create(resource_path);

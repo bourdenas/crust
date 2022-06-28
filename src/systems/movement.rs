@@ -46,7 +46,6 @@ impl<'a> System<'a> for MovementSystem {
                 position: position_a,
                 sprite: sprite_a,
             };
-            let mut lhs_aabb = lhs.aabb();
 
             for (entity_b, id_b, position_b, sprite_b, _) in (
                 &data.entities,
@@ -68,21 +67,26 @@ impl<'a> System<'a> for MovementSystem {
                     sprite: sprite_b,
                 };
 
-                lhs_aabb.offset(velocity_a.0.x(), velocity_a.0.y());
-                if let Some(intersection) = lhs_aabb & rhs.aabb() {
-                    let x_offset = match lhs_aabb.center().x() < intersection.x() {
-                        false => intersection.width() as i32,
-                        true => -(intersection.width() as i32),
-                    };
-                    let y_offset = match lhs_aabb.center().y() < intersection.y() {
-                        false => intersection.height() as i32,
-                        true => -(intersection.height() as i32),
-                    };
+                while velocity_a.0.x() != 0 || velocity_a.0.y() != 0 {
+                    let mut lhs_aabb = lhs.aabb();
+                    lhs_aabb.offset(velocity_a.0.x(), velocity_a.0.y());
+                    if let None = lhs_aabb & rhs.aabb() {
+                        break;
+                    }
 
-                    velocity_a.0 += match x_offset < y_offset {
-                        true => Point::new(x_offset, 0),
-                        false => Point::new(0, y_offset),
-                    };
+                    let correction = Point::new(
+                        match velocity_a.0.x() {
+                            0 => 0,
+                            i32::MIN..=-1 => 1,
+                            1.. => -1,
+                        },
+                        match velocity_a.0.y() {
+                            0 => 0,
+                            i32::MIN..=-1 => 1,
+                            1.. => -1,
+                        },
+                    );
+                    velocity_a.0 += correction;
                 }
             }
         }
@@ -91,5 +95,155 @@ impl<'a> System<'a> for MovementSystem {
             position.0 += velocity.0;
             velocity.0 = Point::new(0, 0);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::components::ScalingVec;
+    use sdl2::rect::Rect;
+
+    fn create_world() -> World {
+        let mut w = World::new();
+        w.register::<Id>();
+        w.register::<Position>();
+        w.register::<Velocity>();
+        w.register::<Sprite>();
+        w.register::<RigidBody>();
+        w
+    }
+
+    fn create_node(world: &mut World, position: Point, velocity: Point) -> Entity {
+        world
+            .create_entity()
+            .with(Id("nodeId".to_owned()))
+            .with(Position(position))
+            .with(Velocity(velocity))
+            .with(Sprite {
+                resource: "foo".to_owned(),
+                frame_index: 0,
+                bounding_box: Rect::new(0, 0, 32, 32),
+                scaling: ScalingVec::default(),
+            })
+            .with(RigidBody {})
+            .build()
+    }
+
+    #[test]
+    fn no_movement() {
+        let mut world = create_world();
+        let node = create_node(&mut world, Point::new(0, 0), Point::new(0, 0));
+
+        let mut dispatcher = DispatcherBuilder::new()
+            .with(MovementSystem {}, "move", &[])
+            .build();
+        dispatcher.dispatch(&mut world);
+        world.maintain();
+
+        let positions = world.read_storage::<Position>();
+        assert_eq!(positions.get(node).unwrap().0, Point::new(0, 0));
+        let velocities = world.read_storage::<Velocity>();
+        assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
+    }
+
+    #[test]
+    fn no_obstacles() {
+        let mut world = create_world();
+        let node = create_node(&mut world, Point::new(0, 0), Point::new(2, 0));
+
+        let mut dispatcher = DispatcherBuilder::new()
+            .with(MovementSystem {}, "move", &[])
+            .build();
+        dispatcher.dispatch(&mut world);
+        world.maintain();
+
+        let positions = world.read_storage::<Position>();
+        assert_eq!(positions.get(node).unwrap().0, Point::new(2, 0));
+        let velocities = world.read_storage::<Velocity>();
+        assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
+    }
+
+    #[test]
+    fn no_rigid_bodies() {
+        let mut world = create_world();
+        let node = create_node(&mut world, Point::new(0, 0), Point::new(2, 0));
+        world
+            .create_entity()
+            .with(Id("nodeId".to_owned()))
+            .with(Position(Point::new(33, 0)))
+            .with(Velocity(Point::new(0, 0)))
+            .with(Sprite {
+                resource: "foo".to_owned(),
+                frame_index: 0,
+                bounding_box: Rect::new(0, 0, 32, 32),
+                scaling: ScalingVec::default(),
+            })
+            .build();
+
+        let mut dispatcher = DispatcherBuilder::new()
+            .with(MovementSystem {}, "move", &[])
+            .build();
+        dispatcher.dispatch(&mut world);
+        world.maintain();
+
+        let positions = world.read_storage::<Position>();
+        assert_eq!(positions.get(node).unwrap().0, Point::new(2, 0));
+        let velocities = world.read_storage::<Velocity>();
+        assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
+    }
+
+    #[test]
+    fn rigid_bodies_collide_partial_movement() {
+        let mut world = create_world();
+        let node = create_node(&mut world, Point::new(0, 0), Point::new(2, 0));
+        create_node(&mut world, Point::new(33, 0), Point::new(0, 0));
+
+        let mut dispatcher = DispatcherBuilder::new()
+            .with(MovementSystem {}, "move", &[])
+            .build();
+        dispatcher.dispatch(&mut world);
+        world.maintain();
+
+        let positions = world.read_storage::<Position>();
+        assert_eq!(positions.get(node).unwrap().0, Point::new(1, 0));
+        let velocities = world.read_storage::<Velocity>();
+        assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
+    }
+
+    #[test]
+    fn rigid_bodies_collide_block_movement() {
+        let mut world = create_world();
+        let node = create_node(&mut world, Point::new(0, 0), Point::new(2, 0));
+        create_node(&mut world, Point::new(32, 0), Point::new(0, 0));
+
+        let mut dispatcher = DispatcherBuilder::new()
+            .with(MovementSystem {}, "move", &[])
+            .build();
+        dispatcher.dispatch(&mut world);
+        world.maintain();
+
+        let positions = world.read_storage::<Position>();
+        assert_eq!(positions.get(node).unwrap().0, Point::new(0, 0));
+        let velocities = world.read_storage::<Velocity>();
+        assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
+    }
+
+    #[test]
+    fn rigid_bodies_overlap_block_movement() {
+        let mut world = create_world();
+        let node = create_node(&mut world, Point::new(0, 0), Point::new(2, 0));
+        create_node(&mut world, Point::new(5, 0), Point::new(0, 0));
+
+        let mut dispatcher = DispatcherBuilder::new()
+            .with(MovementSystem {}, "move", &[])
+            .build();
+        dispatcher.dispatch(&mut world);
+        world.maintain();
+
+        let positions = world.read_storage::<Position>();
+        assert_eq!(positions.get(node).unwrap().0, Point::new(0, 0));
+        let velocities = world.read_storage::<Velocity>();
+        assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
     }
 }
