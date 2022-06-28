@@ -11,6 +11,16 @@ pub trait Performer {
     fn execute(&mut self, animated: &mut Animated) -> AnimationRunningState;
 }
 
+pub trait TimeProgressor {
+    fn start(&mut self, animated: &mut Animated, speed: f64);
+    fn stop(&mut self, animated: &mut Animated);
+    fn pause(&mut self, animated: &mut Animated);
+    fn resume(&mut self, animated: &mut Animated);
+
+    fn progress(&mut self, time_since_last_frame: Duration, animated: &mut Animated) -> Duration;
+    fn finished(&self) -> bool;
+}
+
 #[derive(Default)]
 pub struct PerformerBase<P: Performer> {
     performer: P,
@@ -31,21 +41,30 @@ where
             state: AnimationRunningState::Init,
         }
     }
+}
 
-    pub fn finished(&self) -> bool {
-        self.state == AnimationRunningState::Finished
-    }
-
-    pub fn start(&mut self, animated: &mut Animated, speed: f64) {
+impl<P> TimeProgressor for PerformerBase<P>
+where
+    P: Performer,
+{
+    fn start(&mut self, animated: &mut Animated, speed: f64) {
         self.performer.start(animated, speed);
         self.state = AnimationRunningState::Running;
     }
 
-    pub fn progress(
-        &mut self,
-        time_since_last_frame: Duration,
-        animated: &mut Animated,
-    ) -> Duration {
+    fn stop(&mut self, animated: &mut Animated) {
+        self.performer.stop(animated);
+    }
+
+    fn pause(&mut self, animated: &mut Animated) {
+        self.performer.pause(animated);
+    }
+
+    fn resume(&mut self, animated: &mut Animated) {
+        self.performer.resume(animated);
+    }
+
+    fn progress(&mut self, time_since_last_frame: Duration, animated: &mut Animated) -> Duration {
         if self.animation_delay == Duration::ZERO {
             self.performer.execute(animated);
             self.state = AnimationRunningState::Finished;
@@ -62,5 +81,9 @@ where
         }
 
         time_since_last_frame
+    }
+
+    fn finished(&self) -> bool {
+        self.state == AnimationRunningState::Finished
     }
 }

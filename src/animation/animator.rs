@@ -1,6 +1,7 @@
 use super::{
-    performer::PerformerBase, Animated, FrameListPerformer, FrameRangePerformer, ScalingPerformer,
-    TimerPerformer, TranslationPerformer,
+    performer::{PerformerBase, TimeProgressor},
+    Animated, FrameListPerformer, FrameRangePerformer, ScalingPerformer, TimerPerformer,
+    TranslationPerformer,
 };
 use crate::crust::Animation;
 use std::time::Duration;
@@ -8,13 +9,7 @@ use std::time::Duration;
 #[derive(Default)]
 pub struct Animator {
     animation: Animation,
-
-    translation: Option<PerformerBase<TranslationPerformer>>,
-    scaling: Option<PerformerBase<ScalingPerformer>>,
-    frame_range: Option<PerformerBase<FrameRangePerformer>>,
-    frame_list: Option<PerformerBase<FrameListPerformer>>,
-    timer: Option<PerformerBase<TimerPerformer>>,
-
+    progressors: Vec<Box<dyn TimeProgressor + Send + Sync>>,
     finished: bool,
 }
 
@@ -22,7 +17,8 @@ impl Animator {
     pub fn new(animation: Animation) -> Self {
         Animator {
             animation,
-            ..Default::default()
+            progressors: vec![],
+            finished: false,
         }
     }
 
@@ -30,52 +26,61 @@ impl Animator {
         let animation = self.animation.clone();
         if let Some(translation) = animation.translation {
             let delay = translation.delay as u64;
-            self.translation = Some(PerformerBase::new(
+            self.progressors.push(Box::new(PerformerBase::new(
                 TranslationPerformer::new(translation),
                 Duration::from_millis(delay),
-            ));
-            self.translation.as_mut().unwrap().start(animated, speed);
+            )));
         }
         if let Some(scaling) = animation.scaling {
             let delay = scaling.delay as u64;
-            self.scaling = Some(PerformerBase::new(
+            self.progressors.push(Box::new(PerformerBase::new(
                 ScalingPerformer::new(scaling),
                 Duration::from_millis(delay),
-            ));
-            self.scaling.as_mut().unwrap().start(animated, speed);
+            )));
         }
         if let Some(frame_range) = animation.frame_range {
             let delay = frame_range.delay as u64;
-            self.frame_range = Some(PerformerBase::new(
+            self.progressors.push(Box::new(PerformerBase::new(
                 FrameRangePerformer::new(frame_range),
                 Duration::from_millis(delay),
-            ));
-            self.frame_range.as_mut().unwrap().start(animated, speed);
+            )));
         }
         if let Some(frame_list) = animation.frame_list {
             let delay = frame_list.delay as u64;
-            self.frame_list = Some(PerformerBase::new(
+            self.progressors.push(Box::new(PerformerBase::new(
                 FrameListPerformer::new(frame_list),
                 Duration::from_millis(delay),
-            ));
-            self.frame_list.as_mut().unwrap().start(animated, speed);
+            )));
         }
         if let Some(timer) = animation.timer {
             let delay = timer.delay as u64;
-            self.timer = Some(PerformerBase::new(
+            self.progressors.push(Box::new(PerformerBase::new(
                 TimerPerformer::new(timer),
                 Duration::from_millis(delay),
-            ));
-            self.timer.as_mut().unwrap().start(animated, speed);
+            )));
+        }
+
+        for progressor in &mut self.progressors {
+            progressor.start(animated, speed);
         }
     }
 
-    pub fn stop(&mut self, _animated: &mut Animated) {}
-    pub fn pause(&mut self, _animated: &mut Animated) {}
-    pub fn resume(&mut self, _animated: &mut Animated) {}
+    pub fn stop(&mut self, animated: &mut Animated) {
+        for progressor in &mut self.progressors {
+            progressor.stop(animated);
+        }
+    }
 
-    pub fn finished(&self) -> bool {
-        self.finished
+    pub fn pause(&mut self, animated: &mut Animated) {
+        for progressor in &mut self.progressors {
+            progressor.pause(animated);
+        }
+    }
+
+    pub fn resume(&mut self, animated: &mut Animated) {
+        for progressor in &mut self.progressors {
+            progressor.resume(animated);
+        }
     }
 
     pub fn progress(
@@ -83,74 +88,25 @@ impl Animator {
         time_since_last_frame: Duration,
         animated: &mut Animated,
     ) -> Duration {
-        let mut maybe_finished = false;
-
         let mut time_consumed = Duration::ZERO;
-        if let Some(performer) = &mut self.translation {
-            let performer_consumed = performer.progress(time_since_last_frame, animated);
-            if performer_consumed > time_consumed {
-                time_consumed = performer_consumed;
-            }
-            if performer.finished() {
-                self.translation = None;
-                maybe_finished = true;
-            }
-        }
-        if let Some(performer) = &mut self.scaling {
-            let performer_consumed = performer.progress(time_since_last_frame, animated);
-            if performer_consumed > time_consumed {
-                time_consumed = performer_consumed;
-            }
-            if performer.finished() {
-                self.scaling = None;
-                maybe_finished = true;
-            }
-        }
-        if let Some(performer) = &mut self.frame_range {
-            let performer_consumed = performer.progress(time_since_last_frame, animated);
-            if performer_consumed > time_consumed {
-                time_consumed = performer_consumed;
-            }
-            if performer.finished() {
-                self.frame_range = None;
-                maybe_finished = true;
-            }
-        }
-        if let Some(performer) = &mut self.frame_list {
-            let performer_consumed = performer.progress(time_since_last_frame, animated);
-            if performer_consumed > time_consumed {
-                time_consumed = performer_consumed;
-            }
-            if performer.finished() {
-                self.frame_list = None;
-                maybe_finished = true;
-            }
-        }
-        if let Some(performer) = &mut self.timer {
-            let performer_consumed = performer.progress(time_since_last_frame, animated);
-            if performer_consumed > time_consumed {
-                time_consumed = performer_consumed;
-            }
-            if performer.finished() {
-                self.timer = None;
-                maybe_finished = true;
+        for progressor in &mut self.progressors {
+            let consumed = progressor.progress(time_since_last_frame, animated);
+            if consumed > time_consumed {
+                time_consumed = consumed;
             }
         }
 
-        if maybe_finished {
-            self.finished = match (
-                &self.translation,
-                &self.scaling,
-                &self.frame_range,
-                &self.frame_list,
-                &self.timer,
-            ) {
-                (None, None, None, None, None) => true,
-                _ if !self.animation.wait_all => true,
-                _ => false,
-            };
+        let original_len = self.progressors.len();
+        self.progressors.retain(|progressor| !progressor.finished());
+
+        if self.progressors.len() < original_len {
+            self.finished = self.progressors.is_empty() || !self.animation.wait_all;
         }
 
         time_consumed
+    }
+
+    pub fn finished(&self) -> bool {
+        self.finished
     }
 }
