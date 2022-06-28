@@ -40,9 +40,7 @@ impl TranslationPerformer {
 mod tests {
     use crate::{
         animation::{
-            progressor::{Progressor, ProgressorImpl},
-            testing::util::Fixture,
-            Performer, TranslationPerformer,
+            testing::util::Fixture, Performer, Progressor, ProgressorImpl, TranslationPerformer,
         },
         components::AnimationRunningState,
         crust::{Vector, VectorAnimation},

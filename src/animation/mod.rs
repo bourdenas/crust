@@ -11,12 +11,13 @@ mod timer;
 mod translation;
 
 pub use animated::Animated;
-pub use frame_list::FrameListPerformer;
-pub use frame_range::FrameRangePerformer;
-pub use scaling::ScalingPerformer;
 pub use script_runner::ScriptRunner;
-pub use timer::TimerPerformer;
-pub use translation::TranslationPerformer;
 
 use animator::Animator;
+use frame_list::FrameListPerformer;
+use frame_range::FrameRangePerformer;
 use performer::Performer;
+use progressor::{Progressor, ProgressorImpl};
+use scaling::ScalingPerformer;
+use timer::TimerPerformer;
+use translation::TranslationPerformer;

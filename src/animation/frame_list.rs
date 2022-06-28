@@ -67,9 +67,7 @@ impl FrameListPerformer {
 mod tests {
     use crate::{
         animation::{
-            progressor::{Progressor, ProgressorImpl},
-            testing::util::Fixture,
-            FrameListPerformer, Performer,
+            testing::util::Fixture, FrameListPerformer, Performer, Progressor, ProgressorImpl,
         },
         components::AnimationRunningState,
         crust::FrameListAnimation,

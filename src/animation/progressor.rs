@@ -1,4 +1,4 @@
-use super::{Animated, Performer};
+use super::{performer::Performer, Animated};
 use crate::components::AnimationRunningState;
 use std::time::Duration;
 

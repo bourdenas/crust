@@ -74,9 +74,7 @@ impl FrameRangePerformer {
 mod tests {
     use crate::{
         animation::{
-            progressor::{Progressor, ProgressorImpl},
-            testing::util::Fixture,
-            FrameRangePerformer, Performer,
+            testing::util::Fixture, FrameRangePerformer, Performer, Progressor, ProgressorImpl,
         },
         components::AnimationRunningState,
         crust::FrameRangeAnimation,

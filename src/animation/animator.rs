@@ -1,7 +1,6 @@
 use super::{
-    progressor::{Progressor, ProgressorImpl},
-    Animated, FrameListPerformer, FrameRangePerformer, ScalingPerformer, TimerPerformer,
-    TranslationPerformer,
+    Animated, FrameListPerformer, FrameRangePerformer, Progressor, ProgressorImpl,
+    ScalingPerformer, TimerPerformer, TranslationPerformer,
 };
 use crate::crust::Animation;
 use std::time::Duration;

@@ -42,9 +42,7 @@ impl ScalingPerformer {
 mod tests {
     use crate::{
         animation::{
-            progressor::{Progressor, ProgressorImpl},
-            testing::util::Fixture,
-            Performer, ScalingPerformer,
+            testing::util::Fixture, Performer, Progressor, ProgressorImpl, ScalingPerformer,
         },
         components::{AnimationRunningState, ScalingVec},
         crust::{Vector, VectorAnimation},
