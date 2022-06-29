@@ -1,4 +1,4 @@
-use super::FpsCounter;
+use super::{FpsCounter, SceneManager};
 use crate::action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX};
 use crate::components::{Animation, Collisions, Id, Position, RigidBody, Sprite, Velocity};
 use crate::core::{renderer, EventPump, Status};
@@ -20,6 +20,7 @@ pub struct Core {
     pub executor: ActionExecutor,
     pub input_manager: InputManager,
     pub event_manager: EventManager,
+    pub scene_manager: SceneManager,
 
     fps_counter: FpsCounter,
 
@@ -76,6 +77,7 @@ impl Core {
             executor: ActionExecutor::new(rx),
             input_manager: InputManager::new(),
             event_manager: EventManager::new(),
+            scene_manager: SceneManager::new(),
             fps_counter: FpsCounter::new(),
             tx,
             _sdl_context: sdl_context,
