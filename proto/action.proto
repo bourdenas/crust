@@ -10,7 +10,7 @@ message Action {
   oneof Action {
     NoopAction noop = 1;
     QuitAction quit = 2;
-    ChangeSceneAction change_scene = 3;
+    SceneAction load_scene = 3;
     
     SceneNodeAction create_scene_node = 4;
     SceneNodeRefAction destroy_scene_node = 5;
@@ -42,7 +42,9 @@ message NoopAction {}
 
 message QuitAction {}
 
-message ChangeSceneAction {}
+message SceneAction {
+    string resource = 1;
+}
 
 message EmitAction {
   Event event = 1;
