@@ -5,6 +5,7 @@ mod executor;
 mod index;
 mod nodes;
 mod queue;
+mod scenes;
 
 pub use executor::ActionExecutor;
 pub use index::{Index, INDEX};

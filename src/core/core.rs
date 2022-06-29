@@ -129,8 +129,11 @@ impl Core {
             }
 
             // Apply any incoming Actions as a result of input handling.
-            self.executor
-                .process(&mut self.world, &mut self.event_manager);
+            self.executor.process(
+                &mut self.world,
+                &mut self.scene_manager,
+                &mut self.event_manager,
+            );
 
             // Update time.
             let curr_time = SystemTime::now();
@@ -142,8 +145,11 @@ impl Core {
             dispatcher.dispatch(&mut self.world);
 
             // Apply any incoming Actions as a result of systems being dispatched.
-            self.executor
-                .process(&mut self.world, &mut self.event_manager);
+            self.executor.process(
+                &mut self.world,
+                &mut self.scene_manager,
+                &mut self.event_manager,
+            );
 
             self.world.maintain();
             self.render(&mut texture_manager);
