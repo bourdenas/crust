@@ -161,9 +161,12 @@ impl Core {
     pub fn halt(&self) {}
 
     fn render(&mut self, texture_manager: &mut TextureManager<sdl2::video::WindowContext>) {
-        if let Err(e) =
-            renderer::render(&mut self.canvas, texture_manager, self.world.system_data())
-        {
+        if let Err(e) = renderer::render(
+            &mut self.canvas,
+            &self.scene_manager,
+            texture_manager,
+            self.world.system_data(),
+        ) {
             println!("{}", e);
         }
     }
