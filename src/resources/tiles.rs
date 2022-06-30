@@ -16,11 +16,11 @@ impl ResourceLoader<TileMap> for TileMapLoader {
     type Args = str;
 
     fn load(&self, path: &str, resource: &str) -> Result<TileMap, Status> {
-        let filename = format!("{}/{}.json", path, resource);
-        let json = std::fs::read(filename)?;
+        let filename = format!("{path}/{resource}.json");
+        let json = std::fs::read(&filename).expect(&format!("Failed to read '{filename}'"));
         match serde_json::from_slice::<TileMap>(&json) {
             Ok(tilemap) => Ok(tilemap),
-            Err(e) => Err(Status::new("Failed to load tile map: {}", e)),
+            Err(e) => Err(Status::new("Failed to parse tile map: {}", e)),
         }
     }
 }

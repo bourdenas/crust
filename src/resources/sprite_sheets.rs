@@ -10,11 +10,11 @@ impl ResourceLoader<SpriteSheet> for SpriteSheetsLoader {
     type Args = str;
 
     fn load(&self, path: &str, resource: &str) -> Result<SpriteSheet, Status> {
-        let filename = format!("{}/{}.json", path, resource);
-        let json = std::fs::read(filename)?;
+        let filename = format!("{path}/{resource}.json");
+        let json = std::fs::read(&filename).expect(&format!("Failed to read '{filename}'"));
         match serde_json::from_slice::<SpriteSheet>(&json) {
             Ok(sheet) => Ok(sheet),
-            Err(e) => Err(Status::new("Failed to load sprite sheet: {}", e)),
+            Err(e) => Err(Status::new("Failed to parse sprite sheet: {}", e)),
         }
     }
 }
