@@ -1,4 +1,4 @@
-use super::FpsCounter;
+use super::{FpsCounter, SceneManager};
 use crate::action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX};
 use crate::components::{Animation, Collisions, Id, Position, RigidBody, Sprite, Velocity};
 use crate::core::{renderer, EventPump, Status};
@@ -20,6 +20,7 @@ pub struct Core {
     pub executor: ActionExecutor,
     pub input_manager: InputManager,
     pub event_manager: EventManager,
+    pub scene_manager: SceneManager,
 
     fps_counter: FpsCounter,
 
@@ -76,6 +77,7 @@ impl Core {
             executor: ActionExecutor::new(rx),
             input_manager: InputManager::new(),
             event_manager: EventManager::new(),
+            scene_manager: SceneManager::new(resource_path),
             fps_counter: FpsCounter::new(),
             tx,
             _sdl_context: sdl_context,
@@ -127,8 +129,11 @@ impl Core {
             }
 
             // Apply any incoming Actions as a result of input handling.
-            self.executor
-                .process(&mut self.world, &mut self.event_manager);
+            self.executor.process(
+                &mut self.world,
+                &mut self.scene_manager,
+                &mut self.event_manager,
+            );
 
             // Update time.
             let curr_time = SystemTime::now();
@@ -140,8 +145,11 @@ impl Core {
             dispatcher.dispatch(&mut self.world);
 
             // Apply any incoming Actions as a result of systems being dispatched.
-            self.executor
-                .process(&mut self.world, &mut self.event_manager);
+            self.executor.process(
+                &mut self.world,
+                &mut self.scene_manager,
+                &mut self.event_manager,
+            );
 
             self.world.maintain();
             self.render(&mut texture_manager);
@@ -153,9 +161,12 @@ impl Core {
     pub fn halt(&self) {}
 
     fn render(&mut self, texture_manager: &mut TextureManager<sdl2::video::WindowContext>) {
-        if let Err(e) =
-            renderer::render(&mut self.canvas, texture_manager, self.world.system_data())
-        {
+        if let Err(e) = renderer::render(
+            &mut self.canvas,
+            &self.scene_manager,
+            texture_manager,
+            self.world.system_data(),
+        ) {
             println!("{}", e);
         }
     }

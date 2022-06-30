@@ -43,7 +43,7 @@ where
 
         match self.cache.get(details) {
             Some(resource) => Ok(resource),
-            None => Err(Status::not_found("resource not found")),
+            None => Err(Status::not_found("Resource '{details}' not found")),
         }
     }
 

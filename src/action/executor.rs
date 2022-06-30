@@ -1,5 +1,8 @@
-use super::{animations::Animations, collisions::Collisions, events::Events, nodes::Nodes};
+use super::{
+    animations::Animations, collisions::Collisions, events::Events, nodes::Nodes, scenes::Scenes,
+};
 use crate::{
+    core::SceneManager,
     crust::{action, Action},
     event::EventManager,
 };
@@ -15,15 +18,26 @@ impl ActionExecutor {
         ActionExecutor { rx }
     }
 
-    pub fn process(&self, world: &mut World, event_manager: &mut EventManager) {
+    pub fn process(
+        &self,
+        world: &mut World,
+        scene_manager: &mut SceneManager,
+        event_manager: &mut EventManager,
+    ) {
         self.rx
             .try_iter()
-            .for_each(|action| Self::execute(action, world, event_manager));
+            .for_each(|action| Self::execute(action, world, scene_manager, event_manager));
     }
 
-    fn execute(action: Action, world: &mut World, event_manager: &mut EventManager) {
+    fn execute(
+        action: Action,
+        world: &mut World,
+        scene_manager: &mut SceneManager,
+        event_manager: &mut EventManager,
+    ) {
         match action.action {
             Some(action::Action::Quit(..)) => (),
+            Some(action::Action::LoadScene(action)) => Scenes::load(action, scene_manager),
             Some(action::Action::CreateSceneNode(action)) => Nodes::create(action, world),
             Some(action::Action::DestroySceneNode(action)) => Nodes::destroy(action, world),
             Some(action::Action::PlayAnimation(action)) => Animations::play(action, world),
