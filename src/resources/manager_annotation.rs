@@ -49,6 +49,17 @@ where
             Ok,
         )
     }
+
+    pub fn get<D>(&self, details: &D) -> Option<Rc<Resource>>
+    where
+        D: Eq + Hash + ?Sized,
+        Key: Borrow<D> + for<'d> From<&'d D>,
+    {
+        match self.cache.get(details) {
+            Some(resource) => Some(Rc::clone(resource)),
+            None => None,
+        }
+    }
 }
 
 /// Generic trait to load resource.
