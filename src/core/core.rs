@@ -77,7 +77,7 @@ impl Core {
             executor: ActionExecutor::new(rx),
             input_manager: InputManager::new(),
             event_manager: EventManager::new(),
-            scene_manager: SceneManager::new(),
+            scene_manager: SceneManager::new(resource_path),
             fps_counter: FpsCounter::new(),
             tx,
             _sdl_context: sdl_context,
