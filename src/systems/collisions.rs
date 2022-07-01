@@ -1,6 +1,6 @@
 use crate::{
     action::ActionQueue,
-    components::{Collisions, Id, Position, Sprite},
+    components::{Collisions, Id, Position, Size},
     physics::{CollisionChecker, CollisionNode},
 };
 use specs::prelude::*;
@@ -11,7 +11,7 @@ pub struct CollisionSystemData<'a> {
 
     ids: ReadStorage<'a, Id>,
     positions: ReadStorage<'a, Position>,
-    sprites: ReadStorage<'a, Sprite>,
+    sizes: ReadStorage<'a, Size>,
     collisions: ReadStorage<'a, Collisions>,
 }
 
@@ -32,17 +32,17 @@ impl<'a> System<'a> for CollisionSystem {
 
     fn run(&mut self, data: Self::SystemData) {
         // let mut data = data;
-        for (entity_a, id_a, position_a, sprite_a, collisions) in (
+        for (entity_a, id_a, position_a, size_a, collisions) in (
             &data.entities,
             &data.ids,
             &data.positions,
-            &data.sprites,
+            &data.sizes,
             &data.collisions,
         )
             .join()
         {
-            for (entity_b, id_b, position_b, sprite_b) in
-                (&data.entities, &data.ids, &data.positions, &data.sprites).join()
+            for (entity_b, id_b, position_b, size_b) in
+                (&data.entities, &data.ids, &data.positions, &data.sizes).join()
             {
                 if entity_a == entity_b {
                     continue;
@@ -52,13 +52,13 @@ impl<'a> System<'a> for CollisionSystem {
                         entity_id: entity_a.id(),
                         id: id_a,
                         position: position_a,
-                        sprite: sprite_a,
+                        size: size_a,
                     },
                     CollisionNode {
                         entity_id: entity_b.id(),
                         id: id_b,
                         position: position_b,
-                        sprite: sprite_b,
+                        size: size_b,
                     },
                     &collisions.on_collision,
                 );

@@ -1,6 +1,6 @@
 use crate::{
     action::ActionQueue,
-    components::{Id, Position, Sprite},
+    components::{Id, Position, Size},
     crust::{event, Box, CollisionAction, CollisionEvent},
 };
 use sdl2::rect::Rect;
@@ -26,7 +26,7 @@ impl CollisionChecker {
         collision_actions: &Vec<CollisionAction>,
     ) {
         for collision in collision_actions {
-            if rhs.id.0 == collision.other_id || rhs.sprite.resource == collision.other_id {
+            if rhs.id.0 == collision.other_id {
                 let pair = ordered(lhs.entity_id, rhs.entity_id);
 
                 match lhs.aabb() & rhs.aabb() {
@@ -92,16 +92,16 @@ pub struct CollisionNode<'a> {
     pub entity_id: u32,
     pub id: &'a Id,
     pub position: &'a Position,
-    pub sprite: &'a Sprite,
+    pub size: &'a Size,
 }
 
 impl<'a> CollisionNode<'a> {
     pub fn aabb(&self) -> Rect {
-        let mut aabb = self.sprite.bounding_box;
+        let mut aabb = self.size.bounding_box;
         aabb.reposition(self.position.0);
         aabb.resize(
-            (aabb.width() as f64 * self.sprite.scaling.x) as u32,
-            (aabb.height() as f64 * self.sprite.scaling.y) as u32,
+            (aabb.width() as f64 * self.size.scaling.x) as u32,
+            (aabb.height() as f64 * self.size.scaling.y) as u32,
         );
         aabb
     }

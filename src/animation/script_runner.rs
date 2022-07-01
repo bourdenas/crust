@@ -474,14 +474,14 @@ mod tests {
         assert_eq!(runner.index, 0);
         assert_eq!(fixture.velocity.0, Point::new(0, 0));
         assert_eq!(fixture.sprite.frame_index, 0);
-        assert_eq!(fixture.sprite.scaling, ScalingVec::new(1.0, 1.0));
+        assert_eq!(fixture.size.scaling, ScalingVec::new(1.0, 1.0));
 
         // Run first leg to finish.
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(10), &mut animated);
         assert_eq!(fixture.velocity.0, Point::new(0, 0));
         assert_eq!(fixture.sprite.frame_index, 0);
-        assert_eq!(fixture.sprite.scaling, ScalingVec::new(1.2, 2.0));
+        assert_eq!(fixture.size.scaling, ScalingVec::new(1.2, 2.0));
         assert_eq!(runner.finished(), true);
     }
 

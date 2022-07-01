@@ -30,6 +30,11 @@ pub struct Velocity(pub Point);
 pub struct Sprite {
     pub resource: String,
     pub frame_index: usize,
+}
+
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct Size {
     pub bounding_box: Rect,
     pub scaling: ScalingVec,
 }

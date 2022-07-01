@@ -1,36 +1,40 @@
 use super::scene_manager::Scene;
 use super::SceneManager;
-use crate::components::{Position, Sprite};
+use crate::components::{Position, Size, Sprite};
 use crate::core::Status;
 use crate::resources::TextureManager;
 use sdl2::rect::Rect;
 use sdl2::render::WindowCanvas;
 use specs::prelude::*;
 
-type SystemData<'a> = (ReadStorage<'a, Position>, ReadStorage<'a, Sprite>);
+type SystemData<'a> = (
+    ReadStorage<'a, Position>,
+    ReadStorage<'a, Sprite>,
+    ReadStorage<'a, Size>,
+);
 
 pub fn render(
     canvas: &mut WindowCanvas,
     scene_manager: &SceneManager,
     texture_manager: &mut TextureManager<sdl2::video::WindowContext>,
-    (positions, sprites): SystemData,
+    (positions, sprites, sizes): SystemData,
 ) -> Result<(), Status> {
     // canvas.set_draw_color(background);
     canvas.clear();
 
     render_scene(canvas, &scene_manager.scene, texture_manager)?;
 
-    for (pos, sprite) in (&positions, &sprites).join() {
+    for (pos, sprite, size) in (&positions, &sprites, &sizes).join() {
         let texture = texture_manager.load(&sprite.resource)?;
 
         canvas.copy(
             &texture,
-            sprite.bounding_box,
+            size.bounding_box,
             Rect::new(
                 pos.0.x(),
                 pos.0.y(),
-                (sprite.bounding_box.width() as f64 * sprite.scaling.x) as u32,
-                (sprite.bounding_box.height() as f64 * sprite.scaling.y) as u32,
+                (size.bounding_box.width() as f64 * size.scaling.x) as u32,
+                (size.bounding_box.height() as f64 * size.scaling.y) as u32,
             ),
         )?;
     }

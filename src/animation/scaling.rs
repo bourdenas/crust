@@ -18,7 +18,7 @@ impl Performer for ScalingPerformer {
 
     fn execute(&mut self, animated: &mut Animated) -> AnimationRunningState {
         if let Some(vec) = &self.scaling.vec {
-            animated.sprite.scaling *= ScalingVec::new(vec.x, vec.y);
+            animated.size.scaling *= ScalingVec::new(vec.x, vec.y);
         }
 
         self.iteration += 1;
@@ -67,14 +67,14 @@ mod tests {
         let mut performer = ScalingPerformer::new(animation.clone());
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
-        assert_eq!(fixture.sprite.scaling, ScalingVec::new(1.0, 1.0));
+        assert_eq!(fixture.size.scaling, ScalingVec::new(1.0, 1.0));
 
         let mut animated = fixture.animated();
         assert_eq!(
             performer.execute(&mut animated),
             AnimationRunningState::Finished
         );
-        assert_eq!(fixture.sprite.scaling, ScalingVec::new(1.2, 2.0));
+        assert_eq!(fixture.size.scaling, ScalingVec::new(1.2, 2.0));
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
@@ -84,7 +84,7 @@ mod tests {
         );
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
-        assert_eq!(fixture.sprite.scaling, ScalingVec::new(1.0, 1.0));
+        assert_eq!(fixture.size.scaling, ScalingVec::new(1.0, 1.0));
         assert_eq!(performer.finished(), false);
 
         let mut animated = fixture.animated();
@@ -92,7 +92,7 @@ mod tests {
             performer.progress(Duration::from_millis(50), &mut animated),
             Duration::ZERO
         );
-        assert_eq!(fixture.sprite.scaling, ScalingVec::new(1.2, 2.0));
+        assert_eq!(fixture.size.scaling, ScalingVec::new(1.2, 2.0));
         assert_eq!(performer.finished(), true);
     }
 }
