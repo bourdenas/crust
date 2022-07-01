@@ -55,6 +55,10 @@ impl SceneManager {
 
         let mut scene = Scene::default();
         for layer in &map.layers {
+            if layer.layer_type != "tilelayer" {
+                continue;
+            }
+
             scene.layers.push(SceneLayer {
                 tiles: layer
                     .data

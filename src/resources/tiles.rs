@@ -28,7 +28,7 @@ impl ResourceLoader<TileMap> for TileMapLoader {
 use serde::{Deserialize, Serialize};
 
 /// Tile map representation of Tiled Map Editor (https://www.mapeditor.org/ ).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TileMap {
     pub height: usize,
     pub width: usize,
@@ -40,22 +40,34 @@ pub struct TileMap {
     pub layers: Vec<Layer>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TileSet {
     pub firstgid: u32,
     pub source: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Layer {
+    #[serde(rename = "type")]
+    pub layer_type: String,
+
+    #[serde(default)]
     pub data: Vec<u32>,
+    #[serde(default)]
     pub height: usize,
+    #[serde(default)]
     pub width: usize,
+
+    #[serde(default)]
+    pub objects: Vec<Object>,
+
     pub id: u32,
     pub name: String,
     pub opacity: f64,
-    //pub type: String
     pub visible: bool,
     pub x: i32,
     pub y: i32,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Object {}
