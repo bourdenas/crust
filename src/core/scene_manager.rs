@@ -1,6 +1,7 @@
 use super::Status;
 use crate::resources::{SpriteSheetsManager, TileMap, TileMapManager};
 use sdl2::rect::Rect;
+use specs::World;
 
 #[derive(Default)]
 pub struct Scene {
@@ -32,7 +33,7 @@ impl SceneManager {
         }
     }
 
-    pub fn load(&mut self, resource: &str) -> Result<(), Status> {
+    pub fn load(&mut self, resource: &str, world: &mut World) -> Result<(), Status> {
         self.tilemap_manager.load(resource)?;
         let map = self.tilemap_manager.get(resource).unwrap();
 
