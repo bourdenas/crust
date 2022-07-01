@@ -30,10 +30,10 @@ use serde::{Deserialize, Serialize};
 /// Tile map representation of Tiled Map Editor (https://www.mapeditor.org/ ).
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TileMap {
-    pub height: usize,
-    pub width: usize,
-    pub tileheight: usize,
-    pub tilewidth: usize,
+    pub height: u32,
+    pub width: u32,
+    pub tileheight: u32,
+    pub tilewidth: u32,
     pub orientation: String,
     pub infinite: bool,
     pub tilesets: Vec<TileSet>,
@@ -54,9 +54,9 @@ pub struct Layer {
     #[serde(default)]
     pub data: Vec<u32>,
     #[serde(default)]
-    pub height: usize,
+    pub width: u32,
     #[serde(default)]
-    pub width: usize,
+    pub height: u32,
 
     #[serde(default)]
     pub objects: Vec<Object>,
@@ -70,4 +70,26 @@ pub struct Layer {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Object {}
+pub struct Object {
+    pub class: String,
+    pub id: u32,
+    pub name: String,
+
+    pub x: i32,
+    pub y: i32,
+    pub width: u32,
+    pub height: u32,
+
+    #[serde(default)]
+    pub properties: Vec<ObjectProperty>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum ObjectProperty {
+    #[serde(rename = "bool")]
+    BoolType { name: String, value: bool },
+
+    #[serde(rename = "string")]
+    StringType { name: String, value: String },
+}

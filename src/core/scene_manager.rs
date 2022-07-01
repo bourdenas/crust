@@ -83,10 +83,10 @@ impl SceneManager {
                                     &range.resource
                                 )),
                             canvas_position: Rect::new(
-                                ((i % map.width) * map.tilewidth) as i32,
-                                ((i / map.width) * map.tileheight) as i32,
-                                map.tilewidth as u32,
-                                map.tileheight as u32,
+                                ((i as u32 % map.width) * map.tilewidth) as i32,
+                                ((i as u32 / map.width) * map.tileheight) as i32,
+                                map.tilewidth,
+                                map.tileheight,
                             ),
                         }
                     })
