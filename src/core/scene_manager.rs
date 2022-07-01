@@ -1,7 +1,10 @@
 use super::Status;
-use crate::resources::{SpriteSheetsManager, TileMap, TileMapManager};
-use sdl2::rect::Rect;
-use specs::World;
+use crate::{
+    components::{Id, Position, RigidBody, ScalingVec, Size},
+    resources::{ObjectProperty, SpriteSheetsManager, TileMap, TileMapManager},
+};
+use sdl2::rect::{Point, Rect};
+use specs::prelude::*;
 
 #[derive(Default)]
 pub struct Scene {
@@ -45,54 +48,76 @@ impl SceneManager {
             )?;
         }
 
-        self.scene = self.build_scene(map);
+        self.scene = self.build_scene(map, world);
         println!("🦀 scene '{resource}' loaded");
 
         Ok(())
     }
 
-    fn build_scene(&self, map: &TileMap) -> Scene {
+    fn build_scene(&self, map: &TileMap, world: &mut World) -> Scene {
         let ranges = Self::build_tileset_ranges(map);
 
         let mut scene = Scene::default();
         for layer in &map.layers {
-            if layer.layer_type != "tilelayer" {
-                continue;
-            }
-
-            scene.layers.push(SceneLayer {
-                tiles: layer
-                    .data
-                    .iter()
-                    .enumerate()
-                    .filter(|(_, tile_id)| **tile_id > 0)
-                    .map(|(i, tile_id)| {
-                        let range = ranges
+            match layer.layer_type.as_str() {
+                "tilelayer" => {
+                    scene.layers.push(SceneLayer {
+                        tiles: layer
+                            .data
                             .iter()
-                            .find(|range| range.first <= *tile_id && *tile_id < range.last)
-                            .expect(&format!(
-                                "Failed to find {tile_id} in ranges: {:?}",
-                                &ranges
-                            ));
-                        TileInfo {
-                            texture_id: range.resource.clone(),
-                            texture_position: self
-                                .tile_sheet_manager
-                                .get_box(&range.resource, (tile_id - range.first) as usize)
-                                .expect(&format!(
-                                    "Tile index '{tile_id}' exceeds available tiles in {}",
-                                    &range.resource
-                                )),
-                            canvas_position: Rect::new(
-                                ((i as u32 % map.width) * map.tilewidth) as i32,
-                                ((i as u32 / map.width) * map.tileheight) as i32,
-                                map.tilewidth,
-                                map.tileheight,
-                            ),
+                            .enumerate()
+                            .filter(|(_, tile_id)| **tile_id > 0)
+                            .map(|(i, tile_id)| {
+                                let range = ranges
+                                    .iter()
+                                    .find(|range| range.first <= *tile_id && *tile_id < range.last)
+                                    .expect(&format!(
+                                        "Failed to find {tile_id} in ranges: {:?}",
+                                        &ranges
+                                    ));
+                                TileInfo {
+                                    texture_id: range.resource.clone(),
+                                    texture_position: self
+                                        .tile_sheet_manager
+                                        .get_box(&range.resource, (tile_id - range.first) as usize)
+                                        .expect(&format!(
+                                            "Tile index '{tile_id}' exceeds available tiles in {}",
+                                            &range.resource
+                                        )),
+                                    canvas_position: Rect::new(
+                                        ((i as u32 % map.width) * map.tilewidth) as i32,
+                                        ((i as u32 / map.width) * map.tileheight) as i32,
+                                        map.tilewidth,
+                                        map.tileheight,
+                                    ),
+                                }
+                            })
+                            .collect(),
+                    });
+                }
+                "objectgroup" => {
+                    for object in &layer.objects {
+                        let mut builder = world
+                            .create_entity()
+                            .with(Id(object.name.clone()))
+                            .with(Position(Point::new(object.x, object.y)))
+                            .with(Size {
+                                bounding_box: Rect::new(0, 0, object.width, object.height),
+                                scaling: ScalingVec::default(),
+                            });
+
+                        for property in &object.properties {
+                            if let ObjectProperty::BoolType { name, value } = property {
+                                if name == "rigid_body" && *value {
+                                    builder = builder.with(RigidBody {});
+                                }
+                            }
                         }
-                    })
-                    .collect(),
-            });
+                        builder.build();
+                    }
+                }
+                _ => {}
+            };
         }
         scene
     }
