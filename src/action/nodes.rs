@@ -1,5 +1,5 @@
 use super::INDEX;
-use crate::components::{Id, Position, RigidBody, ScalingVec, Size, Sprite, Velocity};
+use crate::components::{Id, Position, RigidBody, ScalingVec, Size, SpriteInfo, Velocity};
 use crate::crust::{SceneNodeAction, SceneNodeRefAction, Vector};
 use crate::resources::SpriteSheetsManager;
 use sdl2::rect::{Point, Rect};
@@ -28,8 +28,8 @@ impl Nodes {
                     &node.position.expect("Node missing position"),
                 )))
                 .with(Velocity(Point::new(0, 0)))
-                .with(Sprite {
-                    resource: node.sprite_id.clone(),
+                .with(SpriteInfo {
+                    texture_id: node.sprite_id.clone(),
                     frame_index: node.frame_index as usize,
                 })
                 .with(Size {

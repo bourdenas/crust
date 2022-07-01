@@ -1,7 +1,7 @@
 use crate::{
     action::ActionQueue,
     animation::Animated,
-    components::{Animation, AnimationRunningState, Id, Position, Size, Sprite, Velocity},
+    components::{Animation, AnimationRunningState, Id, Position, Size, SpriteInfo, Velocity},
     crust::{event, AnimationEvent, Vector},
     resources::SpriteSheetsManager,
 };
@@ -19,7 +19,7 @@ pub struct AnimatorSystemData<'a> {
     animations: WriteStorage<'a, Animation>,
     positions: ReadStorage<'a, Position>,
     velocities: WriteStorage<'a, Velocity>,
-    sprites: WriteStorage<'a, Sprite>,
+    sprite_info: WriteStorage<'a, SpriteInfo>,
     sizes: WriteStorage<'a, Size>,
 }
 
@@ -33,23 +33,23 @@ impl<'a> System<'a> for AnimatorSystem {
     fn run(&mut self, data: Self::SystemData) {
         let mut data = data;
 
-        for (entity, id, animation, position, velocity, sprite, size) in (
+        for (entity, id, animation, position, velocity, sprite_info, size) in (
             &data.entities,
             &data.ids,
             &mut data.animations,
             &data.positions,
             &mut data.velocities,
-            &mut data.sprites,
+            &mut data.sprite_info,
             &mut data.sizes,
         )
             .join()
         {
-            let sprite_sheet = &data.sheets_manager.load(&sprite.resource).unwrap();
+            let sprite_sheet = &data.sheets_manager.load(&sprite_info.texture_id).unwrap();
             let mut animated = Animated::new(
                 id,
                 position,
                 velocity,
-                sprite,
+                sprite_info,
                 size,
                 sprite_sheet,
                 Some(&self.queue),
@@ -66,7 +66,7 @@ impl<'a> System<'a> for AnimatorSystem {
             }
 
             if animation.runner.state() == AnimationRunningState::Finished {
-                self.emit_done(id, animation, position, sprite);
+                self.emit_done(id, animation, position, sprite_info);
                 data.updater.remove::<Animation>(entity);
             }
         }
@@ -78,7 +78,13 @@ impl AnimatorSystem {
         AnimatorSystem { queue }
     }
 
-    fn emit_done(&self, id: &Id, script: &Animation, position: &Position, sprite: &Sprite) {
+    fn emit_done(
+        &self,
+        id: &Id,
+        script: &Animation,
+        position: &Position,
+        sprite_info: &SpriteInfo,
+    ) {
         self.queue.emit(
             format!("{}_script_done", id.0),
             event::Event::AnimationScriptDone(AnimationEvent {
@@ -88,7 +94,7 @@ impl AnimatorSystem {
                     y: position.0.y() as f64,
                     z: 0.0,
                 }),
-                frame_index: sprite.frame_index as u32,
+                frame_index: sprite_info.frame_index as u32,
             }),
         );
     }

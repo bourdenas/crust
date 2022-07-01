@@ -2,7 +2,7 @@
 pub mod util {
     use crate::{
         animation::Animated,
-        components::{Id, Position, ScalingVec, Size, Sprite, Velocity},
+        components::{Id, Position, ScalingVec, Size, SpriteInfo, Velocity},
         resources::SpriteSheet,
     };
     use sdl2::rect::{Point, Rect};
@@ -11,7 +11,7 @@ pub mod util {
         id: Id,
         pub position: Position,
         pub velocity: Velocity,
-        pub sprite: Sprite,
+        pub sprite_info: SpriteInfo,
         pub size: Size,
         sheet: SpriteSheet,
     }
@@ -22,8 +22,8 @@ pub mod util {
                 id: Id("test_id".to_owned()),
                 position: Position(Point::new(0, 0)),
                 velocity: Velocity(Point::new(0, 0)),
-                sprite: Sprite {
-                    resource: "foo".to_owned(),
+                sprite_info: SpriteInfo {
+                    texture_id: "foo".to_owned(),
                     frame_index: 0,
                 },
                 size: Size {
@@ -49,7 +49,7 @@ pub mod util {
                 &self.id,
                 &mut self.position,
                 &mut self.velocity,
-                &mut self.sprite,
+                &mut self.sprite_info,
                 &mut self.size,
                 &self.sheet,
                 None,

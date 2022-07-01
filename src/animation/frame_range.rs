@@ -38,7 +38,7 @@ impl Performer for FrameRangePerformer {
     fn resume(&mut self, _animated: &mut Animated) {}
 
     fn execute(&mut self, animated: &mut Animated) -> AnimationRunningState {
-        let mut next_frame = animated.sprite.frame_index as i32 + self.step;
+        let mut next_frame = animated.sprite_info.frame_index as i32 + self.step;
         if next_frame == self.frame_range.end_frame {
             next_frame = self.frame_range.start_frame;
         }
@@ -49,7 +49,7 @@ impl Performer for FrameRangePerformer {
             HorizontalAlign::from_i32(self.frame_range.horizontal_align).unwrap(),
         );
 
-        if animated.sprite.frame_index as i32 == self.frame_range.end_frame - self.step
+        if animated.sprite_info.frame_index as i32 == self.frame_range.end_frame - self.step
             && self.frame_range.repeat > 0
         {
             self.iteration += 1;
@@ -97,21 +97,21 @@ mod tests {
         let mut performer = FrameRangePerformer::new(animation.clone());
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
-        assert_eq!(fixture.sprite.frame_index, 2);
+        assert_eq!(fixture.sprite_info.frame_index, 2);
 
         let mut animated = fixture.animated();
         assert_eq!(
             performer.execute(&mut animated),
             AnimationRunningState::Running
         );
-        assert_eq!(fixture.sprite.frame_index, 3);
+        assert_eq!(fixture.sprite_info.frame_index, 3);
 
         let mut animated = fixture.animated();
         assert_eq!(
             performer.execute(&mut animated),
             AnimationRunningState::Finished
         );
-        assert_eq!(fixture.sprite.frame_index, 4);
+        assert_eq!(fixture.sprite_info.frame_index, 4);
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
@@ -121,7 +121,7 @@ mod tests {
         );
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
-        assert_eq!(fixture.sprite.frame_index, 2);
+        assert_eq!(fixture.sprite_info.frame_index, 2);
         assert_eq!(performer.finished(), false);
 
         let mut animated = fixture.animated();
@@ -129,7 +129,7 @@ mod tests {
             performer.progress(Duration::from_millis(50), &mut animated,),
             Duration::from_millis(50)
         );
-        assert_eq!(fixture.sprite.frame_index, 2);
+        assert_eq!(fixture.sprite_info.frame_index, 2);
         assert_eq!(performer.finished(), false);
 
         let mut animated = fixture.animated();
@@ -137,7 +137,7 @@ mod tests {
             performer.progress(Duration::from_millis(180), &mut animated,),
             Duration::from_millis(150)
         );
-        assert_eq!(fixture.sprite.frame_index, 4);
+        assert_eq!(fixture.sprite_info.frame_index, 4);
         assert_eq!(performer.finished(), true);
     }
 
@@ -156,28 +156,28 @@ mod tests {
         let mut performer = FrameRangePerformer::new(animation.clone());
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
-        assert_eq!(fixture.sprite.frame_index, 3);
+        assert_eq!(fixture.sprite_info.frame_index, 3);
 
         let mut animated = fixture.animated();
         assert_eq!(
             performer.execute(&mut animated),
             AnimationRunningState::Running
         );
-        assert_eq!(fixture.sprite.frame_index, 4);
+        assert_eq!(fixture.sprite_info.frame_index, 4);
 
         let mut animated = fixture.animated();
         assert_eq!(
             performer.execute(&mut animated),
             AnimationRunningState::Running
         );
-        assert_eq!(fixture.sprite.frame_index, 3);
+        assert_eq!(fixture.sprite_info.frame_index, 3);
 
         let mut animated = fixture.animated();
         assert_eq!(
             performer.execute(&mut animated),
             AnimationRunningState::Finished
         );
-        assert_eq!(fixture.sprite.frame_index, 4);
+        assert_eq!(fixture.sprite_info.frame_index, 4);
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
@@ -187,7 +187,7 @@ mod tests {
         );
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
-        assert_eq!(fixture.sprite.frame_index, 3);
+        assert_eq!(fixture.sprite_info.frame_index, 3);
         assert_eq!(performer.finished(), false);
 
         let mut animated = fixture.animated();
@@ -195,7 +195,7 @@ mod tests {
             performer.progress(Duration::from_millis(800), &mut animated,),
             Duration::from_millis(300)
         );
-        assert_eq!(fixture.sprite.frame_index, 4);
+        assert_eq!(fixture.sprite_info.frame_index, 4);
         assert_eq!(performer.finished(), true);
     }
 
@@ -214,7 +214,7 @@ mod tests {
         let mut performer = FrameRangePerformer::new(animation.clone());
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
-        assert_eq!(fixture.sprite.frame_index, 0);
+        assert_eq!(fixture.sprite_info.frame_index, 0);
 
         for i in 1..100 {
             let mut animated = fixture.animated();
@@ -222,7 +222,7 @@ mod tests {
                 performer.execute(&mut animated),
                 AnimationRunningState::Running
             );
-            assert_eq!(fixture.sprite.frame_index, i % 5);
+            assert_eq!(fixture.sprite_info.frame_index, i % 5);
         }
 
         // Test Performer using PerformerBase.
@@ -233,7 +233,7 @@ mod tests {
         );
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
-        assert_eq!(fixture.sprite.frame_index, 0);
+        assert_eq!(fixture.sprite_info.frame_index, 0);
         assert_eq!(performer.finished(), false);
 
         let mut animated = fixture.animated();
@@ -241,7 +241,7 @@ mod tests {
             performer.progress(Duration::from_millis(200), &mut animated,),
             Duration::from_millis(200)
         );
-        assert_eq!(fixture.sprite.frame_index, 1);
+        assert_eq!(fixture.sprite_info.frame_index, 1);
         assert_eq!(performer.finished(), false);
 
         let mut animated = fixture.animated();
@@ -249,7 +249,7 @@ mod tests {
             performer.progress(Duration::from_millis(1500), &mut animated,),
             Duration::from_millis(1500)
         );
-        assert_eq!(fixture.sprite.frame_index, 3);
+        assert_eq!(fixture.sprite_info.frame_index, 3);
         assert_eq!(performer.finished(), false);
     }
 
@@ -268,14 +268,14 @@ mod tests {
         let mut performer = FrameRangePerformer::new(animation.clone());
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
-        assert_eq!(fixture.sprite.frame_index, 1);
+        assert_eq!(fixture.sprite_info.frame_index, 1);
 
         let mut animated = fixture.animated();
         assert_eq!(
             performer.execute(&mut animated),
             AnimationRunningState::Running
         );
-        assert_eq!(fixture.sprite.frame_index, 2);
+        assert_eq!(fixture.sprite_info.frame_index, 2);
 
         // Test Performer using PerformerBase.
         //
@@ -289,7 +289,7 @@ mod tests {
         );
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
-        assert_eq!(fixture.sprite.frame_index, 1);
+        assert_eq!(fixture.sprite_info.frame_index, 1);
         assert_eq!(performer.finished(), false);
 
         let mut animated = fixture.animated();
@@ -297,7 +297,7 @@ mod tests {
             performer.progress(Duration::from_millis(200), &mut animated,),
             Duration::ZERO
         );
-        assert_eq!(fixture.sprite.frame_index, 2);
+        assert_eq!(fixture.sprite_info.frame_index, 2);
         assert_eq!(performer.finished(), true);
     }
 }

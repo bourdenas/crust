@@ -1,6 +1,6 @@
 use crate::{
     action::ActionQueue,
-    components::{Id, Position, Size, Sprite, Velocity},
+    components::{Id, Position, Size, SpriteInfo, Velocity},
     crust::{HorizontalAlign, VerticalAlign},
     resources::SpriteSheet,
 };
@@ -10,7 +10,7 @@ pub struct Animated<'a> {
     pub id: &'a Id,
     pub position: &'a Position,
     pub velocity: &'a mut Velocity,
-    pub sprite: &'a mut Sprite,
+    pub sprite_info: &'a mut SpriteInfo,
     pub size: &'a mut Size,
     sprite_sheet: &'a SpriteSheet,
     pub queue: Option<&'a ActionQueue>,
@@ -21,7 +21,7 @@ impl<'a> Animated<'a> {
         id: &'a Id,
         position: &'a Position,
         velocity: &'a mut Velocity,
-        sprite: &'a mut Sprite,
+        sprite_info: &'a mut SpriteInfo,
         size: &'a mut Size,
         sprite_sheet: &'a SpriteSheet,
         queue: Option<&'a ActionQueue>,
@@ -30,7 +30,7 @@ impl<'a> Animated<'a> {
             id,
             position,
             velocity,
-            sprite,
+            sprite_info,
             size,
             sprite_sheet,
             queue,
@@ -44,12 +44,12 @@ impl<'a> Animated<'a> {
         v_align: VerticalAlign,
         h_align: HorizontalAlign,
     ) {
-        let mut prev_aabb = self.sprite_sheet.bounding_boxes[self.sprite.frame_index];
+        let mut prev_aabb = self.sprite_sheet.bounding_boxes[self.sprite_info.frame_index];
         prev_aabb.reposition(self.position.0);
         let mut next_aabb = self.sprite_sheet.bounding_boxes[frame_index];
         next_aabb.reposition(self.position.0);
 
-        self.sprite.frame_index = frame_index;
+        self.sprite_info.frame_index = frame_index;
         self.size.bounding_box = self.sprite_sheet.bounding_boxes[frame_index];
 
         self.velocity.0 += Point::new(

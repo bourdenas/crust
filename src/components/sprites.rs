@@ -27,8 +27,8 @@ pub struct Velocity(pub Point);
 
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
-pub struct Sprite {
-    pub resource: String,
+pub struct SpriteInfo {
+    pub texture_id: String,
     pub frame_index: usize,
 }
 

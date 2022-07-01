@@ -1,6 +1,6 @@
 use super::{FpsCounter, SceneManager};
 use crate::action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX};
-use crate::components::{Animation, Collisions, Id, Position, RigidBody, Sprite, Velocity};
+use crate::components::{Animation, Collisions, Id, Position, RigidBody, SpriteInfo, Velocity};
 use crate::core::{renderer, EventPump, Status};
 use crate::crust::{user_input, Action, UserInput};
 use crate::event::EventManager;
@@ -53,7 +53,7 @@ impl Core {
         let mut world = World::new();
         world.register::<Id>();
         world.register::<Position>();
-        world.register::<Sprite>();
+        world.register::<SpriteInfo>();
         world.register::<Velocity>();
         world.register::<Animation>();
         world.register::<Collisions>();
