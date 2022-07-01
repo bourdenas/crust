@@ -37,7 +37,7 @@ impl ActionExecutor {
     ) {
         match action.action {
             Some(action::Action::Quit(..)) => (),
-            Some(action::Action::LoadScene(action)) => Scenes::load(action, scene_manager),
+            Some(action::Action::LoadScene(action)) => Scenes::load(action, scene_manager, world),
             Some(action::Action::CreateSceneNode(action)) => Nodes::create(action, world),
             Some(action::Action::DestroySceneNode(action)) => Nodes::destroy(action, world),
             Some(action::Action::PlayAnimation(action)) => Animations::play(action, world),
