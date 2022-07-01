@@ -2,32 +2,32 @@ use super::{ResourceLoader, ResourceManager};
 use crate::core::Status;
 use sdl2::rect::Rect;
 
-pub type SpriteSheetsManager = ResourceManager<String, SpriteSheet, SpriteSheetsLoader>;
+pub type SpriteManager = ResourceManager<String, Sprite, SpriteLoader>;
 
-pub struct SpriteSheetsLoader;
+pub struct SpriteLoader;
 
-impl ResourceLoader<SpriteSheet> for SpriteSheetsLoader {
+impl ResourceLoader<Sprite> for SpriteLoader {
     type Args = str;
 
-    fn load(&self, path: &str, resource: &str) -> Result<SpriteSheet, Status> {
+    fn load(&self, path: &str, resource: &str) -> Result<Sprite, Status> {
         let filename = format!("{path}/{resource}.json");
         let json = std::fs::read(&filename).expect(&format!("Failed to read '{filename}'"));
-        match serde_json::from_slice::<SpriteSheet>(&json) {
+        match serde_json::from_slice::<Sprite>(&json) {
             Ok(sheet) => Ok(sheet),
             Err(e) => Err(Status::new("Failed to parse sprite sheet: {}", e)),
         }
     }
 }
 
-impl SpriteSheetsManager {
+impl SpriteManager {
     pub fn create(resource_path: &str) -> Self {
-        SpriteSheetsManager::new(resource_path, SpriteSheetsLoader {})
+        SpriteManager::new(resource_path, SpriteLoader {})
     }
 
     pub fn get_box(&self, key: &str, index: usize) -> Option<Rect> {
         match self.get(key) {
-            Some(sheet) => match index < sheet.bounding_boxes.len() {
-                true => Some(sheet.bounding_boxes[index]),
+            Some(sheet) => match index < sheet.frames.len() {
+                true => Some(sheet.frames[index]),
                 false => None,
             },
             None => None,
@@ -44,11 +44,11 @@ use serde_with::serde_as;
 
 #[serde_with::serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SpriteSheet {
-    pub resource: String,
+pub struct Sprite {
+    pub texture_id: String,
 
     #[serde_as(as = "Vec<CrustRect>")]
-    pub bounding_boxes: Vec<Rect>,
+    pub frames: Vec<Rect>,
 }
 
 struct CrustRect;

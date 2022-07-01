@@ -1,7 +1,7 @@
 use super::INDEX;
 use crate::components::{Id, Position, RigidBody, ScalingVec, Size, SpriteInfo, Velocity};
 use crate::crust::{SceneNodeAction, SceneNodeRefAction, Vector};
-use crate::resources::SpriteSheetsManager;
+use crate::resources::SpriteManager;
 use sdl2::rect::{Point, Rect};
 use specs::prelude::*;
 
@@ -68,13 +68,13 @@ impl Nodes {
 }
 
 fn frame_bounding_box(world: &mut World, resource: &str, frame_index: usize) -> Option<Rect> {
-    let mut sheets_manager = world.write_resource::<SpriteSheetsManager>();
-    if let Err(e) = sheets_manager.load(resource) {
+    let mut sprite_manager = world.write_resource::<SpriteManager>();
+    if let Err(e) = sprite_manager.load(resource) {
         eprintln!("🦀 {}", e);
         return None;
     }
 
-    sheets_manager.get_box(resource, frame_index)
+    sprite_manager.get_box(resource, frame_index)
 }
 
 fn make_point(vec: &Vector) -> Point {

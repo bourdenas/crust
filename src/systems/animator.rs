@@ -3,7 +3,7 @@ use crate::{
     animation::Animated,
     components::{Animation, AnimationRunningState, Id, Position, Size, SpriteInfo, Velocity},
     crust::{event, AnimationEvent, Vector},
-    resources::SpriteSheetsManager,
+    resources::SpriteManager,
 };
 use specs::prelude::*;
 use std::time::Duration;
@@ -11,7 +11,7 @@ use std::time::Duration;
 #[derive(SystemData)]
 pub struct AnimatorSystemData<'a> {
     time_since_last_frame: ReadExpect<'a, Duration>,
-    sheets_manager: WriteExpect<'a, SpriteSheetsManager>,
+    sprite_manager: WriteExpect<'a, SpriteManager>,
     entities: Entities<'a>,
     updater: Read<'a, LazyUpdate>,
 
@@ -44,14 +44,14 @@ impl<'a> System<'a> for AnimatorSystem {
         )
             .join()
         {
-            let sprite_sheet = &data.sheets_manager.load(&sprite_info.texture_id).unwrap();
+            let sprite = &data.sprite_manager.load(&sprite_info.texture_id).unwrap();
             let mut animated = Animated::new(
                 id,
                 position,
                 velocity,
                 sprite_info,
                 size,
-                sprite_sheet,
+                sprite,
                 Some(&self.queue),
             );
 

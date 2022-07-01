@@ -5,7 +5,7 @@ use crate::core::{renderer, EventPump, Status};
 use crate::crust::{user_input, Action, UserInput};
 use crate::event::EventManager;
 use crate::input::InputManager;
-use crate::resources::{SpriteSheetsManager, TextureManager};
+use crate::resources::{SpriteManager, TextureManager};
 use crate::systems::{AnimatorSystem, CollisionSystem, MovementSystem};
 use sdl2::image::{self, InitFlag};
 use sdl2::render::WindowCanvas;
@@ -59,8 +59,8 @@ impl Core {
         world.register::<Collisions>();
         world.register::<RigidBody>();
 
-        let sheets_manager = SpriteSheetsManager::create(resource_path);
-        world.insert(sheets_manager);
+        let sprite_manager = SpriteManager::create(resource_path);
+        world.insert(sprite_manager);
         world.insert(Duration::ZERO);
 
         let (tx, rx) = mpsc::channel();

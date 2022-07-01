@@ -2,7 +2,7 @@ use crate::{
     action::ActionQueue,
     components::{Id, Position, Size, SpriteInfo, Velocity},
     crust::{HorizontalAlign, VerticalAlign},
-    resources::SpriteSheet,
+    resources::Sprite,
 };
 use sdl2::rect::Point;
 
@@ -12,7 +12,7 @@ pub struct Animated<'a> {
     pub velocity: &'a mut Velocity,
     pub sprite_info: &'a mut SpriteInfo,
     pub size: &'a mut Size,
-    sprite_sheet: &'a SpriteSheet,
+    sprite: &'a Sprite,
     pub queue: Option<&'a ActionQueue>,
 }
 
@@ -23,7 +23,7 @@ impl<'a> Animated<'a> {
         velocity: &'a mut Velocity,
         sprite_info: &'a mut SpriteInfo,
         size: &'a mut Size,
-        sprite_sheet: &'a SpriteSheet,
+        sprite: &'a Sprite,
         queue: Option<&'a ActionQueue>,
     ) -> Self {
         Animated {
@@ -32,7 +32,7 @@ impl<'a> Animated<'a> {
             velocity,
             sprite_info,
             size,
-            sprite_sheet,
+            sprite,
             queue,
         }
     }
@@ -44,13 +44,13 @@ impl<'a> Animated<'a> {
         v_align: VerticalAlign,
         h_align: HorizontalAlign,
     ) {
-        let mut prev_aabb = self.sprite_sheet.bounding_boxes[self.sprite_info.frame_index];
+        let mut prev_aabb = self.sprite.frames[self.sprite_info.frame_index];
         prev_aabb.reposition(self.position.0);
-        let mut next_aabb = self.sprite_sheet.bounding_boxes[frame_index];
+        let mut next_aabb = self.sprite.frames[frame_index];
         next_aabb.reposition(self.position.0);
 
         self.sprite_info.frame_index = frame_index;
-        self.size.bounding_box = self.sprite_sheet.bounding_boxes[frame_index];
+        self.size.bounding_box = self.sprite.frames[frame_index];
 
         self.velocity.0 += Point::new(
             match h_align {

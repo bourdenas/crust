@@ -3,7 +3,7 @@ pub mod util {
     use crate::{
         animation::Animated,
         components::{Id, Position, ScalingVec, Size, SpriteInfo, Velocity},
-        resources::SpriteSheet,
+        resources::Sprite,
     };
     use sdl2::rect::{Point, Rect};
 
@@ -13,7 +13,7 @@ pub mod util {
         pub velocity: Velocity,
         pub sprite_info: SpriteInfo,
         pub size: Size,
-        sheet: SpriteSheet,
+        sprite: Sprite,
     }
 
     impl Fixture {
@@ -30,9 +30,9 @@ pub mod util {
                     bounding_box: Rect::new(0, 0, 32, 32),
                     scaling: ScalingVec::default(),
                 },
-                sheet: SpriteSheet {
-                    resource: "foo".to_owned(),
-                    bounding_boxes: vec![
+                sprite: Sprite {
+                    texture_id: "foo".to_owned(),
+                    frames: vec![
                         Rect::new(0, 0, 32, 32),
                         Rect::new(0, 0, 32, 32),
                         Rect::new(0, 0, 32, 32),
@@ -51,7 +51,7 @@ pub mod util {
                 &mut self.velocity,
                 &mut self.sprite_info,
                 &mut self.size,
-                &self.sheet,
+                &self.sprite,
                 None,
             )
         }

@@ -1,7 +1,7 @@
 use super::Status;
 use crate::{
     components::{Id, Position, RigidBody, ScalingVec, Size},
-    resources::{ObjectProperty, SpriteSheetsManager, TileMap, TileMapManager},
+    resources::{ObjectProperty, SpriteManager, TileMap, TileMapManager},
 };
 use sdl2::rect::{Point, Rect};
 use specs::prelude::*;
@@ -24,7 +24,7 @@ pub struct TileInfo {
 pub struct SceneManager {
     pub scene: Scene,
     tilemap_manager: TileMapManager,
-    tile_sheet_manager: SpriteSheetsManager,
+    tile_sprite_manager: SpriteManager,
 }
 
 impl SceneManager {
@@ -32,7 +32,7 @@ impl SceneManager {
         SceneManager {
             scene: Scene::default(),
             tilemap_manager: TileMapManager::create(resource_path),
-            tile_sheet_manager: SpriteSheetsManager::create(resource_path),
+            tile_sprite_manager: SpriteManager::create(resource_path),
         }
     }
 
@@ -41,7 +41,7 @@ impl SceneManager {
         let map = self.tilemap_manager.get(resource).unwrap();
 
         for set in &map.tilesets {
-            self.tile_sheet_manager.load(
+            self.tile_sprite_manager.load(
                 &set.source
                     .strip_suffix(".tsx")
                     .expect("TileSet does not have the expected format."),
@@ -78,7 +78,7 @@ impl SceneManager {
                                 TileInfo {
                                     texture_id: range.resource.clone(),
                                     texture_position: self
-                                        .tile_sheet_manager
+                                        .tile_sprite_manager
                                         .get_box(&range.resource, (tile_id - range.first) as usize)
                                         .expect(&format!(
                                             "Tile index '{tile_id}' exceeds available tiles in {}",
