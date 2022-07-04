@@ -44,13 +44,13 @@ impl<'a> Animated<'a> {
         v_align: VerticalAlign,
         h_align: HorizontalAlign,
     ) {
-        let mut prev_aabb = self.sprite.frames[self.sprite_info.frame_index];
+        let mut prev_aabb = self.sprite.frames[self.sprite_info.frame_index].bounding_box;
         prev_aabb.reposition(self.position.0);
-        let mut next_aabb = self.sprite.frames[frame_index];
+        let mut next_aabb = self.sprite.frames[frame_index].bounding_box;
         next_aabb.reposition(self.position.0);
 
         self.sprite_info.frame_index = frame_index;
-        self.size.bounding_box = self.sprite.frames[frame_index];
+        self.size.bounding_box = self.sprite.frames[frame_index].bounding_box;
 
         self.velocity.0 += Point::new(
             match h_align {

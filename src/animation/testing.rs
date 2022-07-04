@@ -3,7 +3,7 @@ pub mod util {
     use crate::{
         animation::Animated,
         components::{Id, Position, ScalingVec, Size, SpriteInfo, Velocity},
-        resources::Sprite,
+        resources::{Frame, Sprite},
     };
     use sdl2::rect::{Point, Rect};
 
@@ -33,12 +33,30 @@ pub mod util {
                 sprite: Sprite {
                     texture_id: "foo".to_owned(),
                     frames: vec![
-                        Rect::new(0, 0, 32, 32),
-                        Rect::new(0, 0, 32, 32),
-                        Rect::new(0, 0, 32, 32),
-                        Rect::new(0, 0, 32, 32),
-                        Rect::new(0, 0, 32, 32),
-                        Rect::new(0, 0, 32, 32),
+                        Frame {
+                            bounding_box: Rect::new(0, 0, 32, 32),
+                            bitmask: None,
+                        },
+                        Frame {
+                            bounding_box: Rect::new(0, 0, 32, 32),
+                            bitmask: None,
+                        },
+                        Frame {
+                            bounding_box: Rect::new(0, 0, 32, 32),
+                            bitmask: None,
+                        },
+                        Frame {
+                            bounding_box: Rect::new(0, 0, 32, 32),
+                            bitmask: None,
+                        },
+                        Frame {
+                            bounding_box: Rect::new(0, 0, 32, 32),
+                            bitmask: None,
+                        },
+                        Frame {
+                            bounding_box: Rect::new(0, 0, 32, 32),
+                            bitmask: None,
+                        },
                     ],
                 },
             }

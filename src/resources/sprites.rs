@@ -1,6 +1,7 @@
 use super::{ResourceLoader, ResourceManager};
 use crate::core::Status;
 use sdl2::rect::Rect;
+use specs::BitSet;
 
 pub type SpriteManager = ResourceManager<String, Sprite, SpriteLoader>;
 
@@ -27,7 +28,7 @@ impl SpriteManager {
     pub fn get_box(&self, key: &str, index: usize) -> Option<Rect> {
         match self.get(key) {
             Some(sheet) => match index < sheet.frames.len() {
-                true => Some(sheet.frames[index]),
+                true => Some(sheet.frames[index].bounding_box),
                 false => None,
             },
             None => None,
@@ -46,9 +47,69 @@ use serde_with::serde_as;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Sprite {
     pub texture_id: String,
+    pub frames: Vec<Frame>,
+}
 
-    #[serde_as(as = "Vec<CrustRect>")]
-    pub frames: Vec<Rect>,
+#[serde_with::serde_as]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Frame {
+    #[serde_as(as = "CrustRect")]
+    pub bounding_box: Rect,
+
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde_as(as = "Option<BitMask>")]
+    pub bitmask: Option<BitSet>,
+}
+
+struct BitMask;
+
+impl serde_with::SerializeAs<BitSet> for BitMask {
+    fn serialize_as<S>(source: &BitSet, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut seq = serializer.serialize_seq(None)?;
+        for bit in source {
+            seq.serialize_element(&bit)?;
+        }
+        seq.end()
+    }
+}
+
+impl<'de> serde_with::DeserializeAs<'de, BitSet> for BitMask {
+    fn deserialize_as<D>(deserializer: D) -> Result<BitSet, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct BitMaskVisitor;
+
+        impl<'de> Visitor<'de> for BitMaskVisitor {
+            type Value = BitSet;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(formatter, "a json vector containing positive integers")
+            }
+
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: SeqAccess<'de>,
+            {
+                let mut bitset = BitSet::new();
+                'sequence: loop {
+                    match seq.next_element()? {
+                        Some(value) => {
+                            bitset.add(value);
+                        }
+                        None => break 'sequence,
+                    }
+                }
+                Ok(bitset)
+            }
+        }
+
+        deserializer.deserialize_seq(BitMaskVisitor {})
+    }
 }
 
 struct CrustRect;
