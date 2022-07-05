@@ -56,6 +56,17 @@ where
     }
 }
 
+#[cfg(test)]
+impl<Key, Resource, Loader> ResourceManager<Key, Resource, Loader>
+where
+    Key: Hash + Eq,
+    Loader: ResourceLoader<Resource>,
+{
+    pub fn set_resources(&mut self, resources: Vec<(Key, Resource)>) {
+        self.cache = resources.into_iter().collect();
+    }
+}
+
 /// Generic trait to load resource.
 pub trait ResourceLoader<Resource> {
     type Args: ?Sized;

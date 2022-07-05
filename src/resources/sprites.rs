@@ -36,6 +36,20 @@ impl SpriteManager {
     }
 }
 
+#[cfg(test)]
+impl SpriteManager {
+    pub fn mock(sprites: Vec<Sprite>) -> Self {
+        let mut mgr = SpriteManager::new("", SpriteLoader {});
+        mgr.set_resources(
+            sprites
+                .into_iter()
+                .map(|sprite| (sprite.texture_id.clone(), sprite))
+                .collect(),
+        );
+        mgr
+    }
+}
+
 use serde::{
     de::{SeqAccess, Visitor},
     ser::SerializeSeq,
