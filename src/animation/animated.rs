@@ -54,20 +54,16 @@ impl<'a> Animated<'a> {
 
         self.velocity.0 += Point::new(
             match h_align {
-                HorizontalAlign::Right => {
-                    self.position.0.x() + (prev_aabb.width() - next_aabb.width()) as i32
-                }
+                HorizontalAlign::Right => prev_aabb.width() as i32 - next_aabb.width() as i32,
                 HorizontalAlign::Hcentre => {
-                    self.position.0.x() + ((prev_aabb.width() - next_aabb.width()) / 2) as i32
+                    (prev_aabb.width() as i32 - next_aabb.width() as i32) / 2
                 }
                 _ => 0,
             },
             match v_align {
-                VerticalAlign::Bottom => {
-                    self.position.0.y() + (prev_aabb.height() - next_aabb.height()) as i32
-                }
+                VerticalAlign::Bottom => prev_aabb.height() as i32 - next_aabb.height() as i32,
                 VerticalAlign::Vcentre => {
-                    self.position.0.y() + (prev_aabb.height() - next_aabb.height() / 2) as i32
+                    (prev_aabb.height() as i32 - next_aabb.height() as i32) / 2
                 }
                 _ => 0,
             },

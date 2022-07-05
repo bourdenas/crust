@@ -77,8 +77,9 @@ mod tests {
             testing::util::Fixture, FrameRangePerformer, Performer, Progressor, ProgressorImpl,
         },
         components::AnimationRunningState,
-        crust::FrameRangeAnimation,
+        crust::{FrameRangeAnimation, HorizontalAlign, VerticalAlign},
     };
+    use sdl2::rect::Point;
     use std::time::Duration;
 
     #[test]
@@ -299,5 +300,83 @@ mod tests {
         );
         assert_eq!(fixture.sprite_info.frame_index, 2);
         assert_eq!(performer.finished(), true);
+    }
+
+    #[test]
+    fn bottom_vertical_alignment() {
+        let mut fixture = Fixture::new();
+
+        let animation = FrameRangeAnimation {
+            start_frame: 0,
+            end_frame: 3,
+            delay: 100,
+            repeat: 1,
+            vertical_align: VerticalAlign::Bottom as i32,
+            ..Default::default()
+        };
+
+        // Test FrameRangePerformer.
+        let mut performer = FrameRangePerformer::new(animation.clone());
+        let mut animated = fixture.animated();
+        performer.start(&mut animated, 1.0);
+        assert_eq!(fixture.sprite_info.frame_index, 0);
+        assert_eq!(fixture.velocity.0, Point::new(0, 0));
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.execute(&mut animated),
+            AnimationRunningState::Running
+        );
+        assert_eq!(fixture.sprite_info.frame_index, 1);
+        assert_eq!(fixture.velocity.0, Point::new(0, 2));
+        fixture.velocity.0 = Point::new(0, 0);
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.execute(&mut animated),
+            AnimationRunningState::Finished
+        );
+        assert_eq!(fixture.sprite_info.frame_index, 2);
+        assert_eq!(fixture.velocity.0, Point::new(0, -2));
+        fixture.velocity.0 = Point::new(0, 0);
+    }
+
+    #[test]
+    fn right_horizontal_alignment() {
+        let mut fixture = Fixture::new();
+
+        let animation = FrameRangeAnimation {
+            start_frame: 3,
+            end_frame: 6,
+            delay: 100,
+            repeat: 1,
+            horizontal_align: HorizontalAlign::Right as i32,
+            ..Default::default()
+        };
+
+        // Test FrameRangePerformer.
+        let mut performer = FrameRangePerformer::new(animation.clone());
+        let mut animated = fixture.animated();
+        performer.start(&mut animated, 1.0);
+        assert_eq!(fixture.sprite_info.frame_index, 3);
+        assert_eq!(fixture.velocity.0, Point::new(0, 0));
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.execute(&mut animated),
+            AnimationRunningState::Running
+        );
+        assert_eq!(fixture.sprite_info.frame_index, 4);
+        assert_eq!(fixture.velocity.0, Point::new(4, 0));
+        fixture.velocity.0 = Point::new(0, 0);
+
+        let mut animated = fixture.animated();
+        assert_eq!(
+            performer.execute(&mut animated),
+            AnimationRunningState::Finished
+        );
+        assert_eq!(fixture.sprite_info.frame_index, 5);
+        assert_eq!(fixture.velocity.0, Point::new(-4, 0));
+        fixture.velocity.0 = Point::new(0, 0);
     }
 }
