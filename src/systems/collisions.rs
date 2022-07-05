@@ -2,15 +2,18 @@ use crate::{
     action::ActionQueue,
     components::{Collisions, Id, Position},
     physics::{CollisionChecker, CollisionNode},
+    resources::SpriteManager,
 };
 use specs::prelude::*;
 
 #[derive(SystemData)]
 pub struct CollisionSystemData<'a> {
     entities: Entities<'a>,
+    sprite_manager: ReadExpect<'a, SpriteManager>,
 
     ids: ReadStorage<'a, Id>,
     positions: ReadStorage<'a, Position>,
+    sprite_info: ReadStorage<'a, SpriteInfo>,
     collisions: ReadStorage<'a, Collisions>,
 }
 
@@ -36,9 +39,15 @@ impl<'a> System<'a> for CollisionSystem {
         {
             for (entity_b, id_b, position_b) in (&data.entities, &data.ids, &data.positions).join()
             {
-                if entity_a == entity_b {
+                if lhs_entity == rhs_entity {
                     continue;
                 }
+
+                let sprite = data
+                    .sprite_manager
+                    .get(&rhs_sprite_info.texture_id)
+                    .unwrap();
+
                 self.checker.check_collision(
                     CollisionNode {
                         entity_id: entity_a.id(),
@@ -49,6 +58,7 @@ impl<'a> System<'a> for CollisionSystem {
                         entity_id: entity_b.id(),
                         id: id_b,
                         position: position_b,
+                        sprite.frames[rhs_sprite_info.frame_index].bitmask.as_ref(),
                     },
                     &collisions.on_collision,
                 );

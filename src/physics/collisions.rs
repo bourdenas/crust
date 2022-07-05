@@ -4,6 +4,7 @@ use crate::{
     crust::{event, Box, CollisionAction, CollisionEvent},
 };
 use sdl2::rect::Rect;
+use specs::BitSet;
 use std::collections::HashSet;
 
 pub struct CollisionChecker {
@@ -21,15 +22,15 @@ impl CollisionChecker {
 
     pub fn check_collision(
         &mut self,
-        lhs: CollisionNode,
-        rhs: CollisionNode,
+        lhs: &CollisionNode,
+        rhs: &CollisionNode,
         collision_actions: &Vec<CollisionAction>,
     ) {
         for collision in collision_actions {
             if rhs.id.0 == collision.other_id {
                 let pair = ordered(lhs.entity_id, rhs.entity_id);
 
-                match lhs.aabb() & rhs.aabb() {
+                match lhs.intersection(rhs) {
                     Some(intersection) => {
                         if self.overlapping_pairs.contains(&pair) {
                             continue;
@@ -92,10 +93,45 @@ pub struct CollisionNode<'a> {
     pub entity_id: u32,
     pub id: &'a Id,
     pub position: &'a Position,
+    pub collision_mask: Option<&'a BitSet>,
 }
 
 impl<'a> CollisionNode<'a> {
     pub fn aabb(&self) -> Rect {
         self.position.0
+    }
+
+    pub fn intersection(&self, other: &CollisionNode) -> Option<Rect> {
+        match self.aabb & other.aabb {
+            Some(intersection) => self.pixel_collision(other, intersection),
+            None => None,
+        }
+    }
+
+    fn pixel_collision(&self, other: &CollisionNode, intersection: Rect) -> Option<Rect> {
+        if self.collision_mask == None || other.collision_mask == None {
+            return Some(intersection);
+        }
+
+        let lhs_collision_mask = self.collision_mask.unwrap();
+        let rhs_collision_mask = other.collision_mask.unwrap();
+
+        let lhs_rel_left = (intersection.left() - self.aabb.left()) as u32;
+        let lhs_rel_top = (intersection.top() - self.aabb.top()) as u32;
+        let rhs_rel_left = (intersection.left() - other.aabb.left()) as u32;
+        let rhs_rel_top = (intersection.top() - other.aabb.top()) as u32;
+
+        for y in 0..intersection.height() as u32 {
+            for x in 0..intersection.width() as u32 {
+                let lhs_index = (lhs_rel_top + y) * self.aabb.width() + (lhs_rel_left + x);
+                let rhs_index = (rhs_rel_top + y) * other.aabb.width() + (rhs_rel_left + x);
+
+                if lhs_collision_mask.contains(lhs_index) && rhs_collision_mask.contains(rhs_index)
+                {
+                    return Some(intersection);
+                }
+            }
+        }
+        None
     }
 }
