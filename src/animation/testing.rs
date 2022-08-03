@@ -38,7 +38,7 @@ pub mod util {
                             bitmask: None,
                         },
                         Frame {
-                            bounding_box: Rect::new(0, 0, 32, 32),
+                            bounding_box: Rect::new(0, 0, 32, 30),
                             bitmask: None,
                         },
                         Frame {
@@ -50,7 +50,7 @@ pub mod util {
                             bitmask: None,
                         },
                         Frame {
-                            bounding_box: Rect::new(0, 0, 32, 32),
+                            bounding_box: Rect::new(0, 0, 28, 32),
                             bitmask: None,
                         },
                         Frame {
