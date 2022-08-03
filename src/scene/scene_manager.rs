@@ -10,24 +10,45 @@ use specs::prelude::*;
 pub struct SceneManager {
     scene: Scene,
     viewport: Rect,
+    window_size: Rect,
     tilemap_manager: TileMapManager,
     tile_sprite_manager: SpriteManager,
 }
 
 impl SceneManager {
-    pub fn new(resource_path: &str) -> Self {
+    pub fn new(resource_path: &str, window_width: u32, window_height: u32) -> Self {
         SceneManager {
             scene: Scene {
                 layers: vec![],
-                bounds: Rect::new(0, 0, 0, 0),
+                bounds: Rect::new(0, 0, window_width, window_height),
             },
-            viewport: Rect::new(0, 0, 0, 0),
+            viewport: Rect::new(0, 0, window_width, window_height),
+            window_size: Rect::new(0, 0, window_width, window_height),
             tilemap_manager: TileMapManager::create(resource_path),
             tile_sprite_manager: SpriteManager::create(resource_path),
         }
     }
 
-    pub fn load(&mut self, resource: &str, world: &mut World) -> Result<(), Status> {
+    pub fn load(
+        &mut self,
+        resource: &str,
+        viewport: Option<Rect>,
+        world: &mut World,
+    ) -> Result<(), Status> {
+        if let Some(viewport) = viewport {
+            if viewport.x() < 0
+                || viewport.y() < 0
+                || viewport.x() as u32 + viewport.width() > self.window_size.width()
+                || viewport.y() as u32 + viewport.height() > self.window_size.height()
+            {
+                return Err(Status::invalid_argument(&format!(
+                    "viewport should not have negative coordinates and its size should fit the window: {:?}",
+                    viewport
+                )));
+            }
+            self.viewport = viewport;
+        }
+
         self.tilemap_manager.load(resource)?;
         let map = self.tilemap_manager.get(resource).unwrap();
 
