@@ -2,6 +2,7 @@ syntax = "proto3";
 
 import "animation.proto";
 import "event.proto";
+import "primitives.proto";
 import "scene_node.proto";
 
 package crust;
@@ -44,6 +45,7 @@ message QuitAction {}
 
 message SceneAction {
     string resource = 1;
+    Box viewport = 2;
 }
 
 message EmitAction {
