@@ -9,13 +9,14 @@ use std::os::raw::c_char;
 thread_local!(static CORE: RefCell<Option<Core>> = RefCell::new(None));
 
 #[no_mangle]
-pub extern "C" fn init(resource: *const c_char) {
-    let resource = unsafe { CStr::from_ptr(resource) };
-    match resource.to_str() {
-        Ok(resource) => {
-            println!("🦀 resource path: {}", resource);
+pub extern "C" fn init(resource_path: *const c_char, width: u32, height: u32) {
+    let resource_path = unsafe { CStr::from_ptr(resource_path) };
+    match resource_path.to_str() {
+        Ok(resource_path) => {
+            println!("🦀 resource path: {}", resource_path);
             CORE.with(|core| {
-                *core.borrow_mut() = Some(Core::init(resource).expect("Failed to init Core"));
+                *core.borrow_mut() =
+                    Some(Core::init(resource_path, width, height).expect("Failed to init Core"));
             });
         }
         Err(e) => println!("init() failed to convert c_str: {}", e),

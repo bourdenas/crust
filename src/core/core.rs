@@ -41,14 +41,14 @@ pub struct Core {
 }
 
 impl Core {
-    pub fn init(resource_path: &str) -> Result<Self, Status> {
+    pub fn init(resource_path: &str, width: u32, height: u32) -> Result<Self, Status> {
         let sdl_context = sdl2::init()?;
         let video_subsystem = sdl_context.video()?;
 
         let event_pump = EventPump::new(&sdl_context)?;
 
         let window = video_subsystem
-            .window("crust demo", 800, 600)
+            .window("crust demo", width, height)
             .position_centered()
             .build()
             .expect("could not initialize video subsystem");
