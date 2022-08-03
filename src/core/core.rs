@@ -41,7 +41,7 @@ impl Core {
         let event_pump = EventPump::new(&sdl_context)?;
 
         let window = video_subsystem
-            .window("trust demo", 800, 600)
+            .window("crust demo", 800, 600)
             .position_centered()
             .build()
             .expect("could not initialize video subsystem");

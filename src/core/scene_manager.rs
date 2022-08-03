@@ -6,9 +6,9 @@ use crate::{
 use sdl2::rect::{Point, Rect};
 use specs::prelude::*;
 
-#[derive(Default)]
 pub struct Scene {
     pub layers: Vec<SceneLayer>,
+    pub bounds: Rect,
 }
 #[derive(Default)]
 pub struct SceneLayer {
@@ -23,6 +23,7 @@ pub struct TileInfo {
 
 pub struct SceneManager {
     pub scene: Scene,
+    viewport: Rect,
     tilemap_manager: TileMapManager,
     tile_sprite_manager: SpriteManager,
 }
@@ -30,7 +31,11 @@ pub struct SceneManager {
 impl SceneManager {
     pub fn new(resource_path: &str) -> Self {
         SceneManager {
-            scene: Scene::default(),
+            scene: Scene {
+                layers: vec![],
+                bounds: Rect::new(0, 0, 0, 0),
+            },
+            viewport: Rect::new(0, 0, 0, 0),
             tilemap_manager: TileMapManager::create(resource_path),
             tile_sprite_manager: SpriteManager::create(resource_path),
         }
@@ -57,11 +62,11 @@ impl SceneManager {
     fn build_scene(&self, map: &TileMap, world: &mut World) -> Scene {
         let ranges = Self::build_tileset_ranges(map);
 
-        let mut scene = Scene::default();
+        let mut layers = vec![];
         for layer in &map.layers {
             match layer.layer_type.as_str() {
                 "tilelayer" => {
-                    scene.layers.push(SceneLayer {
+                    layers.push(SceneLayer {
                         tiles: layer
                             .data
                             .iter()
@@ -119,7 +124,11 @@ impl SceneManager {
                 _ => {}
             };
         }
-        scene
+
+        Scene {
+            layers,
+            bounds: Rect::new(0, 0, map.width * map.tilewidth, map.height * map.tileheight),
+        }
     }
 
     fn build_tileset_ranges(map: &TileMap) -> Vec<Range> {
