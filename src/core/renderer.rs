@@ -1,4 +1,4 @@
-use super::{scene::Scene, SceneManager};
+use super::SceneManager;
 use crate::components::{Position, Size, SpriteInfo};
 use crate::core::Status;
 use crate::resources::TextureManager;
@@ -21,7 +21,7 @@ pub fn render(
     // canvas.set_draw_color(background);
     canvas.clear();
 
-    render_scene(canvas, &scene_manager.scene, texture_manager)?;
+    scene_manager.render(canvas, texture_manager)?;
 
     for (position, sprite_info, size) in (&positions, &sprite_info, &sizes).join() {
         let texture = texture_manager.load(&sprite_info.texture_id)?;
@@ -39,21 +39,6 @@ pub fn render(
     }
 
     canvas.present();
-
-    Ok(())
-}
-
-fn render_scene(
-    canvas: &mut WindowCanvas,
-    scene: &Scene,
-    texture_manager: &mut TextureManager<sdl2::video::WindowContext>,
-) -> Result<(), Status> {
-    for layer in &scene.layers {
-        for tile in &layer.tiles {
-            let texture = texture_manager.load(&tile.texture_id).unwrap();
-            canvas.copy(&texture, tile.texture_position, tile.canvas_position)?;
-        }
-    }
 
     Ok(())
 }

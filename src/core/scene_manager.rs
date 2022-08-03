@@ -1,13 +1,15 @@
 use super::{scene::Scene, scene_builder::SceneBuilder};
+use crate::resources::TextureManager;
 use crate::{
     core::Status,
     resources::{SpriteManager, TileMapManager},
 };
 use sdl2::rect::Rect;
+use sdl2::render::WindowCanvas;
 use specs::prelude::*;
 
 pub struct SceneManager {
-    pub scene: Scene,
+    scene: Scene,
     viewport: Rect,
     tilemap_manager: TileMapManager,
     tile_sprite_manager: SpriteManager,
@@ -40,6 +42,21 @@ impl SceneManager {
 
         self.scene = SceneBuilder::build(map, &self.tile_sprite_manager, world);
         println!("🦀 scene '{resource}' loaded");
+
+        Ok(())
+    }
+
+    pub fn render(
+        &self,
+        canvas: &mut WindowCanvas,
+        texture_manager: &mut TextureManager<sdl2::video::WindowContext>,
+    ) -> Result<(), Status> {
+        for layer in &self.scene.layers {
+            for tile in &layer.tiles {
+                let texture = texture_manager.load(&tile.texture_id).unwrap();
+                canvas.copy(&texture, tile.texture_position, tile.canvas_position)?;
+            }
+        }
 
         Ok(())
     }
