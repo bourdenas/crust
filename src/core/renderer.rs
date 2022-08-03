@@ -1,5 +1,4 @@
-use super::scene_manager::Scene;
-use super::SceneManager;
+use super::{scene::Scene, SceneManager};
 use crate::components::{Position, Size, SpriteInfo};
 use crate::core::Status;
 use crate::resources::TextureManager;

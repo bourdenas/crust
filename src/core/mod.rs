@@ -2,6 +2,8 @@ mod core;
 mod events;
 mod fps;
 mod renderer;
+mod scene;
+mod scene_builder;
 mod scene_manager;
 mod status;
 
