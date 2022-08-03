@@ -1,7 +1,6 @@
 use specs::World;
 
-use crate::core::SceneManager;
-use crate::crust::SceneAction;
+use crate::{crust::SceneAction, scene::SceneManager};
 
 pub struct Scenes;
 

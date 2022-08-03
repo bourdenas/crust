@@ -1,9 +1,10 @@
-use super::SceneManager;
-use crate::components::{Position, Size, SpriteInfo};
-use crate::core::Status;
-use crate::resources::TextureManager;
-use sdl2::rect::Rect;
-use sdl2::render::WindowCanvas;
+use crate::{
+    components::{Position, Size, SpriteInfo},
+    core::Status,
+    resources::TextureManager,
+    scene::SceneManager,
+};
+use sdl2::{rect::Rect, render::WindowCanvas};
 use specs::prelude::*;
 
 type SystemData<'a> = (

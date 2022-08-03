@@ -1,11 +1,10 @@
 use super::{scene::Scene, scene_builder::SceneBuilder};
-use crate::resources::TextureManager;
 use crate::{
     core::Status,
+    resources::TextureManager,
     resources::{SpriteManager, TileMapManager},
 };
-use sdl2::rect::Rect;
-use sdl2::render::WindowCanvas;
+use sdl2::{rect::Rect, render::WindowCanvas};
 use specs::prelude::*;
 
 pub struct SceneManager {

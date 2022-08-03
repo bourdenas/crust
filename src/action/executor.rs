@@ -2,9 +2,9 @@ use super::{
     animations::Animations, collisions::Collisions, events::Events, nodes::Nodes, scenes::Scenes,
 };
 use crate::{
-    core::SceneManager,
     crust::{action, Action},
     event::EventManager,
+    scene::SceneManager,
 };
 use specs::prelude::*;
 use std::sync::mpsc::Receiver;

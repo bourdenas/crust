@@ -1,17 +1,24 @@
-use super::{FpsCounter, SceneManager};
-use crate::action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX};
-use crate::components::{Animation, Collisions, Id, Position, RigidBody, SpriteInfo, Velocity};
-use crate::core::{renderer, EventPump, Status};
-use crate::crust::{user_input, Action, UserInput};
-use crate::event::EventManager;
-use crate::input::InputManager;
-use crate::resources::{SpriteManager, TextureManager};
-use crate::systems::{AnimatorSystem, CollisionSystem, MovementSystem};
-use sdl2::image::{self, InitFlag};
-use sdl2::render::WindowCanvas;
+use super::FpsCounter;
+use crate::{
+    action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX},
+    components::{Animation, Collisions, Id, Position, RigidBody, SpriteInfo, Velocity},
+    core::{renderer, EventPump, Status},
+    crust::{user_input, Action, UserInput},
+    event::EventManager,
+    input::InputManager,
+    resources::{SpriteManager, TextureManager},
+    scene::SceneManager,
+    systems::{AnimatorSystem, CollisionSystem, MovementSystem},
+};
+use sdl2::{
+    image::{self, InitFlag},
+    render::WindowCanvas,
+};
 use specs::prelude::*;
-use std::sync::mpsc::{self, Sender};
-use std::time::{Duration, SystemTime};
+use std::{
+    sync::mpsc::{self, Sender},
+    time::{Duration, SystemTime},
+};
 
 pub struct Core {
     resource_path: String,

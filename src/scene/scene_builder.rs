@@ -1,6 +1,6 @@
+use super::scene::{Scene, SceneLayer, TileInfo};
 use crate::{
     components::{Id, Position, RigidBody, ScalingVec, Size},
-    core::scene::{Scene, SceneLayer, TileInfo},
     resources::{ObjectProperty, SpriteManager, TileMap},
 };
 use sdl2::rect::{Point, Rect};
