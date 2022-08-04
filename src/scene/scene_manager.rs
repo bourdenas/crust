@@ -35,20 +35,6 @@ impl SceneManager {
         viewport: Option<Rect>,
         world: &mut World,
     ) -> Result<(), Status> {
-        if let Some(viewport) = viewport {
-            if viewport.x() < 0
-                || viewport.y() < 0
-                || viewport.x() as u32 + viewport.width() > self.window_size.width()
-                || viewport.y() as u32 + viewport.height() > self.window_size.height()
-            {
-                return Err(Status::invalid_argument(&format!(
-                    "viewport should not have negative coordinates and its size should fit the window: {:?}",
-                    viewport
-                )));
-            }
-            self.viewport = viewport;
-        }
-
         self.tilemap_manager.load(resource)?;
         let map = self.tilemap_manager.get(resource).unwrap();
 
@@ -62,6 +48,22 @@ impl SceneManager {
 
         self.scene = SceneBuilder::build(map, &self.tile_sprite_manager, world);
         println!("🦀 scene '{resource}' loaded");
+
+        if let Some(viewport) = viewport {
+            if viewport.x() < 0
+                || viewport.y() < 0
+                || viewport.x() as u32 + viewport.width() > self.scene.bounds.width()
+                || viewport.y() as u32 + viewport.height() > self.scene.bounds.height()
+                || viewport.width() > self.window_size.width()
+                || viewport.height() > self.window_size.height()
+            {
+                return Err(Status::invalid_argument(&format!(
+                    "viewport {:?} should be fully included in the world bounds: {:?} and cannot be larger than the window size: {:?}",
+                    &viewport, &self.scene.bounds, &self.window_size
+                )));
+            }
+            self.viewport = viewport;
+        }
 
         Ok(())
     }
