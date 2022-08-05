@@ -1,7 +1,6 @@
 mod core;
 mod events;
 mod fps;
-mod renderer;
 mod status;
 
 pub use self::core::Core;

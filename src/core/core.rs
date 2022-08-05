@@ -2,13 +2,13 @@ use super::FpsCounter;
 use crate::{
     action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX},
     components::{Animation, Collisions, Id, Position, RigidBody, SpriteInfo, Velocity},
-    core::{renderer, EventPump, Status},
+    core::{EventPump, Status},
     crust::{user_input, Action, UserInput},
     event::EventManager,
     input::InputManager,
     resources::{SpriteManager, TextureManager, Viewport, WindowSize},
     scene::SceneManager,
-    systems::{AnimatorSystem, CollisionSystem, MovementSystem},
+    systems::{render, AnimatorSystem, CollisionSystem, MovementSystem},
 };
 use sdl2::{
     image::{self, InitFlag},
@@ -171,7 +171,7 @@ impl Core {
     pub fn halt(&self) {}
 
     fn render(&mut self, texture_manager: &mut TextureManager<sdl2::video::WindowContext>) {
-        if let Err(e) = renderer::render(
+        if let Err(e) = render(
             &mut self.canvas,
             &self.scene_manager,
             texture_manager,
