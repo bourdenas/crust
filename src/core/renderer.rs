@@ -1,13 +1,14 @@
 use crate::{
     components::{Position, Size, SpriteInfo},
     core::Status,
-    resources::TextureManager,
+    resources::{TextureManager, Viewport},
     scene::SceneManager,
 };
 use sdl2::{rect::Rect, render::WindowCanvas};
 use specs::prelude::*;
 
 type SystemData<'a> = (
+    ReadExpect<'a, Viewport>,
     ReadStorage<'a, Position>,
     ReadStorage<'a, SpriteInfo>,
     ReadStorage<'a, Size>,
@@ -17,12 +18,12 @@ pub fn render(
     canvas: &mut WindowCanvas,
     scene_manager: &SceneManager,
     texture_manager: &mut TextureManager<sdl2::video::WindowContext>,
-    (positions, sprite_info, sizes): SystemData,
+    (viewport, positions, sprite_info, sizes): SystemData,
 ) -> Result<(), Status> {
     // canvas.set_draw_color(background);
     canvas.clear();
 
-    scene_manager.render(canvas, texture_manager)?;
+    scene_manager.render(viewport.0, canvas, texture_manager)?;
 
     for (position, sprite_info, size) in (&positions, &sprite_info, &sizes).join() {
         let texture = texture_manager.load(&sprite_info.texture_id)?;

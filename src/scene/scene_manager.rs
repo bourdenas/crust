@@ -9,32 +9,27 @@ use specs::prelude::*;
 
 pub struct SceneManager {
     scene: Scene,
-    viewport: Rect,
-    window_size: Rect,
     tilemap_manager: TileMapManager,
     tile_sprite_manager: SpriteManager,
 }
 
 impl SceneManager {
-    pub fn new(resource_path: &str, window_width: u32, window_height: u32) -> Self {
+    pub fn new(resource_path: &str) -> Self {
         SceneManager {
             scene: Scene {
                 layers: vec![],
-                bounds: Rect::new(0, 0, window_width, window_height),
+                bounds: Rect::new(0, 0, 0, 0),
             },
-            viewport: Rect::new(0, 0, window_width, window_height),
-            window_size: Rect::new(0, 0, window_width, window_height),
             tilemap_manager: TileMapManager::create(resource_path),
             tile_sprite_manager: SpriteManager::create(resource_path),
         }
     }
 
-    pub fn load(
-        &mut self,
-        resource: &str,
-        viewport: Option<Rect>,
-        world: &mut World,
-    ) -> Result<(), Status> {
+    pub fn scene_bounds(&self) -> Rect {
+        self.scene.bounds
+    }
+
+    pub fn load(&mut self, resource: &str, world: &mut World) -> Result<(), Status> {
         self.tilemap_manager.load(resource)?;
         let map = self.tilemap_manager.get(resource).unwrap();
 
@@ -49,27 +44,12 @@ impl SceneManager {
         self.scene = SceneBuilder::build(map, &self.tile_sprite_manager, world);
         println!("🦀 scene '{resource}' loaded");
 
-        if let Some(viewport) = viewport {
-            if viewport.x() < 0
-                || viewport.y() < 0
-                || viewport.x() as u32 + viewport.width() > self.scene.bounds.width()
-                || viewport.y() as u32 + viewport.height() > self.scene.bounds.height()
-                || viewport.width() > self.window_size.width()
-                || viewport.height() > self.window_size.height()
-            {
-                return Err(Status::invalid_argument(&format!(
-                    "viewport {:?} should be fully included in the world bounds: {:?} and cannot be larger than the window size: {:?}",
-                    &viewport, &self.scene.bounds, &self.window_size
-                )));
-            }
-            self.viewport = viewport;
-        }
-
         Ok(())
     }
 
     pub fn render(
         &self,
+        viewport: Rect,
         canvas: &mut WindowCanvas,
         texture_manager: &mut TextureManager<sdl2::video::WindowContext>,
     ) -> Result<(), Status> {
@@ -80,8 +60,8 @@ impl SceneManager {
                     &texture,
                     tile.texture_position,
                     Rect::new(
-                        tile.canvas_position.x() - self.viewport.x(),
-                        tile.canvas_position.y() - self.viewport.y(),
+                        tile.canvas_position.x() - viewport.x(),
+                        tile.canvas_position.y() - viewport.y(),
                         tile.canvas_position.width(),
                         tile.canvas_position.height(),
                     ),
