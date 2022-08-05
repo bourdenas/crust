@@ -6,7 +6,7 @@ use crate::{
     crust::{user_input, Action, UserInput},
     event::EventManager,
     input::InputManager,
-    resources::{SpriteManager, TextureManager, Viewport},
+    resources::{SpriteManager, TextureManager, Viewport, WindowSize},
     scene::SceneManager,
     systems::{AnimatorSystem, CollisionSystem, MovementSystem},
 };
@@ -70,6 +70,7 @@ impl Core {
         let sprite_manager = SpriteManager::create(resource_path);
         world.insert(sprite_manager);
         world.insert(Duration::ZERO);
+        world.insert(WindowSize(Rect::new(0, 0, width, height)));
         world.insert(Viewport(Rect::new(0, 0, width, height)));
 
         let (tx, rx) = mpsc::channel();
@@ -147,7 +148,7 @@ impl Core {
             // Update time.
             let curr_time = SystemTime::now();
             let time_since_last_frame = curr_time.duration_since(prev_time).unwrap();
-            *self.world.write_resource::<Duration>() = time_since_last_frame;
+            *self.world.write_resource() = time_since_last_frame;
             self.fps_counter.progress(time_since_last_frame);
             prev_time = curr_time;
 
