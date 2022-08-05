@@ -1,6 +1,6 @@
 use crate::{
     action::ActionQueue,
-    components::{Id, Position, Size},
+    components::{Id, Position},
     crust::{event, Box, CollisionAction, CollisionEvent},
 };
 use sdl2::rect::Rect;
@@ -92,17 +92,10 @@ pub struct CollisionNode<'a> {
     pub entity_id: u32,
     pub id: &'a Id,
     pub position: &'a Position,
-    pub size: &'a Size,
 }
 
 impl<'a> CollisionNode<'a> {
     pub fn aabb(&self) -> Rect {
-        let mut aabb = self.size.bounding_box;
-        aabb.reposition(self.position.0);
-        aabb.resize(
-            (aabb.width() as f64 * self.size.scaling.x) as u32,
-            (aabb.height() as f64 * self.size.scaling.y) as u32,
-        );
-        aabb
+        self.position.0
     }
 }
