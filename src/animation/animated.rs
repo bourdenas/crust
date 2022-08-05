@@ -1,6 +1,6 @@
 use crate::{
     action::ActionQueue,
-    components::{Id, Position, Size, SpriteInfo, Velocity},
+    components::{Id, Position, SpriteInfo, Velocity},
     crust::{HorizontalAlign, VerticalAlign},
     resources::Sprite,
 };
@@ -11,7 +11,6 @@ pub struct Animated<'a> {
     pub position: &'a mut Position,
     pub velocity: &'a mut Velocity,
     pub sprite_info: &'a mut SpriteInfo,
-    pub size: &'a mut Size,
     sprite: &'a Sprite,
     pub queue: Option<&'a ActionQueue>,
 }
@@ -22,7 +21,6 @@ impl<'a> Animated<'a> {
         position: &'a mut Position,
         velocity: &'a mut Velocity,
         sprite_info: &'a mut SpriteInfo,
-        size: &'a mut Size,
         sprite: &'a Sprite,
         queue: Option<&'a ActionQueue>,
     ) -> Self {
@@ -31,7 +29,6 @@ impl<'a> Animated<'a> {
             position,
             velocity,
             sprite_info,
-            size,
             sprite,
             queue,
         }
@@ -50,7 +47,7 @@ impl<'a> Animated<'a> {
 
         self.position.0 = next_aabb;
         self.sprite_info.frame_index = frame_index;
-        self.size.bounding_box = self.sprite.frames[frame_index].bounding_box;
+        self.sprite_info.bounding_box = self.sprite.frames[frame_index].bounding_box;
 
         self.velocity.0 += Point::new(
             match h_align {

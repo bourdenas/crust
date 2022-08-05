@@ -1,5 +1,5 @@
 use crate::{
-    components::{Id, Position, RigidBody, Size, Velocity},
+    components::{Id, Position, RigidBody, Velocity},
     physics::CollisionNode,
 };
 use sdl2::rect::Point;
@@ -11,7 +11,6 @@ pub struct MovementSystemData<'a> {
 
     positions: WriteStorage<'a, Position>,
     velocities: WriteStorage<'a, Velocity>,
-    sizes: ReadStorage<'a, Size>,
     rigid_bodies: ReadStorage<'a, RigidBody>,
 }
 
@@ -34,11 +33,10 @@ impl<'a> System<'a> for MovementSystem {
         let mut data = data;
         let mut dirty = BitSet::new();
 
-        for (entity_a, position_a, velocity_a, size_a, _) in (
+        for (entity_a, position_a, velocity_a, _) in (
             &data.entities,
             &data.positions,
             &mut data.velocities,
-            &data.sizes,
             &data.rigid_bodies,
         )
             .join()
@@ -52,16 +50,10 @@ impl<'a> System<'a> for MovementSystem {
                 entity_id: entity_a.id(),
                 id: &self.null_id,
                 position: position_a,
-                size: size_a,
             };
 
-            for (entity_b, position_b, size_b, _) in (
-                &data.entities,
-                &data.positions,
-                &data.sizes,
-                &data.rigid_bodies,
-            )
-                .join()
+            for (entity_b, position_b, _) in
+                (&data.entities, &data.positions, &data.rigid_bodies).join()
             {
                 if entity_a == entity_b {
                     continue;
@@ -71,7 +63,6 @@ impl<'a> System<'a> for MovementSystem {
                     entity_id: entity_b.id(),
                     id: &self.null_id,
                     position: position_b,
-                    size: size_b,
                 };
 
                 while velocity_a.0.x() != 0 || velocity_a.0.y() != 0 {
@@ -108,7 +99,6 @@ impl<'a> System<'a> for MovementSystem {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::components::{ScalingVec, Size};
     use sdl2::rect::Rect;
 
     fn create_world() -> World {

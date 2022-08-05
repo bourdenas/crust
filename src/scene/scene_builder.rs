@@ -1,6 +1,6 @@
 use super::scene::{Scene, SceneLayer, TileInfo};
 use crate::{
-    components::{Id, Position, RigidBody, ScalingVec, Size},
+    components::{Id, Position, RigidBody},
     resources::{ObjectProperty, SpriteManager, TileMap},
 };
 use sdl2::rect::Rect;
@@ -51,19 +51,16 @@ impl SceneBuilder {
                 }
                 "objectgroup" => {
                     for object in &layer.objects {
-                        let mut builder = world
-                            .create_entity()
-                            .with(Id(object.name.clone()))
-                            .with(Position(Rect::new(
-                                object.x,
-                                object.y,
-                                object.width,
-                                object.height,
-                            )))
-                            .with(Size {
-                                bounding_box: Rect::new(0, 0, object.width, object.height),
-                                scaling: ScalingVec::default(),
-                            });
+                        let mut builder =
+                            world
+                                .create_entity()
+                                .with(Id(object.name.clone()))
+                                .with(Position(Rect::new(
+                                    object.x,
+                                    object.y,
+                                    object.width,
+                                    object.height,
+                                )));
 
                         for property in &object.properties {
                             if let ObjectProperty::BoolType { name, value } = property {

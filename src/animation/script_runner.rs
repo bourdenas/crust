@@ -157,7 +157,6 @@ mod tests {
     use super::*;
     use crate::{
         animation::testing::util::Fixture,
-        components::ScalingVec,
         crust::{FrameRangeAnimation, TimerAnimation, Vector, VectorAnimation},
     };
     use sdl2::rect::Point;

@@ -2,7 +2,7 @@
 pub mod util {
     use crate::{
         animation::Animated,
-        components::{Id, Position, ScalingVec, Size, SpriteInfo, Velocity},
+        components::{Id, Position, SpriteInfo, Velocity},
         resources::{Frame, Sprite},
     };
     use sdl2::rect::{Point, Rect};

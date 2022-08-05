@@ -1,7 +1,6 @@
 use sdl2::rect::{Point, Rect};
 use specs::prelude::*;
 use specs_derive::Component;
-use std::ops::MulAssign;
 
 #[derive(Component, Default, Debug)]
 #[storage(NullStorage)]
@@ -30,43 +29,44 @@ pub struct Velocity(pub Point);
 pub struct SpriteInfo {
     pub texture_id: String,
     pub frame_index: usize,
-}
-
-#[derive(Component, Debug)]
-#[storage(VecStorage)]
-pub struct Size {
     pub bounding_box: Rect,
-    pub scaling: ScalingVec,
 }
 
-#[derive(Component, Debug)]
-pub struct ScalingVec {
-    pub x: f64,
-    pub y: f64,
-}
+// #[derive(Component, Debug)]
+// #[storage(VecStorage)]
+// pub struct Size {
+//     pub bounding_box: Rect,
+//     pub scaling: ScalingVec,
+// }
 
-impl ScalingVec {
-    pub fn new(x: f64, y: f64) -> Self {
-        ScalingVec { x, y }
-    }
-}
+// #[derive(Component, Debug)]
+// pub struct ScalingVec {
+//     pub x: f64,
+//     pub y: f64,
+// }
 
-impl Default for ScalingVec {
-    fn default() -> Self {
-        ScalingVec::new(1.0, 1.0)
-    }
-}
+// impl ScalingVec {
+//     pub fn new(x: f64, y: f64) -> Self {
+//         ScalingVec { x, y }
+//     }
+// }
 
-/// Vector position product implemented as [lhs.x * rhs.x, lhs.y * rhs.y].
-impl MulAssign for ScalingVec {
-    fn mul_assign(&mut self, rhs: Self) {
-        self.x *= rhs.x;
-        self.y *= rhs.y;
-    }
-}
+// impl Default for ScalingVec {
+//     fn default() -> Self {
+//         ScalingVec::new(1.0, 1.0)
+//     }
+// }
 
-impl PartialEq for ScalingVec {
-    fn eq(&self, other: &Self) -> bool {
-        self.x == other.x && self.y == other.y
-    }
-}
+// /// Vector position product implemented as [lhs.x * rhs.x, lhs.y * rhs.y].
+// impl MulAssign for ScalingVec {
+//     fn mul_assign(&mut self, rhs: Self) {
+//         self.x *= rhs.x;
+//         self.y *= rhs.y;
+//     }
+// }
+
+// impl PartialEq for ScalingVec {
+//     fn eq(&self, other: &Self) -> bool {
+//         self.x == other.x && self.y == other.y
+//     }
+// }

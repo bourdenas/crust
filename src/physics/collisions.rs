@@ -1,6 +1,6 @@
 use crate::{
     action::ActionQueue,
-    components::{Id, Position, Size},
+    components::{Id, Position},
     crust::{event, Box, CollisionAction, CollisionEvent},
 };
 use sdl2::rect::Rect;
@@ -92,7 +92,6 @@ pub struct CollisionNode<'a> {
     pub entity_id: u32,
     pub id: &'a Id,
     pub position: &'a Position,
-    pub size: &'a Size,
 }
 
 impl<'a> CollisionNode<'a> {
