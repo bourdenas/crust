@@ -105,7 +105,6 @@ mod tests {
         let mut w = World::new();
         w.register::<Position>();
         w.register::<Velocity>();
-        w.register::<Size>();
         w.register::<RigidBody>();
         w
     }
@@ -113,12 +112,8 @@ mod tests {
     fn create_node(world: &mut World, position: Point, velocity: Point) -> Entity {
         world
             .create_entity()
-            .with(Position(position))
+            .with(Position(Rect::new(position.x(), position.y(), 32, 32)))
             .with(Velocity(velocity))
-            .with(Size {
-                bounding_box: Rect::new(0, 0, 32, 32),
-                scaling: ScalingVec::default(),
-            })
             .with(RigidBody {})
             .build()
     }
@@ -135,7 +130,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(0, 0));
+        assert_eq!(positions.get(node).unwrap().0, Rect::new(0, 0, 32, 32));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
     }
@@ -152,7 +147,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(2, 0));
+        assert_eq!(positions.get(node).unwrap().0, Rect::new(2, 0, 32, 32));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
     }
@@ -163,12 +158,8 @@ mod tests {
         let node = create_node(&mut world, Point::new(0, 0), Point::new(2, 0));
         world
             .create_entity()
-            .with(Position(Point::new(33, 0)))
+            .with(Position(Rect::new(33, 0, 32, 32)))
             .with(Velocity(Point::new(0, 0)))
-            .with(Size {
-                bounding_box: Rect::new(0, 0, 32, 32),
-                scaling: ScalingVec::default(),
-            })
             .build();
 
         let mut dispatcher = DispatcherBuilder::new()
@@ -178,7 +169,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(2, 0));
+        assert_eq!(positions.get(node).unwrap().0, Rect::new(2, 0, 32, 32));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
     }
@@ -196,7 +187,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(1, 0));
+        assert_eq!(positions.get(node).unwrap().0, Rect::new(1, 0, 32, 32));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
     }
@@ -214,7 +205,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(0, 0));
+        assert_eq!(positions.get(node).unwrap().0, Rect::new(0, 0, 32, 32));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
     }
@@ -232,7 +223,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(0, 0));
+        assert_eq!(positions.get(node).unwrap().0, Rect::new(0, 0, 32, 32));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
     }

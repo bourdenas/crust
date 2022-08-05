@@ -40,6 +40,8 @@ impl ScalingPerformer {
 
 #[cfg(test)]
 mod tests {
+    use sdl2::rect::Rect;
+
     use crate::{
         animation::{
             testing::util::Fixture, Performer, Progressor, ProgressorImpl, ScalingPerformer,
@@ -67,14 +69,14 @@ mod tests {
         let mut performer = ScalingPerformer::new(animation.clone());
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
-        assert_eq!(fixture.size.scaling, ScalingVec::new(1.0, 1.0));
+        assert_eq!(fixture.position.0, Rect::new(0, 0, 32, 32));
 
         let mut animated = fixture.animated();
         assert_eq!(
             performer.execute(&mut animated),
             AnimationRunningState::Finished
         );
-        assert_eq!(fixture.size.scaling, ScalingVec::new(1.2, 2.0));
+        assert_eq!(fixture.position.0, Rect::new(0, 0, 38, 64));
 
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
@@ -84,7 +86,7 @@ mod tests {
         );
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
-        assert_eq!(fixture.size.scaling, ScalingVec::new(1.0, 1.0));
+        assert_eq!(fixture.position.0, Rect::new(0, 0, 32, 32));
         assert_eq!(performer.finished(), false);
 
         let mut animated = fixture.animated();
@@ -92,7 +94,7 @@ mod tests {
             performer.progress(Duration::from_millis(50), &mut animated),
             Duration::ZERO
         );
-        assert_eq!(fixture.size.scaling, ScalingVec::new(1.2, 2.0));
+        assert_eq!(fixture.position.0, Rect::new(0, 0, 38, 64));
         assert_eq!(performer.finished(), true);
     }
 }
