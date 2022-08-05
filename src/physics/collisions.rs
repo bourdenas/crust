@@ -97,12 +97,6 @@ pub struct CollisionNode<'a> {
 
 impl<'a> CollisionNode<'a> {
     pub fn aabb(&self) -> Rect {
-        let mut aabb = self.size.bounding_box;
-        aabb.reposition(self.position.0);
-        aabb.resize(
-            (aabb.width() as f64 * self.size.scaling.x) as u32,
-            (aabb.height() as f64 * self.size.scaling.y) as u32,
-        );
-        aabb
+        self.position.0
     }
 }

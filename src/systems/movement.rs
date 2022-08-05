@@ -99,7 +99,7 @@ impl<'a> System<'a> for MovementSystem {
         }
 
         for (position, velocity, _) in (&mut data.positions, &mut data.velocities, &dirty).join() {
-            position.0 += velocity.0;
+            position.0.offset(velocity.0.x(), velocity.0.y());
             velocity.0 = Point::new(0, 0);
         }
     }

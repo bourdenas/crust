@@ -21,12 +21,17 @@ impl Nodes {
                 }
             };
 
+            let mut position = bbox;
+            position.reposition(make_point(
+                &node
+                    .position
+                    .expect(&format!("Node '{}' missing position", &node.id)),
+            ));
+
             let mut builder = world
                 .create_entity()
                 .with(Id(node.id.clone()))
-                .with(Position(make_point(
-                    &node.position.expect("Node missing position"),
-                )))
+                .with(Position(position))
                 .with(Velocity(Point::new(0, 0)))
                 .with(SpriteInfo {
                     texture_id: node.sprite_id.clone(),

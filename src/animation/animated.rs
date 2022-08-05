@@ -8,7 +8,7 @@ use sdl2::rect::Point;
 
 pub struct Animated<'a> {
     pub id: &'a Id,
-    pub position: &'a Position,
+    pub position: &'a mut Position,
     pub velocity: &'a mut Velocity,
     pub sprite_info: &'a mut SpriteInfo,
     pub size: &'a mut Size,
@@ -19,7 +19,7 @@ pub struct Animated<'a> {
 impl<'a> Animated<'a> {
     pub fn new(
         id: &'a Id,
-        position: &'a Position,
+        position: &'a mut Position,
         velocity: &'a mut Velocity,
         sprite_info: &'a mut SpriteInfo,
         size: &'a mut Size,
@@ -44,11 +44,11 @@ impl<'a> Animated<'a> {
         v_align: VerticalAlign,
         h_align: HorizontalAlign,
     ) {
-        let mut prev_aabb = self.sprite.frames[self.sprite_info.frame_index].bounding_box;
-        prev_aabb.reposition(self.position.0);
+        let prev_aabb = self.position.0;
         let mut next_aabb = self.sprite.frames[frame_index].bounding_box;
-        next_aabb.reposition(self.position.0);
+        next_aabb.reposition(self.position.0.top_left());
 
+        self.position.0 = next_aabb;
         self.sprite_info.frame_index = frame_index;
         self.size.bounding_box = self.sprite.frames[frame_index].bounding_box;
 

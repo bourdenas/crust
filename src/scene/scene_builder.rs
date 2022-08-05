@@ -3,7 +3,7 @@ use crate::{
     components::{Id, Position, RigidBody, ScalingVec, Size},
     resources::{ObjectProperty, SpriteManager, TileMap},
 };
-use sdl2::rect::{Point, Rect};
+use sdl2::rect::Rect;
 use specs::prelude::*;
 
 pub struct SceneBuilder;
@@ -54,7 +54,12 @@ impl SceneBuilder {
                         let mut builder = world
                             .create_entity()
                             .with(Id(object.name.clone()))
-                            .with(Position(Point::new(object.x, object.y)))
+                            .with(Position(Rect::new(
+                                object.x,
+                                object.y,
+                                object.width,
+                                object.height,
+                            )))
                             .with(Size {
                                 bounding_box: Rect::new(0, 0, object.width, object.height),
                                 scaling: ScalingVec::default(),

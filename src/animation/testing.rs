@@ -20,7 +20,7 @@ pub mod util {
         pub fn new() -> Self {
             Fixture {
                 id: Id("test_id".to_owned()),
-                position: Position(Point::new(0, 0)),
+                position: Position(Rect::new(0, 0, 32, 32)),
                 velocity: Velocity(Point::new(0, 0)),
                 sprite_info: SpriteInfo {
                     texture_id: "foo".to_owned(),

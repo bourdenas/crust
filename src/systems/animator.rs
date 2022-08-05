@@ -17,7 +17,7 @@ pub struct AnimatorSystemData<'a> {
 
     ids: ReadStorage<'a, Id>,
     animations: WriteStorage<'a, Animation>,
-    positions: ReadStorage<'a, Position>,
+    positions: WriteStorage<'a, Position>,
     velocities: WriteStorage<'a, Velocity>,
     sprite_info: WriteStorage<'a, SpriteInfo>,
     sizes: WriteStorage<'a, Size>,
@@ -37,7 +37,7 @@ impl<'a> System<'a> for AnimatorSystem {
             &data.entities,
             &data.ids,
             &mut data.animations,
-            &data.positions,
+            &mut data.positions,
             &mut data.velocities,
             &mut data.sprite_info,
             &mut data.sizes,

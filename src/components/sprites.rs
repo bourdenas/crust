@@ -13,11 +13,11 @@ pub struct Id(pub String);
 
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
-pub struct Position(pub Point);
+pub struct Position(pub Rect);
 
 impl Default for Position {
     fn default() -> Self {
-        Position(Point::new(0, 0))
+        Position(Rect::new(0, 0, 0, 0))
     }
 }
 

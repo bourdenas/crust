@@ -19,6 +19,11 @@ impl Performer for ScalingPerformer {
     fn execute(&mut self, animated: &mut Animated) -> AnimationRunningState {
         if let Some(vec) = &self.scaling.vec {
             animated.size.scaling *= ScalingVec::new(vec.x, vec.y);
+
+            animated.position.0.resize(
+                (animated.position.0.width() as f64 * vec.x) as u32,
+                (animated.position.0.height() as f64 * vec.y) as u32,
+            );
         }
 
         self.iteration += 1;
