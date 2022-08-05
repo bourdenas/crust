@@ -76,7 +76,16 @@ impl SceneManager {
         for layer in &self.scene.layers {
             for tile in &layer.tiles {
                 let texture = texture_manager.load(&tile.texture_id).unwrap();
-                canvas.copy(&texture, tile.texture_position, tile.canvas_position)?;
+                canvas.copy(
+                    &texture,
+                    tile.texture_position,
+                    Rect::new(
+                        tile.canvas_position.x() - self.viewport.x(),
+                        tile.canvas_position.y() - self.viewport.y(),
+                        tile.canvas_position.width(),
+                        tile.canvas_position.height(),
+                    ),
+                )?;
             }
         }
 
