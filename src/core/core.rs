@@ -6,12 +6,13 @@ use crate::{
     crust::{user_input, Action, UserInput},
     event::EventManager,
     input::InputManager,
-    resources::{SpriteManager, TextureManager},
+    resources::{SpriteManager, TextureManager, Viewport},
     scene::SceneManager,
     systems::{AnimatorSystem, CollisionSystem, MovementSystem},
 };
 use sdl2::{
     image::{self, InitFlag},
+    rect::Rect,
     render::WindowCanvas,
 };
 use specs::prelude::*;
@@ -69,6 +70,7 @@ impl Core {
         let sprite_manager = SpriteManager::create(resource_path);
         world.insert(sprite_manager);
         world.insert(Duration::ZERO);
+        world.insert(Viewport(Rect::new(0, 0, width, height)));
 
         let (tx, rx) = mpsc::channel();
         ACTION_QUEUE.with(|queue| {
