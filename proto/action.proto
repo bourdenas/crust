@@ -21,6 +21,8 @@ message Action {
     SceneNodeRefAction pause_animation = 8;
     SceneNodeRefAction resume_animation = 9;
 
+    ScrollAction scroll = 16;
+
     // SceneNodeVectorAction position_scene_node = 6;
     // SceneNodeVectorAction move_scene_node = 7;
 
@@ -87,6 +89,10 @@ message AnimationScriptAction {
   // * If the value is negative, the animation script is applied in reverse.
   // * If value is 0 the script will make no progress.
   double speed = 3;
+}
+
+message ScrollAction {
+    Vector vec = 1;
 }
 
 // message SfxAction {
