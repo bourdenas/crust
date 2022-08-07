@@ -8,7 +8,7 @@ use crate::{
     crust::{user_input, Action, UserInput},
     event::EventManager,
     input::InputManager,
-    resources::{SpriteManager, TextureManager, Viewport, WindowSize},
+    resources::{SpriteManager, TextureManager, Viewport, WindowSize, WorldSize},
     scene::SceneManager,
     systems::{render, AnimatorSystem, CollisionSystem, MovementSystem, ScrollingSystem},
 };
@@ -73,6 +73,7 @@ impl Core {
         let sprite_manager = SpriteManager::create(resource_path);
         world.insert(sprite_manager);
         world.insert(Duration::ZERO);
+        world.insert(WorldSize(Rect::new(0, 0, 0, 0)));
         world.insert(WindowSize(Rect::new(0, 0, width, height)));
         world.insert(Viewport(Rect::new(0, 0, width, height)));
 

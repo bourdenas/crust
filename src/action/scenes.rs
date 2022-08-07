@@ -1,6 +1,6 @@
 use crate::{
     crust::SceneAction,
-    resources::{Viewport, WindowSize},
+    resources::{Viewport, WindowSize, WorldSize},
     scene::SceneManager,
 };
 use sdl2::rect::Rect;
@@ -17,6 +17,7 @@ impl Scenes {
 
         let window_size = world.read_resource::<WindowSize>().0;
         let scene_bounds = scene_manager.scene_bounds();
+        *world.write_resource() = WorldSize(scene_bounds);
 
         match &scene_action.viewport {
             Some(viewport) => {
