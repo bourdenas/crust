@@ -1,17 +1,27 @@
-use super::{FpsCounter, SceneManager};
-use crate::action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX};
-use crate::components::{Animation, Collisions, Id, Position, RigidBody, SpriteInfo, Velocity};
-use crate::core::{renderer, EventPump, Status};
-use crate::crust::{user_input, Action, UserInput};
-use crate::event::EventManager;
-use crate::input::InputManager;
-use crate::resources::{SpriteManager, TextureManager};
-use crate::systems::{AnimatorSystem, CollisionSystem, MovementSystem};
-use sdl2::image::{self, InitFlag};
-use sdl2::render::WindowCanvas;
+use super::FpsCounter;
+use crate::{
+    action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX},
+    components::{
+        Animation, Collisions, Id, Position, RigidBody, ScrollingInfo, SpriteInfo, Velocity,
+    },
+    core::{EventPump, Status},
+    crust::{user_input, Action, UserInput},
+    event::EventManager,
+    input::InputManager,
+    resources::{SpriteManager, TextureManager, Viewport, WindowSize, WorldSize},
+    scene::SceneManager,
+    systems::{render, AnimatorSystem, CollisionSystem, MovementSystem, ScrollingSystem},
+};
+use sdl2::{
+    image::{self, InitFlag},
+    rect::Rect,
+    render::WindowCanvas,
+};
 use specs::prelude::*;
-use std::sync::mpsc::{self, Sender};
-use std::time::{Duration, SystemTime};
+use std::{
+    sync::mpsc::{self, Sender},
+    time::{Duration, SystemTime},
+};
 
 pub struct Core {
     resource_path: String,
@@ -34,14 +44,14 @@ pub struct Core {
 }
 
 impl Core {
-    pub fn init(resource_path: &str) -> Result<Self, Status> {
+    pub fn init(resource_path: &str, width: u32, height: u32) -> Result<Self, Status> {
         let sdl_context = sdl2::init()?;
         let video_subsystem = sdl_context.video()?;
 
         let event_pump = EventPump::new(&sdl_context)?;
 
         let window = video_subsystem
-            .window("trust demo", 800, 600)
+            .window("crust demo", width, height)
             .position_centered()
             .build()
             .expect("could not initialize video subsystem");
@@ -56,12 +66,16 @@ impl Core {
         world.register::<SpriteInfo>();
         world.register::<Velocity>();
         world.register::<Animation>();
+        world.register::<ScrollingInfo>();
         world.register::<Collisions>();
         world.register::<RigidBody>();
 
         let sprite_manager = SpriteManager::create(resource_path);
         world.insert(sprite_manager);
         world.insert(Duration::ZERO);
+        world.insert(WorldSize(Rect::new(0, 0, 0, 0)));
+        world.insert(WindowSize(Rect::new(0, 0, width, height)));
+        world.insert(Viewport(Rect::new(0, 0, width, height)));
 
         let (tx, rx) = mpsc::channel();
         ACTION_QUEUE.with(|queue| {
@@ -71,10 +85,12 @@ impl Core {
             *index.borrow_mut() = Some(Index::new());
         });
 
+        let executor = ActionExecutor::new(rx, &mut world);
+
         Ok(Core {
             resource_path: resource_path.to_owned(),
             world,
-            executor: ActionExecutor::new(rx),
+            executor,
             input_manager: InputManager::new(),
             event_manager: EventManager::new(),
             scene_manager: SceneManager::new(resource_path),
@@ -95,11 +111,13 @@ impl Core {
         let animations = AnimatorSystem::new(ActionQueue::new(self.tx.clone()));
         let movement = MovementSystem::new();
         let collisions = CollisionSystem::new(ActionQueue::new(self.tx.clone()));
+        let scrolling = ScrollingSystem::new();
 
         let mut dispatcher = DispatcherBuilder::new()
             .with(animations, "Animation", &[])
             .with(movement, "Movement", &["Animation"])
             .with(collisions, "Collisions", &["Animation", "Movement"])
+            .with(scrolling, "Scrolling", &[])
             .build();
         dispatcher.setup(&mut self.world);
 
@@ -138,7 +156,7 @@ impl Core {
             // Update time.
             let curr_time = SystemTime::now();
             let time_since_last_frame = curr_time.duration_since(prev_time).unwrap();
-            *self.world.write_resource::<Duration>() = time_since_last_frame;
+            *self.world.write_resource() = time_since_last_frame;
             self.fps_counter.progress(time_since_last_frame);
             prev_time = curr_time;
 
@@ -161,7 +179,7 @@ impl Core {
     pub fn halt(&self) {}
 
     fn render(&mut self, texture_manager: &mut TextureManager<sdl2::video::WindowContext>) {
-        if let Err(e) = renderer::render(
+        if let Err(e) = render(
             &mut self.canvas,
             &self.scene_manager,
             texture_manager,

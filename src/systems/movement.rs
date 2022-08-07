@@ -1,5 +1,5 @@
 use crate::{
-    components::{Id, Position, RigidBody, Size, Velocity},
+    components::{Id, Position, RigidBody, Velocity},
     physics::CollisionNode,
 };
 use sdl2::rect::Point;
@@ -11,7 +11,6 @@ pub struct MovementSystemData<'a> {
 
     positions: WriteStorage<'a, Position>,
     velocities: WriteStorage<'a, Velocity>,
-    sizes: ReadStorage<'a, Size>,
     rigid_bodies: ReadStorage<'a, RigidBody>,
 }
 
@@ -34,11 +33,10 @@ impl<'a> System<'a> for MovementSystem {
         let mut data = data;
         let mut dirty = BitSet::new();
 
-        for (entity_a, position_a, velocity_a, size_a, _) in (
+        for (entity_a, position_a, velocity_a, _) in (
             &data.entities,
             &data.positions,
             &mut data.velocities,
-            &data.sizes,
             &data.rigid_bodies,
         )
             .join()
@@ -52,16 +50,10 @@ impl<'a> System<'a> for MovementSystem {
                 entity_id: entity_a.id(),
                 id: &self.null_id,
                 position: position_a,
-                size: size_a,
             };
 
-            for (entity_b, position_b, size_b, _) in (
-                &data.entities,
-                &data.positions,
-                &data.sizes,
-                &data.rigid_bodies,
-            )
-                .join()
+            for (entity_b, position_b, _) in
+                (&data.entities, &data.positions, &data.rigid_bodies).join()
             {
                 if entity_a == entity_b {
                     continue;
@@ -71,7 +63,6 @@ impl<'a> System<'a> for MovementSystem {
                     entity_id: entity_b.id(),
                     id: &self.null_id,
                     position: position_b,
-                    size: size_b,
                 };
 
                 while velocity_a.0.x() != 0 || velocity_a.0.y() != 0 {
@@ -99,7 +90,7 @@ impl<'a> System<'a> for MovementSystem {
         }
 
         for (position, velocity, _) in (&mut data.positions, &mut data.velocities, &dirty).join() {
-            position.0 += velocity.0;
+            position.0.offset(velocity.0.x(), velocity.0.y());
             velocity.0 = Point::new(0, 0);
         }
     }
@@ -108,14 +99,12 @@ impl<'a> System<'a> for MovementSystem {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::components::{ScalingVec, Size};
     use sdl2::rect::Rect;
 
     fn create_world() -> World {
         let mut w = World::new();
         w.register::<Position>();
         w.register::<Velocity>();
-        w.register::<Size>();
         w.register::<RigidBody>();
         w
     }
@@ -123,12 +112,8 @@ mod tests {
     fn create_node(world: &mut World, position: Point, velocity: Point) -> Entity {
         world
             .create_entity()
-            .with(Position(position))
+            .with(Position(Rect::new(position.x(), position.y(), 32, 32)))
             .with(Velocity(velocity))
-            .with(Size {
-                bounding_box: Rect::new(0, 0, 32, 32),
-                scaling: ScalingVec::default(),
-            })
             .with(RigidBody {})
             .build()
     }
@@ -145,7 +130,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(0, 0));
+        assert_eq!(positions.get(node).unwrap().0, Rect::new(0, 0, 32, 32));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
     }
@@ -162,7 +147,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(2, 0));
+        assert_eq!(positions.get(node).unwrap().0, Rect::new(2, 0, 32, 32));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
     }
@@ -173,12 +158,8 @@ mod tests {
         let node = create_node(&mut world, Point::new(0, 0), Point::new(2, 0));
         world
             .create_entity()
-            .with(Position(Point::new(33, 0)))
+            .with(Position(Rect::new(33, 0, 32, 32)))
             .with(Velocity(Point::new(0, 0)))
-            .with(Size {
-                bounding_box: Rect::new(0, 0, 32, 32),
-                scaling: ScalingVec::default(),
-            })
             .build();
 
         let mut dispatcher = DispatcherBuilder::new()
@@ -188,7 +169,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(2, 0));
+        assert_eq!(positions.get(node).unwrap().0, Rect::new(2, 0, 32, 32));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
     }
@@ -206,7 +187,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(1, 0));
+        assert_eq!(positions.get(node).unwrap().0, Rect::new(1, 0, 32, 32));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
     }
@@ -224,7 +205,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(0, 0));
+        assert_eq!(positions.get(node).unwrap().0, Rect::new(0, 0, 32, 32));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
     }
@@ -242,7 +223,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(0, 0));
+        assert_eq!(positions.get(node).unwrap().0, Rect::new(0, 0, 32, 32));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(node).unwrap().0, Point::new(0, 0));
     }

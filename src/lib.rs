@@ -12,4 +12,5 @@ pub mod event;
 pub mod input;
 pub mod physics;
 pub mod resources;
+pub mod scene;
 pub mod systems;

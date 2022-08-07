@@ -157,10 +157,9 @@ mod tests {
     use super::*;
     use crate::{
         animation::testing::util::Fixture,
-        components::ScalingVec,
         crust::{FrameRangeAnimation, TimerAnimation, Vector, VectorAnimation},
     };
-    use sdl2::rect::Point;
+    use sdl2::rect::{Point, Rect};
 
     #[test]
     fn move_right_finite() {
@@ -472,16 +471,16 @@ mod tests {
         runner.start(&mut animated);
         assert_eq!(runner.finished(), false);
         assert_eq!(runner.index, 0);
+        assert_eq!(fixture.position.0, Rect::new(0, 0, 32, 32));
         assert_eq!(fixture.velocity.0, Point::new(0, 0));
         assert_eq!(fixture.sprite_info.frame_index, 0);
-        assert_eq!(fixture.size.scaling, ScalingVec::new(1.0, 1.0));
 
         // Run first leg to finish.
         let mut animated = fixture.animated();
         runner.progress(Duration::from_millis(10), &mut animated);
+        assert_eq!(fixture.position.0, Rect::new(0, 0, 38, 64));
         assert_eq!(fixture.velocity.0, Point::new(0, 0));
         assert_eq!(fixture.sprite_info.frame_index, 0);
-        assert_eq!(fixture.size.scaling, ScalingVec::new(1.2, 2.0));
         assert_eq!(runner.finished(), true);
     }
 

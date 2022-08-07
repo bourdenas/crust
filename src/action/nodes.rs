@@ -1,5 +1,5 @@
 use super::INDEX;
-use crate::components::{Id, Position, RigidBody, ScalingVec, Size, SpriteInfo, Velocity};
+use crate::components::{Id, Position, RigidBody, SpriteInfo, Velocity};
 use crate::crust::{SceneNodeAction, SceneNodeRefAction, Vector};
 use crate::resources::SpriteManager;
 use sdl2::rect::{Point, Rect};
@@ -21,20 +21,22 @@ impl Nodes {
                 }
             };
 
+            let mut position = bbox;
+            position.reposition(make_point(
+                &node
+                    .position
+                    .expect(&format!("Node '{}' missing position", &node.id)),
+            ));
+
             let mut builder = world
                 .create_entity()
                 .with(Id(node.id.clone()))
-                .with(Position(make_point(
-                    &node.position.expect("Node missing position"),
-                )))
+                .with(Position(position))
                 .with(Velocity(Point::new(0, 0)))
                 .with(SpriteInfo {
                     texture_id: node.sprite_id.clone(),
                     frame_index: node.frame_index as usize,
-                })
-                .with(Size {
                     bounding_box: bbox,
-                    scaling: ScalingVec::default(),
                 });
 
             if node.rigid_body {
