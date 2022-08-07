@@ -1,7 +1,7 @@
 use crate::{
     action::ActionQueue,
     animation::Animated,
-    components::{Animation, AnimationRunningState, Id, Position, SpriteInfo, Velocity},
+    components::{Animation, AnimationRunningState, Id, Position, Scaling, SpriteInfo, Velocity},
     crust::{event, AnimationEvent, Vector},
     resources::SpriteManager,
 };
@@ -19,6 +19,7 @@ pub struct AnimatorSystemData<'a> {
     animations: WriteStorage<'a, Animation>,
     positions: WriteStorage<'a, Position>,
     velocities: WriteStorage<'a, Velocity>,
+    scaling: WriteStorage<'a, Scaling>,
     sprite_info: WriteStorage<'a, SpriteInfo>,
 }
 
@@ -32,12 +33,13 @@ impl<'a> System<'a> for AnimatorSystem {
     fn run(&mut self, data: Self::SystemData) {
         let mut data = data;
 
-        for (entity, id, animation, position, velocity, sprite_info) in (
+        for (entity, id, animation, position, velocity, scaling, sprite_info) in (
             &data.entities,
             &data.ids,
             &mut data.animations,
             &mut data.positions,
             &mut data.velocities,
+            &mut data.scaling,
             &mut data.sprite_info,
         )
             .join()
@@ -47,6 +49,7 @@ impl<'a> System<'a> for AnimatorSystem {
                 id,
                 position,
                 velocity,
+                scaling,
                 sprite_info,
                 sprite,
                 Some(&self.queue),

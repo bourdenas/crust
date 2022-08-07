@@ -2,7 +2,8 @@ use super::FpsCounter;
 use crate::{
     action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX},
     components::{
-        Animation, Collisions, Id, Position, RigidBody, ScrollingInfo, SpriteInfo, Velocity,
+        Animation, Collisions, Id, Position, RigidBody, Scaling, ScrollingInfo, SpriteInfo,
+        Velocity,
     },
     core::{EventPump, Status},
     crust::{user_input, Action, UserInput},
@@ -65,6 +66,7 @@ impl Core {
         world.register::<Position>();
         world.register::<SpriteInfo>();
         world.register::<Velocity>();
+        world.register::<Scaling>();
         world.register::<Animation>();
         world.register::<ScrollingInfo>();
         world.register::<Collisions>();

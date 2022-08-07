@@ -24,6 +24,22 @@ impl Default for Position {
 #[storage(VecStorage)]
 pub struct Velocity(pub Point);
 
+impl Default for Velocity {
+    fn default() -> Self {
+        Velocity(Point::new(0, 0))
+    }
+}
+
+#[derive(Component, Debug)]
+#[storage(VecStorage)]
+pub struct Scaling(pub (f64, f64));
+
+impl Default for Scaling {
+    fn default() -> Self {
+        Scaling((1.0, 1.0))
+    }
+}
+
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
 pub struct SpriteInfo {

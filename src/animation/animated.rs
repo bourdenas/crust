@@ -1,6 +1,6 @@
 use crate::{
     action::ActionQueue,
-    components::{Id, Position, SpriteInfo, Velocity},
+    components::{Id, Position, Scaling, SpriteInfo, Velocity},
     crust::{HorizontalAlign, VerticalAlign},
     resources::Sprite,
 };
@@ -10,6 +10,7 @@ pub struct Animated<'a> {
     pub id: &'a Id,
     pub position: &'a mut Position,
     pub velocity: &'a mut Velocity,
+    pub scaling: &'a mut Scaling,
     pub sprite_info: &'a mut SpriteInfo,
     sprite: &'a Sprite,
     pub queue: Option<&'a ActionQueue>,
@@ -20,6 +21,7 @@ impl<'a> Animated<'a> {
         id: &'a Id,
         position: &'a mut Position,
         velocity: &'a mut Velocity,
+        scaling: &'a mut Scaling,
         sprite_info: &'a mut SpriteInfo,
         sprite: &'a Sprite,
         queue: Option<&'a ActionQueue>,
@@ -28,6 +30,7 @@ impl<'a> Animated<'a> {
             id,
             position,
             velocity,
+            scaling,
             sprite_info,
             sprite,
             queue,
@@ -44,6 +47,10 @@ impl<'a> Animated<'a> {
         let prev_aabb = self.position.0;
         let mut next_aabb = self.sprite.frames[frame_index].bounding_box;
         next_aabb.reposition(self.position.0.top_left());
+        next_aabb.resize(
+            (next_aabb.width() as f64 * self.scaling.0 .0) as u32,
+            (next_aabb.height() as f64 * self.scaling.0 .1) as u32,
+        );
 
         self.position.0 = next_aabb;
         self.sprite_info.frame_index = frame_index;
