@@ -6,6 +6,7 @@ mod index;
 mod nodes;
 mod queue;
 mod scenes;
+mod scrolling;
 
 pub use executor::ActionExecutor;
 pub use index::{Index, INDEX};
