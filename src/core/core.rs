@@ -1,14 +1,16 @@
 use super::FpsCounter;
 use crate::{
     action::{ActionExecutor, ActionQueue, Index, ACTION_QUEUE, INDEX},
-    components::{Animation, Collisions, Id, Position, RigidBody, SpriteInfo, Velocity},
+    components::{
+        Animation, Collisions, Id, Position, RigidBody, ScrollingInfo, SpriteInfo, Velocity,
+    },
     core::{EventPump, Status},
     crust::{user_input, Action, UserInput},
     event::EventManager,
     input::InputManager,
     resources::{SpriteManager, TextureManager, Viewport, WindowSize},
     scene::SceneManager,
-    systems::{render, AnimatorSystem, CollisionSystem, MovementSystem},
+    systems::{render, AnimatorSystem, CollisionSystem, MovementSystem, ScrollingSystem},
 };
 use sdl2::{
     image::{self, InitFlag},
@@ -64,6 +66,7 @@ impl Core {
         world.register::<SpriteInfo>();
         world.register::<Velocity>();
         world.register::<Animation>();
+        world.register::<ScrollingInfo>();
         world.register::<Collisions>();
         world.register::<RigidBody>();
 
@@ -81,10 +84,12 @@ impl Core {
             *index.borrow_mut() = Some(Index::new());
         });
 
+        let executor = ActionExecutor::new(rx, &mut world);
+
         Ok(Core {
             resource_path: resource_path.to_owned(),
             world,
-            executor: ActionExecutor::new(rx),
+            executor,
             input_manager: InputManager::new(),
             event_manager: EventManager::new(),
             scene_manager: SceneManager::new(resource_path),
@@ -105,11 +110,13 @@ impl Core {
         let animations = AnimatorSystem::new(ActionQueue::new(self.tx.clone()));
         let movement = MovementSystem::new();
         let collisions = CollisionSystem::new(ActionQueue::new(self.tx.clone()));
+        let scrolling = ScrollingSystem::new();
 
         let mut dispatcher = DispatcherBuilder::new()
             .with(animations, "Animation", &[])
             .with(movement, "Movement", &["Animation"])
             .with(collisions, "Collisions", &["Animation", "Movement"])
+            .with(scrolling, "Scrolling", &[])
             .build();
         dispatcher.setup(&mut self.world);
 
