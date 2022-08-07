@@ -10,4 +10,4 @@ pub use manager_annotation::{ResourceLoaderWithAnnotation, ResourceManagerWithAn
 pub use sprites::{Frame, Sprite, SpriteManager};
 pub use texture::TextureManager;
 pub use tiles::*;
-pub use viewport::{Viewport, WindowSize};
+pub use viewport::*;
