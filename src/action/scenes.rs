@@ -17,9 +17,9 @@ impl Scenes {
 
         let window_size = world.read_resource::<WindowSize>().0;
         let scene_bounds = scene_manager.scene_bounds();
-        *world.write_resource() = WorldSize(scene_bounds);
 
-        match &scene_action.viewport {
+        *world.write_resource() = WorldSize(scene_bounds);
+        *world.write_resource() = match &scene_action.viewport {
             Some(viewport) => {
                 if viewport.left < 0
                     || viewport.top < 0
@@ -35,14 +35,14 @@ impl Scenes {
                     );
                 }
 
-                *world.write_resource() = Viewport(Rect::new(
+                Viewport(Rect::new(
                     viewport.left,
                     viewport.top,
                     viewport.width,
                     viewport.height,
                 ))
             }
-            None => *world.write_resource() = Viewport(window_size),
+            None => Viewport(window_size),
         }
     }
 }
