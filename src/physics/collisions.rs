@@ -61,8 +61,8 @@ impl CollisionChecker {
                 lhs_id,
                 rhs_id,
                 intersection: Some(Box {
-                    left: intersection.x(),
-                    top: intersection.y(),
+                    left: intersection.left(),
+                    top: intersection.top(),
                     width: intersection.width(),
                     height: intersection.height(),
                 }),
@@ -109,8 +109,22 @@ impl<'a> CollisionNode<'a> {
     }
 
     fn pixel_collision(&self, other: &CollisionNode, intersection: Rect) -> Option<Rect> {
-        if self.collision_mask == None || other.collision_mask == None {
+        // TODO: Returned intersection is not the collision intersection but the
+        // bounding box intersection, which is not necessarily the same.
+        if self.collision_mask == None && other.collision_mask == None {
             return Some(intersection);
+        } else if self.collision_mask == None {
+            return Self::single_mask_intersection(
+                &other.aabb(),
+                other.collision_mask.unwrap(),
+                intersection,
+            );
+        } else if other.collision_mask == None {
+            return Self::single_mask_intersection(
+                &self.aabb(),
+                self.collision_mask.unwrap(),
+                intersection,
+            );
         }
 
         let lhs_collision_mask = self.collision_mask.unwrap();
@@ -128,6 +142,32 @@ impl<'a> CollisionNode<'a> {
 
                 if lhs_collision_mask.contains(lhs_index) && rhs_collision_mask.contains(rhs_index)
                 {
+                    return Some(intersection);
+                }
+            }
+        }
+        None
+    }
+
+    /// Checks collision with a single collision mask assuming that the other
+    /// sprite fills its bounding box.
+    ///
+    /// Note: It would be simpler if a fully set BitSet could be created fast,
+    /// but this is not supported by its API, so a bit of code duplication is
+    /// better.
+    fn single_mask_intersection(
+        aabb: &Rect,
+        collision_mask: &BitSet,
+        intersection: Rect,
+    ) -> Option<Rect> {
+        let rel_left = (intersection.left() - aabb.left()) as u32;
+        let rel_top = (intersection.top() - aabb.top()) as u32;
+
+        for y in 0..intersection.height() as u32 {
+            for x in 0..intersection.width() as u32 {
+                let index = (rel_top + y) * aabb.width() + (rel_left + x);
+
+                if collision_mask.contains(index) {
                     return Some(intersection);
                 }
             }

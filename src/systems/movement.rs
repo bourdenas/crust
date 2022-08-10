@@ -320,7 +320,7 @@ mod tests {
         world
             .create_entity()
             .with(Position(Rect::new(6, 2, 5, 3)))
-            // NOTE: Lack of SpriteInfo data prevents any collision mask.
+            // NOTE: Lack of SpriteInfo data results to no collision mask.
             .with(RigidBody {})
             .build();
 
@@ -331,7 +331,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(sprite).unwrap().0, Rect::new(1, 0, 5, 3));
+        assert_eq!(positions.get(sprite).unwrap().0, Rect::new(2, 0, 5, 3));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(sprite).unwrap().0, Point::new(0, 0));
     }
