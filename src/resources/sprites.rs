@@ -5,6 +5,15 @@ use specs::BitSet;
 
 pub type SpriteManager = ResourceManager<String, Sprite, SpriteLoader>;
 
+impl SpriteManager {
+    pub fn get_collision_mask(&self, texture_id: &str, frame_index: usize) -> Option<&BitSet> {
+        match self.get(texture_id) {
+            Some(sprite) => sprite.frames[frame_index].bitmask.as_ref(),
+            None => None,
+        }
+    }
+}
+
 pub struct SpriteLoader;
 
 impl ResourceLoader<Sprite> for SpriteLoader {

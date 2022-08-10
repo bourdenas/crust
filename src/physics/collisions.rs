@@ -102,7 +102,7 @@ impl<'a> CollisionNode<'a> {
     }
 
     pub fn intersection(&self, other: &CollisionNode) -> Option<Rect> {
-        match self.aabb & other.aabb {
+        match self.aabb() & other.aabb() {
             Some(intersection) => self.pixel_collision(other, intersection),
             None => None,
         }
@@ -116,15 +116,15 @@ impl<'a> CollisionNode<'a> {
         let lhs_collision_mask = self.collision_mask.unwrap();
         let rhs_collision_mask = other.collision_mask.unwrap();
 
-        let lhs_rel_left = (intersection.left() - self.aabb.left()) as u32;
-        let lhs_rel_top = (intersection.top() - self.aabb.top()) as u32;
-        let rhs_rel_left = (intersection.left() - other.aabb.left()) as u32;
-        let rhs_rel_top = (intersection.top() - other.aabb.top()) as u32;
+        let lhs_rel_left = (intersection.left() - self.aabb().left()) as u32;
+        let lhs_rel_top = (intersection.top() - self.aabb().top()) as u32;
+        let rhs_rel_left = (intersection.left() - other.aabb().left()) as u32;
+        let rhs_rel_top = (intersection.top() - other.aabb().top()) as u32;
 
         for y in 0..intersection.height() as u32 {
             for x in 0..intersection.width() as u32 {
-                let lhs_index = (lhs_rel_top + y) * self.aabb.width() + (lhs_rel_left + x);
-                let rhs_index = (rhs_rel_top + y) * other.aabb.width() + (rhs_rel_left + x);
+                let lhs_index = (lhs_rel_top + y) * self.aabb().width() + (lhs_rel_left + x);
+                let rhs_index = (rhs_rel_top + y) * other.aabb().width() + (rhs_rel_left + x);
 
                 if lhs_collision_mask.contains(lhs_index) && rhs_collision_mask.contains(rhs_index)
                 {

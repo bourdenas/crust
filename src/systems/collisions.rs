@@ -1,6 +1,6 @@
 use crate::{
     action::ActionQueue,
-    components::{Collisions, Id, Position},
+    components::{Collisions, Id, Position, SpriteInfo},
     physics::{CollisionChecker, CollisionNode},
     resources::SpriteManager,
 };
@@ -34,31 +34,46 @@ impl<'a> System<'a> for CollisionSystem {
 
     fn run(&mut self, data: Self::SystemData) {
         // let mut data = data;
-        for (entity_a, id_a, position_a, collisions) in
-            (&data.entities, &data.ids, &data.positions, &data.collisions).join()
+        for (lhs_entity, lhs_id, lhs_position, lhs_sprite_info, collisions) in (
+            &data.entities,
+            &data.ids,
+            &data.positions,
+            &data.sprite_info,
+            &data.collisions,
+        )
+            .join()
         {
-            for (entity_b, id_b, position_b) in (&data.entities, &data.ids, &data.positions).join()
+            let lhs_node = CollisionNode {
+                entity_id: lhs_entity.id(),
+                id: lhs_id,
+                position: lhs_position,
+                collision_mask: data
+                    .sprite_manager
+                    .get_collision_mask(&lhs_sprite_info.texture_id, lhs_sprite_info.frame_index),
+            };
+
+            for (rhs_entity, rhs_id, rhs_position, rhs_sprite_info) in (
+                &data.entities,
+                &data.ids,
+                &data.positions,
+                &data.sprite_info,
+            )
+                .join()
             {
                 if lhs_entity == rhs_entity {
                     continue;
                 }
 
-                let sprite = data
-                    .sprite_manager
-                    .get(&rhs_sprite_info.texture_id)
-                    .unwrap();
-
                 self.checker.check_collision(
-                    CollisionNode {
-                        entity_id: entity_a.id(),
-                        id: id_a,
-                        position: position_a,
-                    },
-                    CollisionNode {
-                        entity_id: entity_b.id(),
-                        id: id_b,
-                        position: position_b,
-                        sprite.frames[rhs_sprite_info.frame_index].bitmask.as_ref(),
+                    &lhs_node,
+                    &CollisionNode {
+                        entity_id: rhs_entity.id(),
+                        id: rhs_id,
+                        position: rhs_position,
+                        collision_mask: data.sprite_manager.get_collision_mask(
+                            &rhs_sprite_info.texture_id,
+                            rhs_sprite_info.frame_index,
+                        ),
                     },
                     &collisions.on_collision,
                 );

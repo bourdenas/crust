@@ -1,5 +1,5 @@
 use crate::{
-    components::{Id, Position, RigidBody, Velocity},
+    components::{Id, Position, RigidBody, SpriteInfo, Velocity},
     physics::CollisionNode,
     resources::SpriteManager,
 };
@@ -32,13 +32,12 @@ impl MovementSystem {
 impl<'a> System<'a> for MovementSystem {
     type SystemData = MovementSystemData<'a>;
 
-    fn run(&mut self, data: Self::SystemData) {
-        let mut data = data;
+    fn run(&mut self, mut data: Self::SystemData) {
         let mut dirty = BitSet::new();
 
         // First Join captures Sprites only. Background tiles do not have a
         // SpriteInfo component.
-        for (entity_a, position_a, velocity_a, _) in (
+        for (lhs_entity, lhs_position, lhs_velocity, lhs_sprite_info, _) in (
             &data.entities,
             &data.positions,
             &mut data.velocities,
@@ -52,58 +51,45 @@ impl<'a> System<'a> for MovementSystem {
             }
             dirty.add(lhs_entity.id());
 
-            let sprite = data
-                .sprite_manager
-                .get(&lhs_sprite_info.texture_id)
-                .unwrap();
-
-            let lhs = CollisionNode::new(
-                lhs_entity.id(),
-                &self.null_id,
-                lhs_position,
-                lhs_size,
-                sprite.frames[lhs_sprite_info.frame_index].bitmask.as_ref(),
-            );
-
             // Second Join captures any rigid body including tiles.
-            for (entity_b, position_b, _) in
-                (&data.entities, &data.positions, &data.rigid_bodies).join()
+            for (rhs_entity, rhs_position, rhs_sprite_info, _) in (
+                &data.entities,
+                &data.positions,
+                (&data.sprite_info).maybe(),
+                &data.rigid_bodies,
+            )
+                .join()
             {
                 if lhs_entity == rhs_entity {
                     continue;
                 }
 
-                let mut bitmask = None;
-                if let Some(rhs_sprite_info) = rhs_sprite_info {
-                    let sprite = data
-                        .sprite_manager
-                        .get(&rhs_sprite_info.texture_id)
-                        .unwrap();
-                    bitmask = sprite.frames[rhs_sprite_info.frame_index].bitmask.as_ref();
-                }
                 let rhs = CollisionNode {
-                    entity_id: entity_b.id(),
+                    entity_id: rhs_entity.id(),
                     id: &self.null_id,
-                    position: position_b,
+                    position: rhs_position,
+                    collision_mask: match rhs_sprite_info {
+                        Some(sprite_info) => data
+                            .sprite_manager
+                            .get_collision_mask(&sprite_info.texture_id, sprite_info.frame_index),
+                        None => None,
+                    },
                 };
 
-                let rhs = CollisionNode::new(
-                    rhs_entity.id(),
-                    &self.null_id,
-                    rhs_position,
-                    rhs_size,
-                    bitmask,
-                );
-
                 while lhs_velocity.0.x() != 0 || lhs_velocity.0.y() != 0 {
-                    let updated_position = Position(lhs.position.0 + lhs_velocity.0);
-                    let lhs = CollisionNode::new(
-                        lhs.entity_id,
-                        lhs.id,
-                        &updated_position,
-                        lhs.size,
-                        lhs.collision_mask,
-                    );
+                    let mut projected_position = lhs_position.0;
+                    projected_position.offset(lhs_velocity.0.x(), lhs_velocity.0.y());
+
+                    let lhs = CollisionNode {
+                        entity_id: lhs_entity.id(),
+                        id: &self.null_id,
+                        position: &Position(projected_position),
+                        collision_mask: data.sprite_manager.get_collision_mask(
+                            &lhs_sprite_info.texture_id,
+                            lhs_sprite_info.frame_index,
+                        ),
+                    };
+
                     if let None = lhs.intersection(&rhs) {
                         break;
                     }
@@ -135,14 +121,14 @@ impl<'a> System<'a> for MovementSystem {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::components::{ScalingVec, Size};
+    use crate::resources::{Frame, Sprite};
     use sdl2::rect::Rect;
 
     fn create_world() -> World {
         let mut w = World::new();
         w.register::<Position>();
         w.register::<Velocity>();
-        w.register::<Size>();
+        w.register::<SpriteInfo>();
         w.register::<RigidBody>();
 
         let sprite_manager = SpriteManager::mock(vec![
@@ -169,11 +155,12 @@ mod tests {
     fn create_sprite(world: &mut World, position: Point, velocity: Point) -> Entity {
         world
             .create_entity()
-            .with(Position(Rect::new(position.x(), position.y(), 32, 32)))
+            .with(Position(Rect::new(position.x(), position.y(), 5, 3)))
             .with(Velocity(velocity))
-            .with(Size {
-                bounding_box: Rect::new(0, 0, 32, 32),
-                scaling: ScalingVec::default(),
+            .with(SpriteInfo {
+                texture_id: "spriteA".to_owned(),
+                frame_index: 0,
+                bounding_box: Rect::new(0, 0, 5, 3),
             })
             .with(RigidBody {})
             .build()
@@ -191,7 +178,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(0, 0));
+        assert_eq!(positions.get(sprite).unwrap().0, Rect::new(0, 0, 5, 3));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(sprite).unwrap().0, Point::new(0, 0));
     }
@@ -208,7 +195,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(2, 0));
+        assert_eq!(positions.get(sprite).unwrap().0, Rect::new(2, 0, 5, 3));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(sprite).unwrap().0, Point::new(0, 0));
     }
@@ -219,7 +206,7 @@ mod tests {
         let sprite = create_sprite(&mut world, Point::new(0, 0), Point::new(2, 0));
         world
             .create_entity()
-            .with(Position(Point::new(33, 0)))
+            .with(Position(Rect::new(5, 0, 5, 3)))
             .with(Velocity(Point::new(0, 0)))
             .build();
 
@@ -230,7 +217,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(2, 0));
+        assert_eq!(positions.get(sprite).unwrap().0, Rect::new(2, 0, 5, 3));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(sprite).unwrap().0, Point::new(0, 0));
     }
@@ -248,7 +235,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(1, 0));
+        assert_eq!(positions.get(sprite).unwrap().0, Rect::new(1, 0, 5, 3));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(sprite).unwrap().0, Point::new(0, 0));
     }
@@ -266,7 +253,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(0, 0));
+        assert_eq!(positions.get(sprite).unwrap().0, Rect::new(0, 0, 5, 3));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(sprite).unwrap().0, Point::new(0, 0));
     }
@@ -284,7 +271,7 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(node).unwrap().0, Point::new(0, 0));
+        assert_eq!(positions.get(sprite).unwrap().0, Rect::new(0, 0, 5, 3));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(sprite).unwrap().0, Point::new(0, 0));
     }
@@ -300,14 +287,11 @@ mod tests {
         let sprite = create_sprite(&mut world, Point::new(0, 0), Point::new(3, 0));
         world
             .create_entity()
-            .with(Position(Point::new(5, 0)))
-            .with(Size {
-                bounding_box: Rect::new(0, 0, 5, 3),
-                scaling: ScalingVec::default(),
-            })
+            .with(Position(Rect::new(5, 0, 5, 3)))
             .with(SpriteInfo {
                 texture_id: "spriteB".to_owned(),
                 frame_index: 0,
+                bounding_box: Rect::new(0, 0, 5, 3),
             })
             .with(RigidBody {})
             .build();
@@ -319,7 +303,35 @@ mod tests {
         world.maintain();
 
         let positions = world.read_storage::<Position>();
-        assert_eq!(positions.get(sprite).unwrap().0, Point::new(1, 0));
+        assert_eq!(positions.get(sprite).unwrap().0, Rect::new(1, 0, 5, 3));
+        let velocities = world.read_storage::<Velocity>();
+        assert_eq!(velocities.get(sprite).unwrap().0, Point::new(0, 0));
+    }
+
+    #[test]
+    fn rigid_bodies_with_only_one_collison_mask() {
+        // Sprites with collision masks below colliding.
+        //  LHS  -  RHS
+        // 10000   11111
+        // 10011   11111
+        // 11110   11111
+        let mut world = create_world();
+        let sprite = create_sprite(&mut world, Point::new(0, 0), Point::new(3, 0));
+        world
+            .create_entity()
+            .with(Position(Rect::new(6, 2, 5, 3)))
+            // NOTE: Lack of SpriteInfo data prevents any collision mask.
+            .with(RigidBody {})
+            .build();
+
+        let mut dispatcher = DispatcherBuilder::new()
+            .with(MovementSystem::new(), "move", &[])
+            .build();
+        dispatcher.dispatch(&mut world);
+        world.maintain();
+
+        let positions = world.read_storage::<Position>();
+        assert_eq!(positions.get(sprite).unwrap().0, Rect::new(1, 0, 5, 3));
         let velocities = world.read_storage::<Velocity>();
         assert_eq!(velocities.get(sprite).unwrap().0, Point::new(0, 0));
     }
