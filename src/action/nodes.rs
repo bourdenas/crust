@@ -1,5 +1,5 @@
 use super::INDEX;
-use crate::components::{Id, Position, RigidBody, Scaling, SpriteInfo, Velocity};
+use crate::components::{Id, Position, RigidBody, Rotation, Scaling, SpriteInfo, Velocity};
 use crate::crust::{SceneNodeAction, SceneNodeRefAction, Vector};
 use crate::resources::SpriteManager;
 use sdl2::rect::{Point, Rect};
@@ -33,6 +33,7 @@ impl Nodes {
                 .with(Id(node.id.clone()))
                 .with(Position(position))
                 .with(Velocity::default())
+                .with(Rotation::default())
                 .with(Scaling::default())
                 .with(SpriteInfo {
                     texture_id: node.sprite_id.clone(),
