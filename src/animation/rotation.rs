@@ -1,40 +1,38 @@
 use super::{Animated, Performer};
-use crate::{components::AnimationRunningState, crust::VectorAnimation};
+use crate::{components::AnimationRunningState, crust::RotationAnimation};
+use sdl2::rect::Point;
 
 #[derive(Default)]
-pub struct ScalingPerformer {
-    scaling: VectorAnimation,
+pub struct RotationPerformer {
+    rotation: RotationAnimation,
     iteration: u32,
 }
 
-impl Performer for ScalingPerformer {
-    fn start(&mut self, _animated: &mut Animated, _speed: f64) {}
+impl Performer for RotationPerformer {
+    fn start(&mut self, animated: &mut Animated, _speed: f64) {
+        if let Some(centre) = &self.rotation.centre {
+            animated.rotation.centre = Some(Point::new(centre.x as i32, centre.y as i32));
+        }
+    }
     fn stop(&mut self, _animated: &mut Animated) {}
     fn pause(&mut self, _animated: &mut Animated) {}
     fn resume(&mut self, _animated: &mut Animated) {}
 
     fn execute(&mut self, animated: &mut Animated) -> AnimationRunningState {
-        if let Some(vec) = &self.scaling.vec {
-            animated.scaling.0 = (vec.x, vec.y);
-
-            animated.position.0.resize(
-                (animated.position.0.width() as f64 * vec.x) as u32,
-                (animated.position.0.height() as f64 * vec.y) as u32,
-            );
-        }
+        animated.rotation.angle += self.rotation.angle;
 
         self.iteration += 1;
-        match self.scaling.repeat > 0 && self.iteration == self.scaling.repeat {
+        match self.rotation.repeat > 0 && self.iteration == self.rotation.repeat {
             true => AnimationRunningState::Finished,
             false => AnimationRunningState::Running,
         }
     }
 }
 
-impl ScalingPerformer {
-    pub fn new(scaling: VectorAnimation) -> Self {
-        ScalingPerformer {
-            scaling,
+impl RotationPerformer {
+    pub fn new(rotation: RotationAnimation) -> Self {
+        RotationPerformer {
+            rotation,
             iteration: 0,
         }
     }
@@ -44,30 +42,27 @@ impl ScalingPerformer {
 mod tests {
     use crate::{
         animation::{
-            testing::util::Fixture, Performer, Progressor, ProgressorImpl, ScalingPerformer,
+            testing::util::Fixture, Performer, Progressor, ProgressorImpl, RotationPerformer,
         },
         components::AnimationRunningState,
-        crust::{Vector, VectorAnimation},
+        crust::RotationAnimation,
     };
     use sdl2::rect::Rect;
     use std::time::Duration;
 
     #[test]
-    fn zero_delay() {
+    fn rotation_default_centre() {
         let mut fixture = Fixture::new();
 
-        let animation = VectorAnimation {
-            vec: Some(Vector {
-                x: 1.2,
-                y: 2.0,
-                ..Default::default()
-            }),
-            delay: 0,
-            repeat: 1,
+        let animation = RotationAnimation {
+            angle: 3.0,
+            centre: None,
+            delay: 100,
+            repeat: 0,
         };
 
-        // Test ScalingPerformer.
-        let mut performer = ScalingPerformer::new(animation.clone());
+        // Test RotationPerformer.
+        let mut performer = RotationPerformer::new(animation.clone());
         let mut animated = fixture.animated();
         performer.start(&mut animated, 1.0);
         assert_eq!(fixture.position.0, Rect::new(0, 0, 32, 32));
@@ -82,7 +77,7 @@ mod tests {
         // Test Performer using PerformerBase.
         let mut fixture = Fixture::new();
         let mut performer = ProgressorImpl::new(
-            ScalingPerformer::new(animation.clone()),
+            RotationPerformer::new(animation.clone()),
             Duration::from_millis(animation.delay as u64),
         );
         let mut animated = fixture.animated();
