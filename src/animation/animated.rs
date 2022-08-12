@@ -1,6 +1,6 @@
 use crate::{
     action::ActionQueue,
-    components::{Id, Position, Scaling, SpriteInfo, Velocity},
+    components::{Id, Position, Rotation, Scaling, SpriteInfo, Velocity},
     crust::{HorizontalAlign, VerticalAlign},
     resources::Sprite,
 };
@@ -10,6 +10,7 @@ pub struct Animated<'a> {
     pub id: &'a Id,
     pub position: &'a mut Position,
     pub velocity: &'a mut Velocity,
+    pub rotation: &'a mut Rotation,
     pub scaling: &'a mut Scaling,
     pub sprite_info: &'a mut SpriteInfo,
     sprite: &'a Sprite,
@@ -21,6 +22,7 @@ impl<'a> Animated<'a> {
         id: &'a Id,
         position: &'a mut Position,
         velocity: &'a mut Velocity,
+        rotation: &'a mut Rotation,
         scaling: &'a mut Scaling,
         sprite_info: &'a mut SpriteInfo,
         sprite: &'a Sprite,
@@ -30,6 +32,7 @@ impl<'a> Animated<'a> {
             id,
             position,
             velocity,
+            rotation,
             scaling,
             sprite_info,
             sprite,
