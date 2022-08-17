@@ -1,6 +1,6 @@
 use super::{
     Animated, FrameListPerformer, FrameRangePerformer, Progressor, ProgressorImpl,
-    ScalingPerformer, TimerPerformer, TranslationPerformer,
+    RotationPerformer, ScalingPerformer, TimerPerformer, TranslationPerformer,
 };
 use crate::crust::Animation;
 use std::time::Duration;
@@ -27,6 +27,13 @@ impl Animator {
             let delay = translation.delay as u64;
             self.progressors.push(Box::new(ProgressorImpl::new(
                 TranslationPerformer::new(translation),
+                Duration::from_millis(delay),
+            )));
+        }
+        if let Some(rotation) = animation.rotation {
+            let delay = rotation.delay as u64;
+            self.progressors.push(Box::new(ProgressorImpl::new(
+                RotationPerformer::new(rotation),
                 Duration::from_millis(delay),
             )));
         }

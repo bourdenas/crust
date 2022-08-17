@@ -2,7 +2,7 @@
 pub mod util {
     use crate::{
         animation::Animated,
-        components::{Id, Position, Scaling, SpriteInfo, Velocity},
+        components::{Id, Position, Rotation, Scaling, SpriteInfo, Velocity},
         resources::{Frame, Sprite},
     };
     use sdl2::rect::Rect;
@@ -11,6 +11,7 @@ pub mod util {
         id: Id,
         pub position: Position,
         pub velocity: Velocity,
+        pub rotation: Rotation,
         pub scaling: Scaling,
         pub sprite_info: SpriteInfo,
         sprite: Sprite,
@@ -22,6 +23,7 @@ pub mod util {
                 id: Id("test_id".to_owned()),
                 position: Position(Rect::new(0, 0, 32, 32)),
                 velocity: Velocity::default(),
+                rotation: Rotation::default(),
                 scaling: Scaling::default(),
                 sprite_info: SpriteInfo {
                     texture_id: "foo".to_owned(),
@@ -65,6 +67,7 @@ pub mod util {
                 &self.id,
                 &mut self.position,
                 &mut self.velocity,
+                &mut self.rotation,
                 &mut self.scaling,
                 &mut self.sprite_info,
                 &self.sprite,

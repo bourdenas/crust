@@ -30,6 +30,13 @@ impl Default for Velocity {
     }
 }
 
+#[derive(Component, Default, Debug)]
+#[storage(VecStorage)]
+pub struct Rotation {
+    pub angle: f64,
+    pub centre: Option<Point>,
+}
+
 #[derive(Component, Debug)]
 #[storage(VecStorage)]
 pub struct Scaling(pub (f64, f64));
