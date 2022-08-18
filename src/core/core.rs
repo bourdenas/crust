@@ -98,6 +98,7 @@ impl Core {
             window_config.width as u32,
             window_config.height as u32,
         )));
+        world.insert(config.debug.unwrap_or_default());
 
         let (tx, rx) = mpsc::channel();
         ACTION_QUEUE.with(|queue| {

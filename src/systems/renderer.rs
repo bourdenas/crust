@@ -1,13 +1,15 @@
 use crate::{
     components::{Position, Rotation, SpriteInfo},
     core::Status,
+    crust::DebugInfo,
     resources::{TextureManager, Viewport},
     scene::SceneManager,
 };
-use sdl2::{rect::Rect, render::WindowCanvas};
+use sdl2::{pixels::Color, rect::Rect, render::WindowCanvas};
 use specs::prelude::*;
 
 type SystemData<'a> = (
+    ReadExpect<'a, DebugInfo>,
     ReadExpect<'a, Viewport>,
     ReadStorage<'a, Position>,
     ReadStorage<'a, Rotation>,
@@ -18,9 +20,8 @@ pub fn render(
     canvas: &mut WindowCanvas,
     scene_manager: &SceneManager,
     texture_manager: &mut TextureManager<sdl2::video::WindowContext>,
-    (viewport, positions, rotations, sprite_info): SystemData,
+    (debug, viewport, positions, rotations, sprite_info): SystemData,
 ) -> Result<(), Status> {
-    // canvas.set_draw_color(background);
     canvas.clear();
 
     scene_manager.render(viewport.0, canvas, texture_manager)?;
@@ -42,6 +43,18 @@ pub fn render(
             false,
             false,
         )?;
+    }
+
+    if debug.draw_bounding_boxes {
+        for position in (&positions).join() {
+            canvas.set_draw_color(Color::MAGENTA);
+            canvas.draw_rect(Rect::new(
+                position.0.x() - viewport.0.x(),
+                position.0.y() - viewport.0.y(),
+                position.0.width(),
+                position.0.height(),
+            ))?;
+        }
     }
 
     canvas.present();
