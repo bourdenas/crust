@@ -2,6 +2,7 @@ syntax = "proto3";
 
 import "action.proto";
 import "animation.proto";
+import "config.proto";
 import "event.proto";
 import "primitives.proto";
 import "scene_node.proto";

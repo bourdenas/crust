@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package crust;
+
+message CrustConfig {
+  string assets_path = 1;
+  Window window = 2;
+  DebugInfo debug = 3;
+}
+
+message Window {
+  string title = 1;
+  int32 width = 2;
+  int32 height = 3;
+}
+
+message DebugInfo {
+  bool draw_bounding_boxes = 1;
+}
