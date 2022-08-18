@@ -6,7 +6,7 @@ use crate::{
         SpriteInfo, Velocity,
     },
     core::{EventPump, Status},
-    crust::{user_input, Action, UserInput},
+    crust::{user_input, Action, CrustConfig, UserInput},
     event::EventManager,
     input::InputManager,
     resources::{SpriteManager, TextureManager, Viewport, WindowSize, WorldSize},
@@ -45,14 +45,23 @@ pub struct Core {
 }
 
 impl Core {
-    pub fn init(resource_path: &str, width: u32, height: u32) -> Result<Self, Status> {
+    pub fn init(config: CrustConfig) -> Result<Self, Status> {
         let sdl_context = sdl2::init()?;
         let video_subsystem = sdl_context.video()?;
 
         let event_pump = EventPump::new(&sdl_context)?;
 
+        if config.window == None {
+            return Err(Status::invalid_argument("Game window was not configured."));
+        }
+
+        let window_config = &config.window.unwrap();
         let window = video_subsystem
-            .window("crust demo", width, height)
+            .window(
+                &window_config.title,
+                window_config.width as u32,
+                window_config.height as u32,
+            )
             .position_centered()
             .build()
             .expect("could not initialize video subsystem");
@@ -73,12 +82,22 @@ impl Core {
         world.register::<Collisions>();
         world.register::<RigidBody>();
 
-        let sprite_manager = SpriteManager::create(resource_path);
+        let sprite_manager = SpriteManager::create(&config.assets_path);
         world.insert(sprite_manager);
         world.insert(Duration::ZERO);
         world.insert(WorldSize(Rect::new(0, 0, 0, 0)));
-        world.insert(WindowSize(Rect::new(0, 0, width, height)));
-        world.insert(Viewport(Rect::new(0, 0, width, height)));
+        world.insert(WindowSize(Rect::new(
+            0,
+            0,
+            window_config.width as u32,
+            window_config.height as u32,
+        )));
+        world.insert(Viewport(Rect::new(
+            0,
+            0,
+            window_config.width as u32,
+            window_config.height as u32,
+        )));
 
         let (tx, rx) = mpsc::channel();
         ACTION_QUEUE.with(|queue| {
@@ -89,14 +108,15 @@ impl Core {
         });
 
         let executor = ActionExecutor::new(rx, &mut world);
+        let scene_manager = SceneManager::new(&config.assets_path);
 
         Ok(Core {
-            resource_path: resource_path.to_owned(),
+            resource_path: config.assets_path,
             world,
             executor,
             input_manager: InputManager::new(),
             event_manager: EventManager::new(),
-            scene_manager: SceneManager::new(resource_path),
+            scene_manager,
             fps_counter: FpsCounter::new(),
             tx,
             _sdl_context: sdl_context,
