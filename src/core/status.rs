@@ -1,48 +1,52 @@
 use std::{error::Error, fmt};
-use tonic;
 
-pub struct Status(tonic::Status);
+#[derive(Debug)]
+pub enum Status {
+    Ok,
+    Internal(String),
+    InvalidArgument(String),
+    NotFound(String),
+}
 
 impl Status {
     pub fn new(msg: &str, err: impl Error) -> Self {
-        Self(tonic::Status::internal(format!("{}: '{}'", msg, err)))
+        Status::Internal(format!("{msg}: '{err}'"))
     }
 
     pub fn internal(msg: impl Into<String>) -> Self {
-        Self(tonic::Status::internal(msg))
+        Status::Internal(msg.into())
     }
 
-    pub fn invalid_argument(msg: &str) -> Self {
-        Self(tonic::Status::invalid_argument(msg))
+    pub fn invalid_argument(msg: impl Into<String>) -> Self {
+        Status::InvalidArgument(msg.into())
     }
 
-    pub fn not_found(msg: &str) -> Self {
-        Self(tonic::Status::not_found(msg))
+    pub fn not_found(msg: impl Into<String>) -> Self {
+        Status::NotFound(msg.into())
     }
 }
 
 impl From<std::io::Error> for Status {
     fn from(err: std::io::Error) -> Self {
-        Self(tonic::Status::from(err))
+        Self::new("IO error", err)
     }
 }
 
 impl From<String> for Status {
     fn from(err: String) -> Self {
-        Self(tonic::Status::internal(err))
+        Self::internal(err)
     }
 }
 
 impl Error for Status {}
 
-impl fmt::Debug for Status {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
 impl fmt::Display for Status {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0.fmt(f)
+        match self {
+            Status::Ok => write!(f, "Ok"),
+            Status::Internal(msg) => write!(f, "Interal error: {msg}"),
+            Status::InvalidArgument(msg) => write!(f, "Invalid argument error: {msg}"),
+            Status::NotFound(msg) => write!(f, "Not found error: {msg}"),
+        }
     }
 }
